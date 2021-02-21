@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer name="BluetoothRequestCode">1</integer>
+    <integer name="foregroundServiceStartCode">2</integer>
+    <integer name="serviceStatusNotification">3</integer>
+    <integer name="keyGenerationRequestCode">4</integer>
+</resources>

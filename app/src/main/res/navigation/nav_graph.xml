@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/homeFragment">
+
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="com.project.collaborativeauthenticationapplication.service.key.HomeFragment"
+        android:label="fragment_home"
+        tools:layout="@layout/fragment_home" >
+        <action
+            android:id="@+id/select"
+            app:destination="@id/deviceSelectionFragment" />
+        <action
+            android:id="@+id/error_home"
+            app:destination="@id/errorFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/deviceSelectionFragment"
+        android:name="com.project.collaborativeauthenticationapplication.service.key.DeviceSelectionFragment"
+        android:label="fragment_device_selection"
+        tools:layout="@layout/fragment_device_selection" >
+        <action
+            android:id="@+id/run"
+            app:destination="@id/generationFragment" />
+        <action
+            android:id="@+id/error_select"
+            app:destination="@id/errorFragment" />
+        <action
+            android:id="@+id/action_deviceSelectionFragment_to_homeFragment"
+            app:destination="@id/homeFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/generationFragment"
+        android:name="com.project.collaborativeauthenticationapplication.service.key.GenerationFragment"
+        android:label="fragment_generation"
+        tools:layout="@layout/fragment_generation" >
+        <action
+            android:id="@+id/error_generation"
+            app:destination="@id/errorFragment" />
+        <action
+            android:id="@+id/success"
+            app:destination="@id/finishedFragment" />
+        <action
+            android:id="@+id/action_generationFragment_to_homeFragment"
+            app:destination="@id/homeFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/errorFragment"
+        android:name="com.project.collaborativeauthenticationapplication.service.key.ErrorFragment"
+        android:label="fragment_error"
+        tools:layout="@layout/fragment_error" />
+    <fragment
+        android:id="@+id/finishedFragment"
+        android:name="com.project.collaborativeauthenticationapplication.service.key.FinishedFragment"
+        android:label="fragment_finished"
+        tools:layout="@layout/fragment_finished" />
+</navigation>

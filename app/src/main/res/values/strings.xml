@@ -1,0 +1,41 @@
+<resources>
+    <string name="app_name">Authentication Manager</string>
+    <string name="button_mainActivity_start_dkg">Generate new set of keys</string>
+    <string name="menu_option_authentication_start">Enable service</string>
+    <string name="menu_option_authentication_stop">Disable service</string>
+    <string name="menu_option_enable_bluetooth">Enable bluetooth</string>
+    <string name="PRIORITY_LOW">low</string>
+    <string name="PRIORITY_HIGH">high</string>
+    <string name="PRIORITY_NORMAL">normal</string>
+    <string name="PRIORITY_CRITICAL">critical</string>
+    <string name="text_status_service_off">Status service:  Disabled</string>
+    <string name="text_status_service_active">Status service: Active</string>
+    <string name="text_status_service_inactive">Status service: Inactive</string>
+    <string name="key_generation_fail">Cannot start key generation</string>
+    <string name="notification_text_for_foreground_service">Authentication service enabled</string>
+    <string name="not_service_status_active">Service became active</string>
+    <string name="not_service_status_sleep">Service became inactive</string>
+    <string name="not_service_status_disabled">Service was disabled</string>
+    <string name="title_activity_distributed_key_generation">Key generation</string>
+
+
+    <string name="error_fragment">Some error</string>
+    <string name="default_login_name">Login</string>
+    <string name="button_home_frag">Ok</string>
+    <string name="button_sel_frag">Ok</string>
+    <string name="default_name">Name</string>
+    <string name="select_devices">select</string>
+    <string name="finished">finished</string>
+    <string name="generation">generation</string>
+    <string name="options_text">Unselected options</string>
+    <string name="selected_text">Selected options</string>
+
+
+    <string-array name="possible_weights">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+    </string-array>
+</resources>

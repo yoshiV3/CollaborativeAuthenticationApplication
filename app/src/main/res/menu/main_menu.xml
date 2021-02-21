@@ -1,0 +1,20 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.project.collaborativeauthenticationapplication.main.MainActivity">
+    <item
+        android:id="@+id/menu_option_authentication_start"
+        android:orderInCategory="100"
+        android:title="@string/menu_option_authentication_start"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/menu_option_authentication_stop"
+        android:orderInCategory="100"
+        android:title="@string/menu_option_authentication_stop"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/menu_option_enable_bluetooth"
+        android:orderInCategory="100"
+        android:title="@string/menu_option_enable_bluetooth"
+        app:showAsAction="never" />
+</menu>
