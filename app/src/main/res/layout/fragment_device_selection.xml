@@ -6,54 +6,55 @@
     android:layout_height="match_parent"
     tools:context=".service.key.DeviceSelectionFragment">
 
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_options"
         android:layout_width="273dp"
         android:layout_height="173dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="40dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/display_text_selection" />
+        android:layout_marginStart="60dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/display_text_options" />
 
     <TextView
         android:id="@+id/display_text_options"
         android:layout_width="200dp"
         android:layout_height="30dp"
-        android:layout_marginTop="20dp"
-        android:layout_marginEnd="40dp"
+        android:layout_marginStart="100dp"
+        android:layout_marginTop="10dp"
         android:text="@string/options_text"
         android:textSize="14sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/recycler_options" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/display_text_selection"
         android:layout_width="200dp"
         android:layout_height="30dp"
+        android:layout_marginStart="100dp"
         android:layout_marginTop="10dp"
-        android:layout_marginEnd="40dp"
         android:text="@string/selected_text"
         android:textSize="14sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/recycler_options" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_selection"
         android:layout_width="269dp"
         android:layout_height="170dp"
-        android:layout_marginTop="20dp"
-        android:layout_marginEnd="40dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/display_text_options" />
+        android:layout_marginStart="60dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/display_text_selection" />
 
     <Button
-        android:id="@+id/button_submit"
+        android:id="@+id/button_submit_devices"
         android:layout_width="60dp"
         android:layout_height="60dp"
+        android:layout_marginStart="120dp"
         android:layout_marginTop="30dp"
-        android:layout_marginEnd="120dp"
         android:text="@string/button_sel_frag"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/recycler_selection" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -20,14 +20,15 @@ import java.util.ArrayList;
 public class CustomSelectedParticipantsRecyclerViewAdapter extends PopListAdapter<CustomSelectedParticipantsRecyclerViewAdapter.ViewHolder, Participant> {
 
 
-    public CustomSelectedParticipantsRecyclerViewAdapter(ArrayList<Participant> items) {
-        super(items);
+    public CustomSelectedParticipantsRecyclerViewAdapter() {
+        super(new ArrayList<Participant>());
     }
 
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_selected, parent, false);
+        view.setOnClickListener(getListener());
         return new ViewHolder(view);
     }
 

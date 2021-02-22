@@ -1,4 +1,4 @@
-package com.project.collaborativeauthenticationapplication.service;
+package com.project.collaborativeauthenticationapplication.service.controller;
 
 import androidx.annotation.Nullable;
 

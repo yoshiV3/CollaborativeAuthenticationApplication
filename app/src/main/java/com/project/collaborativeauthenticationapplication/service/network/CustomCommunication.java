@@ -30,6 +30,7 @@ public class CustomCommunication implements Communication{
         {
             participants.add(CustomParticipant.fromDevice(device));
         }
+        participants.add(new CustomParticipant("this", "here", true));
         return participants;
     }
 

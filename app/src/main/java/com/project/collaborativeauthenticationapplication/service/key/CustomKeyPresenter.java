@@ -12,7 +12,9 @@ import com.project.collaborativeauthenticationapplication.service.IllegalNumberO
 import com.project.collaborativeauthenticationapplication.service.controller.CustomAuthenticationServicePool;
 import com.project.collaborativeauthenticationapplication.service.controller.CustomServiceMonitor;
 import com.project.collaborativeauthenticationapplication.service.KeyToken;
+import com.project.collaborativeauthenticationapplication.service.network.CustomCommunication;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -127,6 +129,11 @@ public class CustomKeyPresenter implements KeyPresenter{
         return messages.getOrDefault(key, "");
     }
 
+    @Override
+    public ArrayList<Participant> getInitialOptions() {
+        return CustomCommunication.getInstance().getReachableParticipants();
+    }
+
 
     @Override
     public void submitLoginDetails() {
@@ -150,7 +157,9 @@ public class CustomKeyPresenter implements KeyPresenter{
         if (isTokenValid())
         {
             try {
-                CustomKeyGenerationSessionGenerator.getInstance().generateSession(participants, token);
+                KeyGenerationSessionGenerator generator = CustomKeyGenerationSessionGenerator.getInstance();
+                generator.generateSession(participants, token);
+                generator.giveKeyGenerationSessionTo(CustomKeyGenerationConnector.getInstance());
                 logger.logEvent(COMPONENT_NAME, EVENT_PARTICIPANTS_SUBMITTED, "low");
                 view.navigate(R.id.run);
             } catch (IllegalUseOfClosedTokenException e) {

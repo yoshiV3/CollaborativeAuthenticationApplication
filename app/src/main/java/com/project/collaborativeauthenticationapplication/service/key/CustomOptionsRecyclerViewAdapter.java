@@ -28,6 +28,7 @@ public class CustomOptionsRecyclerViewAdapter extends PopListAdapter<CustomOptio
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_options, parent, false);
+        view.setOnClickListener(getListener());
         return new CustomOptionsRecyclerViewAdapter.ViewHolder(view);    }
 
     @Override
