@@ -1,4 +1,4 @@
-package com.project.collaborativeauthenticationapplication.service.key;
+package com.project.collaborativeauthenticationapplication.service.key.user;
 
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
@@ -7,12 +7,15 @@ import com.project.collaborativeauthenticationapplication.CustomAuthenticationCo
 import com.project.collaborativeauthenticationapplication.R;
 import com.project.collaborativeauthenticationapplication.logger.AndroidLogger;
 import com.project.collaborativeauthenticationapplication.logger.Logger;
+import com.project.collaborativeauthenticationapplication.service.key.CustomKeyPresenter;
+import com.project.collaborativeauthenticationapplication.service.key.KeyPresenter;
+import com.project.collaborativeauthenticationapplication.service.key.user.KeyView;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.TextView;
 
-public class DistributedKeyGenerationActivity extends CustomAuthenticationControllerActivity implements  KeyView{
+public class DistributedKeyGenerationActivity extends CustomAuthenticationControllerActivity implements KeyView {
 
 
     public static final  String KEY_LOGIN             = "Login";
@@ -116,7 +119,6 @@ public class DistributedKeyGenerationActivity extends CustomAuthenticationContro
         ((TextView) findViewById(R.id.textViewApplicationName)).setText(application);
         ((TextView) findViewById(R.id.textViewLogin)).setText(login);
     }
-
 
     private interface Navigator {
         void navigate(int target);

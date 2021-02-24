@@ -8,27 +8,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public abstract class PopListAdapter<T extends RecyclerView.ViewHolder, E> extends RecyclerView.Adapter<T>
+public abstract class PopListAdapter<T extends RecyclerView.ViewHolder, E> extends ItemListAdapter<T, E>
 {
     private View.OnClickListener      listener;
-    private ArrayList<E>              items;
-
 
 
     public PopListAdapter(ArrayList<E> items)
     {
-        this.items = items;
-    }
-
-
-    @Override
-    public int getItemCount() {
-        return items.size();
-    }
-
-    protected E getItemAt(int index)
-    {
-        return items.get(index);
+        super(items);
     }
 
     public void setOnClickListener(View.OnClickListener listener)
@@ -43,28 +30,28 @@ public abstract class PopListAdapter<T extends RecyclerView.ViewHolder, E> exten
 
     public E pop(int index)
     {
-        E old = items.remove(index);
+        E old = getItemsInternalCopy().remove(index);
         notifyItemRemoved(index);
         return old;
     }
 
     public void add(E item)
     {
-        this.items.add(item);
-        notifyItemInserted(this.items.size()-1);
+        this.getItemsInternalCopy().add(item);
+        notifyItemInserted(getItemCount()-1);
     }
 
     public void addList(ArrayList<E> items)
     {
         int insertedItemCount         = items.size();
-        int positionFirstInsertedItem = this.items.size();
-        this.items.addAll(items);
+        int positionFirstInsertedItem = getItemCount();
+        this.getItemsInternalCopy().addAll(items);
         notifyItemRangeInserted(positionFirstInsertedItem, insertedItemCount);
     }
 
     public List<E> getItems()
     {
-        return Collections.unmodifiableList(this.items);
+        return Collections.unmodifiableList(getItemsInternalCopy());
     }
 
 

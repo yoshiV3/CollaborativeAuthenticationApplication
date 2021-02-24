@@ -29,6 +29,8 @@
     <string name="generation">generation</string>
     <string name="options_text">Unselected options</string>
     <string name="selected_text">Selected options</string>
+    <string name="generation_title_messages">Progress</string>
+    <string name="text_button_run">Ok</string>
 
 
     <string-array name="possible_weights">

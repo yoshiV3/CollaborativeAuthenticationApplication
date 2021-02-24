@@ -7,7 +7,7 @@ import androidx.appcompat.app.AppCompatActivity;
 public abstract class  CustomShowActivity extends AppCompatActivity {
 
 
-    protected void showTemporally(String text)
+    public void showTemporally(String text)
     {
         Toast toast = new Toast(this );
         toast.setText(text);

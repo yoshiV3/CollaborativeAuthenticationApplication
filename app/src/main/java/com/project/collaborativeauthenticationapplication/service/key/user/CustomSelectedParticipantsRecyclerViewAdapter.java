@@ -1,4 +1,4 @@
-package com.project.collaborativeauthenticationapplication.service.key;
+package com.project.collaborativeauthenticationapplication.service.key.user;
 
 import android.view.LayoutInflater;
 import android.view.View;

@@ -15,7 +15,11 @@ import com.project.collaborativeauthenticationapplication.R;
 import com.project.collaborativeauthenticationapplication.logger.AndroidLogger;
 import com.project.collaborativeauthenticationapplication.logger.Logger;
 import com.project.collaborativeauthenticationapplication.service.controller.AuthenticationForegroundService;
-import com.project.collaborativeauthenticationapplication.service.key.DistributedKeyGenerationActivity;
+import com.project.collaborativeauthenticationapplication.service.crypto.BigNumber;
+import com.project.collaborativeauthenticationapplication.service.crypto.CryptoKeyPartGenerator;
+import com.project.collaborativeauthenticationapplication.service.key.user.DistributedKeyGenerationActivity;
+
+import java.util.ArrayList;
 
 public class MainActivity extends CustomAuthenticationControllerActivity implements MainMenuView, ServiceStatusView{
 
@@ -35,7 +39,6 @@ public class MainActivity extends CustomAuthenticationControllerActivity impleme
     private final MainMenuPresenter        menuPresenter       = new CustomMainMenuPresenter();
     private final ServiceStatusPresenter   statusPresenter     = new CustomServiceStatusPresenter(this);
     private final Logger                   logger              = new AndroidLogger();
-
 
 
 
@@ -162,10 +165,4 @@ public class MainActivity extends CustomAuthenticationControllerActivity impleme
         intent.setAction(action);
         startForegroundService(intent);
     }
-
-
-
-
-
-
 }

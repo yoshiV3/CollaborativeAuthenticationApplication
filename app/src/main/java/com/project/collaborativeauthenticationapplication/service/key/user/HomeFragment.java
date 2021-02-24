@@ -1,4 +1,4 @@
-package com.project.collaborativeauthenticationapplication.service.key;
+package com.project.collaborativeauthenticationapplication.service.key.user;
 
 import android.os.Bundle;
 
@@ -13,6 +13,8 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import com.project.collaborativeauthenticationapplication.R;
+import com.project.collaborativeauthenticationapplication.service.key.CustomKeyPresenter;
+import com.project.collaborativeauthenticationapplication.service.key.KeyPresenter;
 
 
 public class HomeFragment extends Fragment {

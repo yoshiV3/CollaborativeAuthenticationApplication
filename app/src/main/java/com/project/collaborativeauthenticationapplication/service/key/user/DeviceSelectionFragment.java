@@ -1,4 +1,4 @@
-package com.project.collaborativeauthenticationapplication.service.key;
+package com.project.collaborativeauthenticationapplication.service.key.user;
 
 import android.os.Bundle;
 
@@ -14,6 +14,8 @@ import android.view.ViewGroup;
 
 import com.project.collaborativeauthenticationapplication.R;
 import com.project.collaborativeauthenticationapplication.service.Participant;
+import com.project.collaborativeauthenticationapplication.service.key.CustomKeyPresenter;
+import com.project.collaborativeauthenticationapplication.service.key.KeyPresenter;
 
 import java.util.ArrayList;
 
@@ -49,7 +51,7 @@ public class DeviceSelectionFragment extends Fragment {
         options    =  view.findViewById(R.id.recycler_options);
         selections = view.findViewById(R.id.recycler_selection);
 
-        ArrayList<Participant> initialParticipants = presenter.getInitialOptions();
+        ArrayList<Participant> initialParticipants = new ArrayList<>(presenter.getInitialOptions());
 
 
         CustomOptionsRecyclerViewAdapter               optionAdapter =new CustomOptionsRecyclerViewAdapter(initialParticipants);

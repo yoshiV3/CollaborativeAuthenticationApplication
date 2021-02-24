@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/homeFragment"
-        android:name="com.project.collaborativeauthenticationapplication.service.key.HomeFragment"
+        android:name="com.project.collaborativeauthenticationapplication.service.key.user.HomeFragment"
         android:label="fragment_home"
         tools:layout="@layout/fragment_home" >
         <action
@@ -19,7 +19,7 @@
     </fragment>
     <fragment
         android:id="@+id/deviceSelectionFragment"
-        android:name="com.project.collaborativeauthenticationapplication.service.key.DeviceSelectionFragment"
+        android:name="com.project.collaborativeauthenticationapplication.service.key.user.DeviceSelectionFragment"
         android:label="fragment_device_selection"
         tools:layout="@layout/fragment_device_selection" >
         <action
@@ -34,7 +34,7 @@
     </fragment>
     <fragment
         android:id="@+id/generationFragment"
-        android:name="com.project.collaborativeauthenticationapplication.service.key.GenerationFragment"
+        android:name="com.project.collaborativeauthenticationapplication.service.key.user.GenerationFragment"
         android:label="fragment_generation"
         tools:layout="@layout/fragment_generation" >
         <action
@@ -49,12 +49,12 @@
     </fragment>
     <fragment
         android:id="@+id/errorFragment"
-        android:name="com.project.collaborativeauthenticationapplication.service.key.ErrorFragment"
+        android:name="com.project.collaborativeauthenticationapplication.service.key.user.ErrorFragment"
         android:label="fragment_error"
         tools:layout="@layout/fragment_error" />
     <fragment
         android:id="@+id/finishedFragment"
-        android:name="com.project.collaborativeauthenticationapplication.service.key.FinishedFragment"
+        android:name="com.project.collaborativeauthenticationapplication.service.key.user.FinishedFragment"
         android:label="fragment_finished"
         tools:layout="@layout/fragment_finished" />
 </navigation>
