@@ -9,8 +9,8 @@
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_options"
-        android:layout_width="273dp"
-        android:layout_height="173dp"
+        android:layout_width="245dp"
+        android:layout_height="104dp"
         android:layout_marginStart="60dp"
         android:layout_marginTop="8dp"
         app:layout_constraintStart_toStartOf="parent"
@@ -40,21 +40,41 @@
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_selection"
-        android:layout_width="269dp"
-        android:layout_height="170dp"
+        android:layout_width="241dp"
+        android:layout_height="96dp"
         android:layout_marginStart="60dp"
         android:layout_marginTop="8dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/display_text_selection" />
 
+
     <Button
         android:id="@+id/button_submit_devices"
         android:layout_width="60dp"
         android:layout_height="60dp"
-        android:layout_marginStart="120dp"
-        android:layout_marginTop="30dp"
+        android:layout_marginStart="196dp"
+        android:layout_marginTop="104dp"
         android:text="@string/button_sel_frag"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/recycler_selection" />
+
+    <TextView
+        android:id="@+id/selected_threshold"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_marginTop="48dp"
+        android:layout_marginEnd="12dp"
+        android:textSize="16sp"
+        app:layout_constraintEnd_toStartOf="@+id/threshold"
+        app:layout_constraintTop_toBottomOf="@+id/recycler_selection" />
+
+    <Spinner
+        android:id="@+id/threshold"
+        android:layout_width="40dp"
+        android:layout_height="30dp"
+        android:layout_marginTop="48dp"
+        android:layout_marginEnd="80dp"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/recycler_selection" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

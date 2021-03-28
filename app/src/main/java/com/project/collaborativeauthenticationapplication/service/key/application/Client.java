@@ -17,6 +17,7 @@ public interface Client {
 
     List<Participant> getOptions();
     void submitSelection(List<Participant> selection);
+    void  submitThreshold(int threshold);
 
 
     void run();

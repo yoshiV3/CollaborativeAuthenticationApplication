@@ -43,37 +43,14 @@ public class HomeFragment extends Fragment {
         EditText loginEditor   = view.findViewById(R.id.edit_login);
         EditText appEditor     = view.findViewById(R.id.edit_application_name);
 
-        loginEditor.setOnFocusChangeListener( new View.OnFocusChangeListener(){
-
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                if (!hasFocus)
-                {
-                    String newLogin = ((EditText) v).getText().toString();
-                    CustomKeyPresenter.getInstance().setMessage(DistributedKeyGenerationActivity.KEY_LOGIN, newLogin);
-                }
-            }
-        });
-
-
-
-        appEditor.setOnFocusChangeListener( new View.OnFocusChangeListener(){
-
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                if (!hasFocus)
-                {
-                    String newApplication = ((EditText) v).getText().toString();
-                    CustomKeyPresenter.getInstance().setMessage(DistributedKeyGenerationActivity.KEY_APPLICATION_NAME, newApplication);
-                }
-            }
-        });
-
-
         Button submit = view.findViewById(R.id.button_submit_login_details);
         submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                String newApplication = ((EditText) appEditor ).getText().toString();
+                CustomKeyPresenter.getInstance().setMessage(DistributedKeyGenerationActivity.KEY_APPLICATION_NAME, newApplication);
+                String newLogin = ((EditText) loginEditor).getText().toString();
+                CustomKeyPresenter.getInstance().setMessage(DistributedKeyGenerationActivity.KEY_LOGIN, newLogin);
                 CustomKeyPresenter.getInstance().submitLoginDetails();
             }
         });

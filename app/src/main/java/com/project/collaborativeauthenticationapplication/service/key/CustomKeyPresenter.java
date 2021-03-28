@@ -16,7 +16,6 @@ import com.project.collaborativeauthenticationapplication.service.key.user.Progr
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 
 
@@ -27,22 +26,30 @@ public class CustomKeyPresenter implements KeyPresenter, ProgressNotifier {
 
     private static final String MESSAGE_STATE_SESSION            =  "Session successfully generated";
     private static final String MESSAGE_STATE_INVITATIONS        =  "Remote devices were invited";
+    private static final String MESSAGE_STATE_KEYPART            =  "Local parts are generated";
+    private static final String MESSAGE_BAD_LOGIN                =  "Credentials are not available";
 
-    private static final String EVENT_START                      = "Key generation process started";
-    private static final String EVENT_RECEIVED_TOKEN             = "Token received";
-    private static final String EVENT_NOT_RECEIVED_TOKEN         =  "Token not received";
-    private static final String EVENT_SERVICE_DISABLED           =  "Service disabled";
-    private static final String EVENT_DETAILS_SUBMITTED          =  "Details were submitted";
-    private static final String EVENT_DETAILS_NOT_SUBMITTED      =  "Details were not submitted (token revoked)";
-    private static final String EVENT_PARTICIPANTS_NOT_SUBMITTED =  "Participants not submitted (token revoked)";
-    private static final String EVENT_PARTICIPANTS_SUBMITTED     =  "Participants were submitted";
-    private static final String EVENT_SESSION_FAILED             =  "Could not create session";
-    private static final String EVENT_NEW_SUBSCRIBER             =  "New subscriber is added";
-    private static final String EVENT_OLD_SUBSCRIBER             =  "Old subscriber issued new request: no change";
-    private static final String EVENT_REMOVED_SUBSCRIBER         =  "A subscriber was removed";
-    private static final String EVENT_NEW_REMOVED_SUBSCRIBER     =  "Removed:Subscriber was not/ no longer available: no change";
-    private static final String EVENT_NOTIFY_SUBSCRIBER          =  "Notification send";
-
+    private static final String EVENT_START                         = "Key generation process started";
+    private static final String EVENT_RECEIVED_TOKEN                = "Token received";
+    private static final String EVENT_NOT_RECEIVED_TOKEN            =  "Token not received";
+    private static final String EVENT_SERVICE_DISABLED              =  "Service disabled";
+    private static final String EVENT_DETAILS_SUBMITTED             =  "Details were submitted";
+    private static final String EVENT_DETAILS_NOT_SUBMITTED         =  "Details were not submitted (token revoked)";
+    private static final String EVENT_PARTICIPANTS_NOT_SUBMITTED    =  "Participants not submitted (token revoked)";
+    private static final String EVENT_PARTICIPANTS_SUBMITTED        =  "Participants were submitted";
+    private static final String EVENT_SESSION_FAILED                =  "Could not create session";
+    private static final String EVENT_NEW_SUBSCRIBER                =  "New subscriber is added";
+    private static final String EVENT_OLD_SUBSCRIBER                =  "Old subscriber issued new request: no change";
+    private static final String EVENT_REMOVED_SUBSCRIBER            =  "A subscriber was removed";
+    private static final String EVENT_NEW_REMOVED_SUBSCRIBER        =  "Removed:Subscriber was not/ no longer available: no change";
+    private static final String EVENT_NOTIFY_SUBSCRIBER             =  "Notification send";
+    private static final String EVENT_THRESHOLD_SUBMITTED           =  "Threshold was correctly submitted";
+    private static final String EVENT_KEY_PARTS_LOCALLY_AVAILABLE   =  "Key parts are locally available";
+    private static final String MESSAGE_STATE_DISTRIBUTED           =  "Key parts are distributed to the local and remote key part handlers";
+    private static final String MESSAGE_STATE_SHARES                =  "Local key shares were calculated";
+    private static final String MESSAGE_STATE_PERSISTED             =  "Local data was persisted";
+    private static final String EVENT_UNAVAILABLE_LOGIN             =  "Could not submit the requested login";
+    private static final String EVENT_NEW_MESSAGE                   =  "New message received" ;
 
 
     private Logger logger = new AndroidLogger();
@@ -117,6 +124,14 @@ public class CustomKeyPresenter implements KeyPresenter, ProgressNotifier {
     }
 
     @Override
+    public void onBackPressed() {
+        if (isCurrentlyActive()){
+            close();
+        }
+        view.onDone();
+    }
+
+    @Override
     public void onRun() {
         client.run();
     }
@@ -129,6 +144,7 @@ public class CustomKeyPresenter implements KeyPresenter, ProgressNotifier {
     @Override
     public void setMessage(String key, String message) {
         messages.put(key, message);
+        logger.logEvent(COMPONENT_NAME, EVENT_NEW_MESSAGE, "low", message);
     }
 
     @Override
@@ -160,6 +176,19 @@ public class CustomKeyPresenter implements KeyPresenter, ProgressNotifier {
                 break;
             case CustomClient.STATE_INVITATION:
                 notifySubscribers(MESSAGE_STATE_INVITATIONS);
+                break;
+            case CustomClient.STATE_KEYPART:
+                logger.logEvent(COMPONENT_NAME, EVENT_KEY_PARTS_LOCALLY_AVAILABLE, "low");
+                notifySubscribers(MESSAGE_STATE_KEYPART);
+                break;
+            case CustomClient.STATE_DISTRIBUTED:
+                notifySubscribers(MESSAGE_STATE_DISTRIBUTED);
+                break;
+            case CustomClient.STATE_SHARES:
+                notifySubscribers(MESSAGE_STATE_SHARES);
+                break;
+            case CustomClient.STATE_PERSIST:
+                notifySubscribers(MESSAGE_STATE_PERSISTED);
                 break;
             case CustomClient.STATE_ERROR:
                 handleClientErrors(oldState);
@@ -202,6 +231,10 @@ public class CustomKeyPresenter implements KeyPresenter, ProgressNotifier {
             case CustomClient.STATE_SELECT:
             case CustomClient.STATE_SESSION:
             case CustomClient.STATE_INVITATION:
+            case CustomClient.STATE_KEYPART:
+            case CustomClient.STATE_DISTRIBUTED:
+            case CustomClient.STATE_SHARES:
+            case CustomClient.STATE_PERSIST:
                 logger.logEvent(COMPONENT_NAME, EVENT_SESSION_FAILED, "high");
                 setMessage(DistributedKeyGenerationActivity.KEY_ERROR_MESSAGES, "Session failed");
                 view.navigate(R.id.error_generation);
@@ -220,12 +253,24 @@ public class CustomKeyPresenter implements KeyPresenter, ProgressNotifier {
 
     @Override
     public void submitLoginDetails() {
-        client.submitLoginDetails(getMessage(DistributedKeyGenerationActivity.KEY_LOGIN), getMessage(DistributedKeyGenerationActivity.KEY_APPLICATION_NAME));
+            client.submitLoginDetails(getMessage(DistributedKeyGenerationActivity.KEY_LOGIN), getMessage(DistributedKeyGenerationActivity.KEY_APPLICATION_NAME));
+    }
+
+    @Override
+    public void submitLoginDetailsUnsuccessful() {
+        logger.logEvent(COMPONENT_NAME, EVENT_UNAVAILABLE_LOGIN,"low");
+        view.showTemporally(MESSAGE_BAD_LOGIN);
     }
 
     @Override
     public void submitSelectedParticipants(List<Participant> participants) {
         client.submitSelection(participants);
+    }
+
+    @Override
+    public void submitThreshold(int threshold) {
+        client.submitThreshold(threshold);
+        logger.logEvent(COMPONENT_NAME, EVENT_THRESHOLD_SUBMITTED, "low", String.valueOf(threshold));
     }
 
 

@@ -9,7 +9,7 @@ import com.project.collaborativeauthenticationapplication.logger.AndroidLogger;
 import com.project.collaborativeauthenticationapplication.logger.Logger;
 import com.project.collaborativeauthenticationapplication.service.key.CustomKeyPresenter;
 import com.project.collaborativeauthenticationapplication.service.key.KeyPresenter;
-import com.project.collaborativeauthenticationapplication.service.key.user.KeyView;
+
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -35,24 +35,28 @@ public class DistributedKeyGenerationActivity extends CustomAuthenticationContro
 
     private Logger logger = new AndroidLogger();
 
-    private Navigator navigator;
+    private Navigator    navigator;
+    private KeyPresenter keyPresenter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_distributed_key_generation);
 
-
-        CustomKeyPresenter.newInstance(this);
-
         Intent intent = getIntent();
 
         String login       = intent.getStringExtra(LOGIN_NAME_FIELD_KEY);
         String application = intent.getStringExtra(APPLICATION_NAME_FIELD_KEY);
 
-        KeyPresenter presenter = CustomKeyPresenter.getInstance();
-        presenter.setMessage(KEY_APPLICATION_NAME, application);
-        presenter.setMessage(KEY_LOGIN, login);
+
+        CustomKeyPresenter.newInstance(this);
+        keyPresenter =  CustomKeyPresenter.getInstance();
+
+
+        keyPresenter.setMessage(KEY_APPLICATION_NAME, application);
+        keyPresenter.setMessage(KEY_LOGIN, login);
+
+
 
         logger.logEvent(COMPONENT_NAME, EVENT_START, getString(R.string.PRIORITY_HIGH), "(" + login + "," + application + ")");
 
@@ -75,32 +79,37 @@ public class DistributedKeyGenerationActivity extends CustomAuthenticationContro
 
     @Override
     protected void onStart() {
-        CustomKeyPresenter.getInstance().onStart();
+        keyPresenter.onStart();
         super.onStart();
     }
 
     @Override
     public void onBackPressed() {
-        finish();
+        keyPresenter.onBackPressed();
     }
 
 
     @Override
     protected void onPause() {
-        CustomKeyPresenter.getInstance().onPause();
+        keyPresenter.onPause();
         super.onPause();
     }
 
     @Override
     protected void onStop() {
-        CustomKeyPresenter.getInstance().onStop();
+        keyPresenter.onStop();
         super.onStop();
     }
 
     @Override
     protected void onDestroy() {
-        CustomKeyPresenter.getInstance().onStop();
+        keyPresenter.onStop();
         super.onDestroy();
+    }
+
+    @Override
+    public void onDone() {
+        finish();
     }
 
     @Override

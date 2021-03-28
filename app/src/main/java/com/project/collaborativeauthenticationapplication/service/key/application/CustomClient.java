@@ -20,16 +20,19 @@ import java.util.List;
 public class CustomClient implements Client {
 
 
-    public static final int STATE_CLOSED      = 1;
-    public static final int STATE_START       = 2;
-    public static final int STATE_DETAILS     = 3;
-    public static final int STATE_SELECT      = 4;
-    public static final int STATE_FINISHED    = 5;
-    public static final int STATE_ERROR       = 6;
-    public static final int STATE_BAD_INP_SEL = 7;
-    public static final int STATE_SESSION     = 8;
-    public static final int STATE_INVITATION  = 9 ;
-
+    public static final int STATE_CLOSED        = 1;
+    public static final int STATE_START         = 2;
+    public static final int STATE_DETAILS       = 3;
+    public static final int STATE_SELECT        = 4;
+    public static final int STATE_FINISHED      = 5;
+    public static final int STATE_ERROR         = 6;
+    public static final int STATE_BAD_INP_SEL   = 7;
+    public static final int STATE_SESSION       = 8;
+    public static final int STATE_INVITATION    = 9 ;
+    public static final int STATE_KEYPART       = 10;
+    public static final int STATE_DISTRIBUTED   = 11;
+    public static final int STATE_SHARES        = 12;
+    public static final int STATE_PERSIST       = 13;
 
     private KeyPresenter presenter;
 
@@ -38,8 +41,13 @@ public class CustomClient implements Client {
         this.presenter = presenter;
     }
 
+    private CustomPersistenceManager   persistenceManager     = new CustomPersistenceManager();
+
 
     private String[] details = {"", ""};
+
+    private  final int    INDEX_APPLICATION_NAME = 0;
+    private  final int    INDEX_LOGIN            = 1;
 
 
 
@@ -48,6 +56,7 @@ public class CustomClient implements Client {
 
     private KeyToken token = null;
 
+    private int threshold =0;
 
     private ArrayList<Participant> selection;
 
@@ -76,7 +85,10 @@ public class CustomClient implements Client {
     @Override
     public void close() {
         int previousState = state;
-        state = STATE_FINISHED;
+        state             = STATE_FINISHED;
+        if (previousState == STATE_PERSIST){
+            persistenceManager.removeCredentials(details[INDEX_APPLICATION_NAME], details[INDEX_LOGIN]);
+        }
         if (token != null)
         {
             token.close();
@@ -91,10 +103,13 @@ public class CustomClient implements Client {
         {
             throw new IllegalStateException("Presenter should not call this method during this state");
         }
+        if (persistenceManager.hasApplicationLoginWithGivenCredentials(application, login)){
+           throw new IllegalArgumentException("Login is no longer available for this application");
+        }
         if (token != null && !token.isClosed())
         {
-            details[0] = login;
-            details[1] = application;
+            details[INDEX_LOGIN]            = login;
+            details[INDEX_APPLICATION_NAME] = application;
             state = STATE_DETAILS;
         }
         else
@@ -140,6 +155,11 @@ public class CustomClient implements Client {
         presenter.SignalClientInNewState(state, STATE_DETAILS);
     }
 
+    @Override
+    public void submitThreshold(int threshold) {
+        this.threshold = threshold;
+    }
+
 
     @Override
     public void run() {
@@ -147,31 +167,81 @@ public class CustomClient implements Client {
         {
             throw new IllegalStateException("Cannot run during this state");
         }
-        KeyGenerationSessionGenerator            generator         = new CustomKeyGenerationSessionGenerator();
-        KeyGenerationDistributedInvitationSender invitationSender  = new CustomKeyGenerationDistributedInvitationSender();
+        KeyGenerationSessionGenerator            generator              = new CustomKeyGenerationSessionGenerator();
+        KeyGenerationDistributedInvitationSender invitationSender       = new CustomKeyGenerationDistributedInvitationSender();
+        CustomLocalKeyPartGenerator              keyPartGenerator       = new CustomLocalKeyPartGenerator();
+        CustomKeyPartDistributor                 keyPartDistributor     = new CustomKeyPartDistributor();
+        CustomRemoteKeyPartHandler               remoteKeyPartHandler   = new CustomRemoteKeyPartHandler();
+        CustomLocalKeyShareGenerator             shareGenerator         = new CustomLocalKeyShareGenerator();
         try {
             generateSession(generator, invitationSender);
             sendInvitations( invitationSender, generator);
+            generatePartsForLocalParticipant(invitationSender, keyPartGenerator); //all parts and a part of the public key belonging to local participants
+            distributeKeyParts(keyPartGenerator, keyPartDistributor, remoteKeyPartHandler, shareGenerator, persistenceManager);
+            generateLocalShares(shareGenerator);
+            persist(persistenceManager);
         } catch (IllegalUseOfClosedTokenException | UnreachableParticipantException e) {
             int previousState = state;
-            state  = STATE_ERROR;
-            presenter.SignalClientInNewState(state, previousState);
+            changeState(STATE_ERROR, previousState);
         }
     }
 
     private void generateSession(KeyGenerationSessionGenerator generator, KeyGenerationDistributedInvitationSender invitationSender) throws IllegalUseOfClosedTokenException {
-        generator.generateSession(selection, token);
-        state = STATE_SESSION;
-        presenter.SignalClientInNewState(state, STATE_SELECT);
+        generator.generateSession(selection, threshold, details[INDEX_APPLICATION_NAME], details[INDEX_LOGIN], token);
+        int previousState = state;
+        changeState(STATE_SESSION, previousState);
     }
 
 
     private void sendInvitations(KeyGenerationDistributedInvitationSender sender, KeyGenerationSessionGenerator generator) throws IllegalUseOfClosedTokenException, UnreachableParticipantException {
         generator.giveKeyGenerationSessionTo(sender);
         sender.sendInvitations(token);
-        state = STATE_INVITATION;
-        presenter.SignalClientInNewState(state, STATE_SESSION);
+        int previousState = state;
+        changeState(STATE_INVITATION, previousState);
     }
+
+    private void generatePartsForLocalParticipant(KeyGenerationDistributedInvitationSender sender, CustomLocalKeyPartGenerator keyPartGenerator)
+            throws IllegalUseOfClosedTokenException {
+        sender.passSessionTo(keyPartGenerator);
+        keyPartGenerator.generate(token);
+        int previousState = state;
+        changeState(STATE_KEYPART, previousState);
+    }
+
+
+    private void distributeKeyParts(CustomLocalKeyPartGenerator keyPartGenerator, CustomKeyPartDistributor distributor
+            , CustomRemoteKeyPartHandler remoteKeyPartHandler, LocalKeyPartHandler localKeyPartHandler,
+              CustomPersistenceManager persistenceManager) throws IllegalUseOfClosedTokenException {
+        keyPartGenerator.passKeyPartDistributionSessionTo(distributor);
+        distributor.distribute(localKeyPartHandler, remoteKeyPartHandler, persistenceManager, token);
+        int previousState = state;
+        changeState(STATE_DISTRIBUTED, previousState);
+    }
+
+    private void generateLocalShares(CustomLocalKeyShareGenerator shareGenerator) throws IllegalUseOfClosedTokenException {
+        shareGenerator.generate(token);
+        int previousState = state;
+        changeState(STATE_SHARES, previousState);
+    }
+
+
+    private void persist(CustomPersistenceManager persistenceManager) throws IllegalUseOfClosedTokenException {
+        persistenceManager.persist(token);
+        int previousState = state;
+        changeState(STATE_PERSIST, previousState);
+    }
+
+
+
+    private void changeState(int newState, int previousState)
+    {
+        state  = newState;
+        presenter.SignalClientInNewState(state, previousState);
+    }
+
+
+
+
 
     private boolean isWellFormedInput(List<Participant> selection) {
         boolean inputCorrect;

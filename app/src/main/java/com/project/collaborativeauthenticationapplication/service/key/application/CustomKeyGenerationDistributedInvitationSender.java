@@ -30,5 +30,10 @@ public class CustomKeyGenerationDistributedInvitationSender extends CustomTokenC
         }
     }
 
+    @Override
+    public void passSessionTo(CustomLocalKeyPartGenerator keyPartGenerator) {
+        keyPartGenerator.receiveSession(session);
+    }
+
 
 }

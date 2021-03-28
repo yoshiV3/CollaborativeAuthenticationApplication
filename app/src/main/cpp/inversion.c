@@ -9,9 +9,12 @@
 #include "signed_arithmetic.h"
 
 #include </home/yoshi/Android/Sdk/ndk/21.1.6352462/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/stdint.h>
-void inverse_p(uint32_t *a, uint32_t *res)
+
+
+
+void inverse_p(uint32_t const * const a, uint32_t * const res)
 {
-    uint32_t xone[SIZE+2] = {1,0,0,0,0,0,0,0,0,0};	//xone[SIZE+1]: sign
+    uint32_t xone[SIZE+2] = {1,0,0,0,0,0,0,0,0,0};
     uint32_t xtwo[SIZE+2] = {0,0,0,0,0,0,0,0,0,0};
     uint32_t u[SIZE];
     uint32_t v[SIZE];
@@ -62,7 +65,7 @@ void inverse_p(uint32_t *a, uint32_t *res)
 
             ms_divide_2(v,v,SIZE);
             uint32_t fbx = xtwo[0];
-            if (fbx&1 == 1)
+            if ((fbx&1) == 1)
             {
 
                 uint32_t xtwo_add_p[SIZE + 3];
@@ -111,7 +114,7 @@ void inverse_p(uint32_t *a, uint32_t *res)
             if (i == SIZE)
             {
                 uint32_t uNew[SIZE + 1];
-                uint32_t xOneNew[SIZE + 2];
+                uint32_t xOneNew[SIZE + 3];
                 mp_sub(u,v,uNew,SIZE);
                 signed_sub(xone,xtwo,xOneNew,SIZE +1);
                 for (uint8_t j =0; j < SIZE; j++)

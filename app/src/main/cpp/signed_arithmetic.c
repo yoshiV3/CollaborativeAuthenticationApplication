@@ -9,7 +9,7 @@
 #include "signed_arithmetic.h"
 #include "mod_arithmetic.h"
 
-void signed_add(uint32_t *a, uint32_t *b, uint32_t *res, uint32_t size)
+void signed_add(uint32_t const * const a, uint32_t const * const b, uint32_t * const res, const uint32_t size)
 {
     uint8_t op = 0;
     if(a[size]==1)
@@ -108,7 +108,7 @@ void signed_add(uint32_t *a, uint32_t *b, uint32_t *res, uint32_t size)
 
 
 
-void signed_sub(uint32_t *a, uint32_t *b, uint32_t *res, uint32_t size)
+void signed_sub(uint32_t const * const a, uint32_t const * const b, uint32_t * const res, const uint32_t size)
 {
     uint8_t op = 0;
     if(a[size]==1)
@@ -206,7 +206,7 @@ void signed_sub(uint32_t *a, uint32_t *b, uint32_t *res, uint32_t size)
 }
 
 
-void signed_mod(uint32_t *a, uint32_t *res, uint32_t size)
+void signed_mod(uint32_t const * const a, uint32_t * const res, const uint32_t size)
 {
     if( a[size] == 0)
     {
@@ -236,4 +236,3 @@ void signed_mod(uint32_t *a, uint32_t *res, uint32_t size)
         }
     }
 }
-

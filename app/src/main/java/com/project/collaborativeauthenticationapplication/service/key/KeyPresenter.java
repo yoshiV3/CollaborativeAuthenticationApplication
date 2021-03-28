@@ -12,6 +12,7 @@ public interface KeyPresenter {
     void close();
     void onStop();
     void onPause();
+    void onBackPressed();
 
 
     void onRun();
@@ -26,8 +27,12 @@ public interface KeyPresenter {
 
     List<Participant> getInitialOptions();
 
+
+
     void submitLoginDetails();
+    void submitLoginDetailsUnsuccessful();
     void submitSelectedParticipants(List<Participant> participants);
+    void submitThreshold(int threshold);
 
 
 }

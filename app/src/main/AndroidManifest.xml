@@ -3,7 +3,6 @@
     package="com.project.collaborativeauthenticationapplication">
 
     <uses-permission android:name="android.permission.WAKE_LOCK" />
-
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
@@ -16,16 +15,20 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.CollaborativeAuthenticationApplication">
-        <activity
-            android:name=".service.key.user.DistributedKeyGenerationActivity"
-            android:label="@string/title_activity_distributed_key_generation"
+        <activity android:name=".debug.DebugActivity"
             android:parentActivityName=".main.MainActivity">
-
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="main.MainActivity" />
         </activity>
-
+        <activity
+            android:name=".service.key.user.DistributedKeyGenerationActivity"
+            android:label="@string/title_activity_distributed_key_generation"
+            android:parentActivityName=".main.MainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="main.MainActivity" />
+        </activity>
 
         <service
             android:name=".service.controller.AuthenticationForegroundService"

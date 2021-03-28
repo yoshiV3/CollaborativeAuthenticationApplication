@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface KeyGenerationSessionGenerator {
 
-    void generateSession(List<Participant> participants, KeyToken token) throws IllegalUseOfClosedTokenException;
+    void generateSession(List<Participant> participants, int threshold, String applicationName, String login, KeyToken token) throws IllegalUseOfClosedTokenException;
 
     void giveKeyGenerationSessionTo(KeyGenerationDistributedInvitationSender invitationSender);
 }

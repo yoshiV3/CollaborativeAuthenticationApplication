@@ -84,6 +84,11 @@ public class GenerationFragment extends Fragment implements ProgressView {
 
     @Override
     public void pushNewMessage(String message) {
-        adapter.pushMessage(message);
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                adapter.pushMessage(message);
+            }
+        });
     }
 }

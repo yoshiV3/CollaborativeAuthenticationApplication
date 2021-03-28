@@ -7,9 +7,7 @@
 #include "common.h"
 
 
-
-
-void mp_add(uint32_t *a, uint32_t *b, uint32_t *res, uint32_t size)
+void mp_add(uint32_t const *const a, uint32_t const * const b, uint32_t *const res,  uint32_t const size)
 {
     uint32_t carry = 0;
     uint8_t  i;
@@ -22,7 +20,8 @@ void mp_add(uint32_t *a, uint32_t *b, uint32_t *res, uint32_t size)
     res[size] = carry;
 }
 
-void mp_sub(uint32_t *a, uint32_t *b, uint32_t *res,uint32_t size)
+
+void mp_sub(uint32_t const * const a, uint32_t const * const b, uint32_t * const res,uint32_t const size)
 {
     uint32_t carry = 0;
     uint8_t  i;
@@ -43,7 +42,7 @@ void mp_sub(uint32_t *a, uint32_t *b, uint32_t *res,uint32_t size)
 }
 
 
-void ms_multiply(uint32_t *a, uint32_t *b, uint32_t *res, uint32_t size)
+void ms_multiply(uint32_t const * const a, uint32_t const * const b, uint32_t * const res, uint32_t const  size)
 {
     uint32_t rzero = 0;
     uint32_t rone  = 0;
@@ -77,7 +76,7 @@ void ms_multiply(uint32_t *a, uint32_t *b, uint32_t *res, uint32_t size)
 }
 
 
-void ms_divide_2(uint32_t *a, uint32_t *res, uint32_t size)
+void ms_divide_2(uint32_t const * const a, uint32_t * const res, uint32_t const  size)
 {
     uint32_t result[2*SIZE +1];
     uint32_t olb = 0;
@@ -93,4 +92,3 @@ void ms_divide_2(uint32_t *a, uint32_t *res, uint32_t size)
         res[i] = result[i];
     }
 }
-

@@ -9,4 +9,6 @@ public interface KeyGenerationDistributedInvitationSender {
 
     void receiveKeyGenerationSession(KeyGenerationSession session);
     void sendInvitations(KeyToken token) throws IllegalUseOfClosedTokenException, UnreachableParticipantException;
+
+    void passSessionTo(CustomLocalKeyPartGenerator keyPartGenerator);
 }

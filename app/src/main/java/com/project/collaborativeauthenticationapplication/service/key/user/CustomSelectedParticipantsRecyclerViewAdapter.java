@@ -20,6 +20,8 @@ import java.util.ArrayList;
 public class CustomSelectedParticipantsRecyclerViewAdapter extends PopListAdapter<CustomSelectedParticipantsRecyclerViewAdapter.ViewHolder, Participant> {
 
 
+    private WeightUpdater updater;
+
     public CustomSelectedParticipantsRecyclerViewAdapter() {
         super(new ArrayList<Participant>());
     }
@@ -52,15 +54,28 @@ public class CustomSelectedParticipantsRecyclerViewAdapter extends PopListAdapte
                 int newWeight = position + 1;
                 holder.getTextViewWeight().setText(String.valueOf(newWeight));
                 participant.setWeight(newWeight);
+                updater.update();
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {}
         });
-
-
         holder.getTextViewWeight().setText(String.valueOf(weight));
+    }
 
+    public int getTotalWeight()
+    {
+        int total = 0;
+        for (Participant participant : getItems())
+        {
+            total = total + participant.getWeight();
+        }
+        return total;
+    }
+
+    public void setWeightUpdater(WeightUpdater updater)
+    {
+        this.updater = updater;
     }
 
 
@@ -73,9 +88,9 @@ public class CustomSelectedParticipantsRecyclerViewAdapter extends PopListAdapte
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
 
-            this.textViewName          = (TextView) itemView.findViewById(R.id.selected_name);
+            this.textViewName      = (TextView) itemView.findViewById(R.id.selected_name);
             this.spinner           = (Spinner)  itemView.findViewById(R.id.weights);
-            this.textViewWeight   = (TextView) itemView.findViewById(R.id.selected_weight);
+            this.textViewWeight    = (TextView) itemView.findViewById(R.id.selected_weight);
 
 
             ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(itemView.getContext(),

@@ -12,14 +12,13 @@ import android.widget.TextView;
 
 import com.project.collaborativeauthenticationapplication.CustomAuthenticationControllerActivity;
 import com.project.collaborativeauthenticationapplication.R;
+import com.project.collaborativeauthenticationapplication.data.AuthenticationDatabase;
+import com.project.collaborativeauthenticationapplication.debug.DebugActivity;
 import com.project.collaborativeauthenticationapplication.logger.AndroidLogger;
 import com.project.collaborativeauthenticationapplication.logger.Logger;
 import com.project.collaborativeauthenticationapplication.service.controller.AuthenticationForegroundService;
-import com.project.collaborativeauthenticationapplication.service.crypto.BigNumber;
-import com.project.collaborativeauthenticationapplication.service.crypto.CryptoKeyPartGenerator;
 import com.project.collaborativeauthenticationapplication.service.key.user.DistributedKeyGenerationActivity;
 
-import java.util.ArrayList;
 
 public class MainActivity extends CustomAuthenticationControllerActivity implements MainMenuView, ServiceStatusView{
 
@@ -46,6 +45,7 @@ public class MainActivity extends CustomAuthenticationControllerActivity impleme
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        AuthenticationDatabase.createAuthenticationDatabaseConnection(this);
     }
 
     @Override
@@ -93,6 +93,14 @@ public class MainActivity extends CustomAuthenticationControllerActivity impleme
             showTemporally("Service is disabled");
         }
 
+    }
+
+
+
+    public void onClickDebug(View view)
+    {
+        Intent intent = new Intent(this, DebugActivity.class);
+        startActivity(intent);
     }
 
 

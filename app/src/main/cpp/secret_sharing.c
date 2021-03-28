@@ -10,6 +10,7 @@
 #include "signed_arithmetic.h"
 #include </home/yoshi/Android/Sdk/ndk/21.1.6352462/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/stdint.h>
 
+
 void evaluate_poly(size_t *coefficients, uint32_t value, uint32_t degree, uint32_t *res)
 {
     uint32_t old[SIZE];
