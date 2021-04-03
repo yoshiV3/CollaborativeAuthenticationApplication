@@ -14,13 +14,12 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
-import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 
 import com.project.collaborativeauthenticationapplication.R;
 import com.project.collaborativeauthenticationapplication.service.Participant;
-import com.project.collaborativeauthenticationapplication.service.key.CustomKeyPresenter;
-import com.project.collaborativeauthenticationapplication.service.key.KeyPresenter;
+import com.project.collaborativeauthenticationapplication.service.key.CustomKeyGenerationPresenter;
+import com.project.collaborativeauthenticationapplication.service.key.KeyGenerationPresenter;
 
 import java.util.ArrayList;
 
@@ -58,7 +57,7 @@ public class DeviceSelectionFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        KeyPresenter presenter =  CustomKeyPresenter.getInstance();
+        KeyGenerationPresenter presenter =  CustomKeyGenerationPresenter.getInstance();
 
         options        = view.findViewById(R.id.recycler_options);
         selections     = view.findViewById(R.id.recycler_selection);
@@ -137,8 +136,8 @@ public class DeviceSelectionFragment extends Fragment {
         view.findViewById(R.id.button_submit_devices).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                CustomKeyPresenter.getInstance().submitSelectedParticipants(selAdapter.getItems());
-                CustomKeyPresenter.getInstance().submitThreshold(currentThreshold);
+                CustomKeyGenerationPresenter.getInstance().submitSelectedParticipants(selAdapter.getItems());
+                CustomKeyGenerationPresenter.getInstance().submitThreshold(currentThreshold);
             }
         });
         super.onViewCreated(view, savedInstanceState);

@@ -105,7 +105,7 @@ public class DatabaseOnDeviceTest {
         applicationLoginDao.insert(applicationLoginEntity);
         List<ApplicationLoginEntity> applicationLoginEntities = applicationLoginDao.getApplications();
 
-        SecretEntity secretEntity = new SecretEntity(applicationLoginEntities.get(0).applicationLoginId);
+        SecretEntity secretEntity = new SecretEntity(applicationLoginEntities.get(0).applicationLoginId, 2);
         secretDao.insert(secretEntity);
 
         List<SecretEntity> secretEntities = secretDao.getAllSecretsForApplicationLogin(applicationLoginEntities.get(0).applicationLoginId);

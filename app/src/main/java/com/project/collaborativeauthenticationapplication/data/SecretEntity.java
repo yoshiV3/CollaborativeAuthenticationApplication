@@ -12,17 +12,19 @@ import static androidx.room.ForeignKey.CASCADE;
                 @ForeignKey(
                         entity        =  ApplicationLoginEntity.class,
                         parentColumns =  "applicationLoginId",
-                        childColumns  =  "applicationId",
+                        childColumns  =  "applicationLoginId",
                         onDelete      = CASCADE
                 )
             }
         )
 public class SecretEntity {
     @PrimaryKey(autoGenerate = true)
-    public long SecretId;
-    public long  applicationId;
+    public long   SecretId;
+    public long   applicationLoginId;
+    public int    length;
 
-    public SecretEntity(long applicationId){
-        this.applicationId = applicationId;
+    public SecretEntity(long applicationLoginId, int length){
+        this.applicationLoginId  = applicationLoginId;
+        this.length = length;
     }
 }

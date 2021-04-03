@@ -18,7 +18,7 @@ public class CustomKeyPartDistributor extends CustomTokenConsumer<KeyToken> {
     }
 
 
-    public void distribute(LocalKeyPartHandler local, CustomRemoteKeyPartHandler remote, CustomPersistenceManager persistenceManager, KeyToken token) throws IllegalUseOfClosedTokenException {
+    public void distribute(LocalKeyPartHandler local, CustomRemoteKeyPartHandler remote, CustomKeyGenerationPersistenceManager persistenceManager, KeyToken token) throws IllegalUseOfClosedTokenException {
         consumeToken(token);
         persistenceManager.receiveKeyDistributionSession(session);
         int localWeight = session.getLocalParticipant().getWeight();

@@ -1,5 +1,7 @@
 package com.project.collaborativeauthenticationapplication.service.key.application;
 
+import android.content.Context;
+
 import com.project.collaborativeauthenticationapplication.logger.AndroidLogger;
 import com.project.collaborativeauthenticationapplication.logger.Logger;
 import com.project.collaborativeauthenticationapplication.service.IllegalNumberOfTokensException;
@@ -8,7 +10,9 @@ import com.project.collaborativeauthenticationapplication.service.Participant;
 import com.project.collaborativeauthenticationapplication.service.ServiceStateException;
 import com.project.collaborativeauthenticationapplication.service.controller.CustomAuthenticationServicePool;
 import com.project.collaborativeauthenticationapplication.service.controller.CustomServiceMonitor;
-import com.project.collaborativeauthenticationapplication.service.key.KeyPresenter;
+import com.project.collaborativeauthenticationapplication.service.crypto.AndroidSecretStorage;
+import com.project.collaborativeauthenticationapplication.service.crypto.SecureStorageException;
+import com.project.collaborativeauthenticationapplication.service.key.KeyGenerationPresenter;
 import com.project.collaborativeauthenticationapplication.service.key.KeyToken;
 import com.project.collaborativeauthenticationapplication.service.key.user.DistributedKeyGenerationActivity;
 import com.project.collaborativeauthenticationapplication.service.network.CustomCommunication;
@@ -17,9 +21,12 @@ import com.project.collaborativeauthenticationapplication.service.network.Unreac
 import java.util.ArrayList;
 import java.util.List;
 
-public class CustomClient implements Client {
+public class CustomKeyGenerationClient implements keyGenerationClient {
 
 
+
+
+    public static final int STATE_INIT          = 0;
     public static final int STATE_CLOSED        = 1;
     public static final int STATE_START         = 2;
     public static final int STATE_DETAILS       = 3;
@@ -34,14 +41,14 @@ public class CustomClient implements Client {
     public static final int STATE_SHARES        = 12;
     public static final int STATE_PERSIST       = 13;
 
-    private KeyPresenter presenter;
+    private KeyGenerationPresenter presenter;
 
-    public CustomClient(KeyPresenter presenter)
+    public CustomKeyGenerationClient(KeyGenerationPresenter presenter)
     {
         this.presenter = presenter;
     }
 
-    private CustomPersistenceManager   persistenceManager     = new CustomPersistenceManager();
+    private CustomKeyGenerationPersistenceManager persistenceManager     = new CustomKeyGenerationPersistenceManager();
 
 
     private String[] details = {"", ""};
@@ -51,23 +58,31 @@ public class CustomClient implements Client {
 
 
 
-    private  int state = STATE_CLOSED;
+    private  int state = STATE_INIT;
 
+
+    private AndroidSecretStorage storage;
 
     private KeyToken token = null;
 
     private int threshold =0;
 
+
     private ArrayList<Participant> selection;
 
 
     @Override
-    public void open() {
+    public void open(Context context) {
+        if (state != STATE_INIT)
+        {
+            throw  new IllegalStateException();
+        }
         if (CustomServiceMonitor.getInstance().isServiceEnabled()) {
             try {
                 token = CustomAuthenticationServicePool.getInstance().getNewKeyToken();
                 state = STATE_START;
                 presenter.SignalClientInNewState(state, STATE_CLOSED);
+                this.storage =  new AndroidSecretStorage(context);
 
             } catch (IllegalNumberOfTokensException | ServiceStateException e) {
                 presenter.setMessage(DistributedKeyGenerationActivity.KEY_ERROR_MESSAGES, e.getMessage());
@@ -85,15 +100,16 @@ public class CustomClient implements Client {
     @Override
     public void close() {
         int previousState = state;
-        state             = STATE_FINISHED;
+        state             = STATE_CLOSED;
         if (previousState == STATE_PERSIST){
-            persistenceManager.removeCredentials(details[INDEX_APPLICATION_NAME], details[INDEX_LOGIN]);
+            persistenceManager.removeCredentials(details[INDEX_APPLICATION_NAME], details[INDEX_LOGIN], storage);
         }
         if (token != null)
         {
             token.close();
             token = null;
         }
+        storage = null;
         presenter.SignalClientInNewState(state, previousState);
     }
 
@@ -180,6 +196,8 @@ public class CustomClient implements Client {
             distributeKeyParts(keyPartGenerator, keyPartDistributor, remoteKeyPartHandler, shareGenerator, persistenceManager);
             generateLocalShares(shareGenerator);
             persist(persistenceManager);
+            int previous = state;
+            changeState(STATE_FINISHED, previous);
         } catch (IllegalUseOfClosedTokenException | UnreachableParticipantException e) {
             int previousState = state;
             changeState(STATE_ERROR, previousState);
@@ -211,7 +229,7 @@ public class CustomClient implements Client {
 
     private void distributeKeyParts(CustomLocalKeyPartGenerator keyPartGenerator, CustomKeyPartDistributor distributor
             , CustomRemoteKeyPartHandler remoteKeyPartHandler, LocalKeyPartHandler localKeyPartHandler,
-              CustomPersistenceManager persistenceManager) throws IllegalUseOfClosedTokenException {
+              CustomKeyGenerationPersistenceManager persistenceManager) throws IllegalUseOfClosedTokenException {
         keyPartGenerator.passKeyPartDistributionSessionTo(distributor);
         distributor.distribute(localKeyPartHandler, remoteKeyPartHandler, persistenceManager, token);
         int previousState = state;
@@ -219,15 +237,20 @@ public class CustomClient implements Client {
     }
 
     private void generateLocalShares(CustomLocalKeyShareGenerator shareGenerator) throws IllegalUseOfClosedTokenException {
-        shareGenerator.generate(token);
+        shareGenerator.generate(persistenceManager, token);
         int previousState = state;
         changeState(STATE_SHARES, previousState);
     }
 
 
-    private void persist(CustomPersistenceManager persistenceManager) throws IllegalUseOfClosedTokenException {
-        persistenceManager.persist(token);
+    private void persist(CustomKeyGenerationPersistenceManager persistenceManager) throws IllegalUseOfClosedTokenException {
         int previousState = state;
+        try {
+            persistenceManager.persist(token, storage);
+        } catch (SecureStorageException e) {
+
+            changeState(STATE_ERROR, previousState);
+        }
         changeState(STATE_PERSIST, previousState);
     }
 
@@ -259,7 +282,7 @@ public class CustomClient implements Client {
 
     @Override
     protected void finalize() throws Throwable {
-        if (state != STATE_FINISHED)
+        if (state != STATE_CLOSED)
         {
             Logger logger = new AndroidLogger();
             logger.logError("CLIENT", "not properly managed states", "CRITICAL");

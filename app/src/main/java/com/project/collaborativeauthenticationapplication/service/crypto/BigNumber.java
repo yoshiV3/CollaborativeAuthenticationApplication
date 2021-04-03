@@ -9,66 +9,40 @@ public class BigNumber {
 
 
 
-    private final byte[]  partOne;
-    private final byte[]   partTwo;
-    private final byte[]   partThree;
-    private final byte[]   partFour;
-    private final byte[]   partFive;
-    private final byte[]   partSix;
-    private final byte[]   partSeven;
-    private final byte[]   partEight;
+    private final byte[]  representation = new byte[PolynomialGenerator.NUMBER_INTEGER_SIZE*PolynomialGenerator.INTEGER_BYTE_SIZE];
 
     public BigNumber(byte[]  partOne, byte[]  partTwo, byte[]  partThree, byte[]  partFour, byte[]  partFive, byte[]  partSix, byte[]  partSeven, byte[]  partEight) {
-        this.partOne = partOne;
-        this.partTwo = partTwo;
-        this.partThree = partThree;
-        this.partFour = partFour;
-        this.partFive = partFive;
-        this.partSix = partSix;
-        this.partSeven = partSeven;
-        this.partEight = partEight;
+        System.arraycopy(partOne,   0, representation, 0, 4);
+        System.arraycopy(partTwo,   0, representation, 4, 4);
+        System.arraycopy(partThree, 0, representation, 8, 4);
+        System.arraycopy(partFour,  0, representation, 12,4);
+        System.arraycopy(partFive,  0, representation, 16,4);
+        System.arraycopy(partSix,   0, representation, 20,4);
+        System.arraycopy(partSeven, 0, representation, 24,4);
+        System.arraycopy(partEight, 0, representation, 28,4);
+
     }
 
     public  BigNumber(byte[] fullNumber)
     {
-        this(
-                Arrays.copyOfRange(fullNumber, 0, 4),
-                Arrays.copyOfRange(fullNumber, 4, 8),
-                Arrays.copyOfRange(fullNumber, 8, 12),
-                Arrays.copyOfRange(fullNumber, 12, 16),
-                Arrays.copyOfRange(fullNumber, 16, 20),
-                Arrays.copyOfRange(fullNumber, 20, 24),
-                Arrays.copyOfRange(fullNumber, 24, 28),
-                Arrays.copyOfRange(fullNumber, 28, 32)
-        );
-        if (fullNumber.length != PolynomialGenerator.NUMBER_INTEGER_SIZE*PolynomialGenerator.INTEGER_BYTE_SIZE)
+        int length = PolynomialGenerator.NUMBER_INTEGER_SIZE*PolynomialGenerator.INTEGER_BYTE_SIZE;
+        if (fullNumber.length != length )
         {
             throw new IllegalArgumentException("number is not the correct size of 8 4 byte integers");
         }
+        System.arraycopy(fullNumber, 0, representation, 0, length);
     }
 
 
+    public byte[] getBigNumberAsByteArray(){
+        return representation.clone();
+    }
+
     public byte[]  getPart(int index)
     {
-        switch (index)
-        {
-            case 0:
-                return partOne;
-            case 1:
-                return partTwo;
-            case 2:
-                return partThree;
-            case 3:
-                return partFour;
-            case 4:
-                return partFive;
-            case 5:
-                return partSix;
-            case 6:
-                return partSeven;
-            default:
-                return partEight;
-        }
+        byte result[] = new byte[4];
+        System.arraycopy(representation, index*4, result, 0, 4);
+        return result;
     }
 
 

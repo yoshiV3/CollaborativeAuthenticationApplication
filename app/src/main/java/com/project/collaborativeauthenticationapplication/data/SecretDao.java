@@ -12,6 +12,6 @@ public interface SecretDao {
     @Insert
     void insert(SecretEntity... secretEntities);
 
-    @Query("SELECT * FROM SecretEntity WHERE applicationId = :applicationLoginId")
+    @Query("SELECT * FROM SecretEntity WHERE applicationLoginId = :applicationLoginId")
     List<SecretEntity> getAllSecretsForApplicationLogin(final long applicationLoginId);
 }

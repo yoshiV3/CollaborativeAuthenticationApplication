@@ -12,7 +12,7 @@ public class CustomLocalKeyShareGenerator extends  CustomTokenConsumer implement
     
     private final CryptoKeyShareGenerator generator;
     private ArrayList<ArrayList<BigNumber>> keyParts = new ArrayList<>();
-    ArrayList<BigNumber> shares;
+
 
     public CustomLocalKeyShareGenerator()
     {
@@ -20,11 +20,15 @@ public class CustomLocalKeyShareGenerator extends  CustomTokenConsumer implement
         generator = new CryptoKeyShareGenerator();
     }
 
-    public void generate(KeyToken token) throws IllegalUseOfClosedTokenException {
+    public void generate(CustomKeyGenerationPersistenceManager persistenceManager, KeyToken token) throws IllegalUseOfClosedTokenException {
+        ArrayList<BigNumber> shares;
         consumeToken(token);
         shares = generator.generate(keyParts);
+        persistenceManager.receiveShares(shares);
 
     }
+
+
 
     @Override
     public void receiveLocalKeyPartsFromLocalSource(List<List<BigNumber>> keyParts) {

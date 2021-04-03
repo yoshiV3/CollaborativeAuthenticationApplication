@@ -28,7 +28,7 @@ public abstract  class ItemListAdapter<T extends RecyclerView.ViewHolder, E> ext
         return items.size();
     }
 
-    protected E getItemAt(int index)
+    public E getItemAt(int index)
     {
         return items.get(index);
     }

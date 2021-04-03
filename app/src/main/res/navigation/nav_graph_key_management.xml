@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph_key_management"
+    app:startDestination="@id/secretOverviewFragment">
+
+    <fragment
+        android:id="@+id/secretOverviewFragment"
+        android:name="com.project.collaborativeauthenticationapplication.service.key.user.SecretOverviewFragment"
+        android:label="fragment_secret_overview"
+        tools:layout="@layout/fragment_secret_overview" />
+</navigation>

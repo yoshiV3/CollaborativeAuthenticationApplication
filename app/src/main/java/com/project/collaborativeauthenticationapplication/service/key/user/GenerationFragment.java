@@ -14,7 +14,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 
 import com.project.collaborativeauthenticationapplication.R;
-import com.project.collaborativeauthenticationapplication.service.key.CustomKeyPresenter;
+import com.project.collaborativeauthenticationapplication.service.key.CustomKeyGenerationPresenter;
 
 public class GenerationFragment extends Fragment implements ProgressView {
 
@@ -48,7 +48,7 @@ public class GenerationFragment extends Fragment implements ProgressView {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                CustomKeyPresenter.getInstance().onRun();
+                CustomKeyGenerationPresenter.getInstance().onRun();
                 button.setVisibility(View.GONE);
             }
         });
@@ -57,7 +57,7 @@ public class GenerationFragment extends Fragment implements ProgressView {
 
     @Override
     public void onResume() {
-        CustomKeyPresenter presenter = (CustomKeyPresenter) CustomKeyPresenter.getInstance();
+        CustomKeyGenerationPresenter presenter = (CustomKeyGenerationPresenter) CustomKeyGenerationPresenter.getInstance();
         if (presenter != null && presenter.isCurrentlyActive())
         {
             presenter.subscribe(this); //multiple times subscription won't change the effect
@@ -67,7 +67,7 @@ public class GenerationFragment extends Fragment implements ProgressView {
 
     @Override
     public void onDestroy() {
-        CustomKeyPresenter presenter = (CustomKeyPresenter) CustomKeyPresenter.getInstance();
+        CustomKeyGenerationPresenter presenter = (CustomKeyGenerationPresenter) CustomKeyGenerationPresenter.getInstance();
         if (presenter !=  null)
         {
             presenter.unSubScribe(this);
@@ -77,7 +77,7 @@ public class GenerationFragment extends Fragment implements ProgressView {
 
     @Override
     public void onStop() {
-        CustomKeyPresenter presenter = (CustomKeyPresenter) CustomKeyPresenter.getInstance();
+        CustomKeyGenerationPresenter presenter = (CustomKeyGenerationPresenter) CustomKeyGenerationPresenter.getInstance();
         presenter.unSubScribe(this);
         super.onStop();
     }

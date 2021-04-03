@@ -1,26 +1,28 @@
 package com.project.collaborativeauthenticationapplication.service.key.application;
 
+import android.content.Context;
+
 import com.project.collaborativeauthenticationapplication.service.Participant;
-import com.project.collaborativeauthenticationapplication.service.key.KeyPresenter;
+import com.project.collaborativeauthenticationapplication.service.key.KeyGenerationPresenter;
 
 import java.util.List;
 
-public class ThreadedClient implements Client{
+public class ThreadedKeyGenerationClient implements keyGenerationClient {
 
 
-    private final KeyPresenter presenter;
+    private final KeyGenerationPresenter presenter;
 
-    private Client client;
+    private keyGenerationClient client;
 
 
-    public ThreadedClient(KeyPresenter presenter)
+    public ThreadedKeyGenerationClient(KeyGenerationPresenter presenter)
     {
         this.presenter = presenter;
-        this.client    = new CustomClient(presenter);
+        this.client    = new CustomKeyGenerationClient(presenter);
     }
     @Override
-    public void open() {
-        client.open();
+    public void open(Context context) {
+        client.open(context);
     }
 
     @Override
@@ -28,8 +30,10 @@ public class ThreadedClient implements Client{
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                client.close();
-                client = null;
+                if (client != null){
+                    client.close();
+                    client = null;
+                }
             }
         });
         thread.start();
@@ -37,23 +41,28 @@ public class ThreadedClient implements Client{
 
     @Override
     public void submitLoginDetails(String login, String application) {
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try{
-                    client.submitLoginDetails(login, application);
-                }
-                catch (IllegalArgumentException e){
-                    presenter.submitLoginDetailsUnsuccessful();
-                }
+        synchronized (client){
+            Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try{
+                        client.submitLoginDetails(login, application);
+                    }
+                    catch (IllegalArgumentException e){
+                        presenter.submitLoginDetailsUnsuccessful();
+                    }
 
-            }
-        });
-        thread.start();
+                }
+            });
+            thread.start();
+        }
     }
 
     @Override
     public int getState() {
+        if (client == null){
+            return CustomKeyGenerationClient.STATE_CLOSED;
+        }
         return client.getState();
     }
 

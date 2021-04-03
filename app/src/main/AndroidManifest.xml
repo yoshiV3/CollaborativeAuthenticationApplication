@@ -15,7 +15,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.CollaborativeAuthenticationApplication">
-        <activity android:name=".debug.DebugActivity"
+        <activity android:name=".service.key.user.KeyManagementActivity"></activity>
+        <activity
+            android:name=".debug.DebugActivity"
             android:parentActivityName=".main.MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"

@@ -6,11 +6,11 @@ import com.project.collaborativeauthenticationapplication.R;
 import com.project.collaborativeauthenticationapplication.logger.AndroidLogger;
 import com.project.collaborativeauthenticationapplication.logger.Logger;
 import com.project.collaborativeauthenticationapplication.service.Participant;
-import com.project.collaborativeauthenticationapplication.service.key.application.Client;
-import com.project.collaborativeauthenticationapplication.service.key.application.CustomClient;
-import com.project.collaborativeauthenticationapplication.service.key.application.ThreadedClient;
+import com.project.collaborativeauthenticationapplication.service.key.application.keyGenerationClient;
+import com.project.collaborativeauthenticationapplication.service.key.application.CustomKeyGenerationClient;
+import com.project.collaborativeauthenticationapplication.service.key.application.ThreadedKeyGenerationClient;
 import com.project.collaborativeauthenticationapplication.service.key.user.DistributedKeyGenerationActivity;
-import com.project.collaborativeauthenticationapplication.service.key.user.KeyView;
+import com.project.collaborativeauthenticationapplication.service.key.user.KeyGenerationView;
 import com.project.collaborativeauthenticationapplication.service.key.user.ProgressNotifier;
 import com.project.collaborativeauthenticationapplication.service.key.user.ProgressView;
 
@@ -19,7 +19,7 @@ import java.util.HashSet;
 import java.util.List;
 
 
-public class CustomKeyPresenter implements KeyPresenter, ProgressNotifier {
+public class CustomKeyGenerationPresenter implements KeyGenerationPresenter, ProgressNotifier {
 
     private static final String COMPONENT_NAME         = "Key Presenter";
 
@@ -50,47 +50,51 @@ public class CustomKeyPresenter implements KeyPresenter, ProgressNotifier {
     private static final String MESSAGE_STATE_PERSISTED             =  "Local data was persisted";
     private static final String EVENT_UNAVAILABLE_LOGIN             =  "Could not submit the requested login";
     private static final String EVENT_NEW_MESSAGE                   =  "New message received" ;
+    private static final String EVENT_KEY_DONE                      =  "Finished the key generation process";
 
 
     private Logger logger = new AndroidLogger();
 
-    private static KeyPresenter instance;
+    private static KeyGenerationPresenter instance;
 
 
     private HashSet<ProgressView> subscribers = new HashSet<>();
 
 
-    public static KeyPresenter getInstance()
+    public static KeyGenerationPresenter getInstance()
     {
         return instance;
     }
 
 
-    public static void newInstance(KeyView view) {
+    public static void newInstance(KeyGenerationView view) {
 
-        instance = new CustomKeyPresenter(view);
+        instance = new CustomKeyGenerationPresenter(view);
     }
 
-    private final KeyView view;
+    private final KeyGenerationView view;
 
 
-    private Client client;
+    private keyGenerationClient client;
 
     private HashMap<String, String> messages = new HashMap<>();
 
 
 
 
-    private CustomKeyPresenter(KeyView view)
+    private CustomKeyGenerationPresenter(KeyGenerationView view)
     {
         this.view = view;
-        client = new ThreadedClient(this);
     }
 
     @Override
     public void onStart() {
         logger.logEvent(COMPONENT_NAME, EVENT_START, "low");
-        client.open();
+        if (client != null){
+            throw new IllegalStateException();
+        }
+        client = new ThreadedKeyGenerationClient(this);
+        client.open(view.getContext());
     }
 
     @Override
@@ -132,13 +136,21 @@ public class CustomKeyPresenter implements KeyPresenter, ProgressNotifier {
     }
 
     @Override
+    public void onJobDone() {
+        if (isCurrentlyActive()){
+            close();
+        }
+        view.onDone();
+    }
+
+    @Override
     public void onRun() {
         client.run();
     }
 
     @Override
     public boolean isCurrentlyActive() {
-        return client != null && client.getState() != CustomClient.STATE_FINISHED;
+        return client != null && client.getState() != CustomKeyGenerationClient.STATE_FINISHED && client.getState() != CustomKeyGenerationClient.STATE_CLOSED;
     }
 
     @Override
@@ -156,47 +168,49 @@ public class CustomKeyPresenter implements KeyPresenter, ProgressNotifier {
     public void SignalClientInNewState(int clientState, int oldState) {
         switch (clientState)
         {
-            case CustomClient.STATE_START:
+            case CustomKeyGenerationClient.STATE_START:
                 logger.logEvent(COMPONENT_NAME, EVENT_RECEIVED_TOKEN, "low");
                 break;
-            case CustomClient.STATE_DETAILS:
+            case CustomKeyGenerationClient.STATE_DETAILS:
                 view.navigate(R.id.select);
                 logger.logEvent(COMPONENT_NAME, EVENT_DETAILS_SUBMITTED, "low");
                 view.showMetaData(getMessage(DistributedKeyGenerationActivity.KEY_LOGIN), getMessage(DistributedKeyGenerationActivity.KEY_APPLICATION_NAME));
                 break;
-            case CustomClient.STATE_SELECT:
+            case CustomKeyGenerationClient.STATE_SELECT:
                 logger.logEvent(COMPONENT_NAME, EVENT_PARTICIPANTS_SUBMITTED, "low");
                 view.navigate(R.id.run);
                 break;
-            case CustomClient.STATE_BAD_INP_SEL:
+            case CustomKeyGenerationClient.STATE_BAD_INP_SEL:
                 view.showTemporally("Incorrect input");
                 break;
-            case CustomClient.STATE_SESSION:
+            case CustomKeyGenerationClient.STATE_SESSION:
                 notifySubscribers(MESSAGE_STATE_SESSION);
                 break;
-            case CustomClient.STATE_INVITATION:
+            case CustomKeyGenerationClient.STATE_INVITATION:
                 notifySubscribers(MESSAGE_STATE_INVITATIONS);
                 break;
-            case CustomClient.STATE_KEYPART:
+            case CustomKeyGenerationClient.STATE_KEYPART:
                 logger.logEvent(COMPONENT_NAME, EVENT_KEY_PARTS_LOCALLY_AVAILABLE, "low");
                 notifySubscribers(MESSAGE_STATE_KEYPART);
                 break;
-            case CustomClient.STATE_DISTRIBUTED:
+            case CustomKeyGenerationClient.STATE_DISTRIBUTED:
                 notifySubscribers(MESSAGE_STATE_DISTRIBUTED);
                 break;
-            case CustomClient.STATE_SHARES:
+            case CustomKeyGenerationClient.STATE_SHARES:
                 notifySubscribers(MESSAGE_STATE_SHARES);
                 break;
-            case CustomClient.STATE_PERSIST:
+            case CustomKeyGenerationClient.STATE_PERSIST:
                 notifySubscribers(MESSAGE_STATE_PERSISTED);
                 break;
-            case CustomClient.STATE_ERROR:
+            case CustomKeyGenerationClient.STATE_ERROR:
                 handleClientErrors(oldState);
                 break;
-            case CustomClient.STATE_CLOSED:
+            case CustomKeyGenerationClient.STATE_CLOSED:
                 break;
-            case CustomClient.STATE_FINISHED:
-                client = null;
+            case CustomKeyGenerationClient.STATE_FINISHED:
+                logger.logEvent(COMPONENT_NAME, EVENT_KEY_DONE, "low");
+                client.close();
+                view.navigate(R.id.success);
                 break;
             default:
                 logger.logError(COMPONENT_NAME, "impossible state of the client", "Critical");
@@ -209,32 +223,32 @@ public class CustomKeyPresenter implements KeyPresenter, ProgressNotifier {
         client.close();
         switch (oldState)
         {
-            case CustomClient.STATE_CLOSED:
+            case CustomKeyGenerationClient.STATE_CLOSED:
                 logger.logEvent(COMPONENT_NAME, EVENT_NOT_RECEIVED_TOKEN, "low");
                 view.navigate(R.id.error_home);
                 break;
-            case CustomClient.STATE_START:
+            case CustomKeyGenerationClient.STATE_START:
                 logger.logEvent(COMPONENT_NAME, EVENT_DETAILS_NOT_SUBMITTED, "low");
                 setMessage(DistributedKeyGenerationActivity.KEY_ERROR_MESSAGES, "Token revocation");
                 view.navigate(R.id.error_home);
                 break;
-            case CustomClient.STATE_DETAILS:
+            case CustomKeyGenerationClient.STATE_DETAILS:
                 logger.logEvent(COMPONENT_NAME, EVENT_PARTICIPANTS_NOT_SUBMITTED, "high");
                 setMessage(DistributedKeyGenerationActivity.KEY_ERROR_MESSAGES, "Token revocation");
                 view.navigate(R.id.error_select);
                 break;
-            case CustomClient.STATE_BAD_INP_SEL:
+            case CustomKeyGenerationClient.STATE_BAD_INP_SEL:
                 logger.logEvent(COMPONENT_NAME, EVENT_SESSION_FAILED, "high");
                 setMessage(DistributedKeyGenerationActivity.KEY_ERROR_MESSAGES, "Token revocation");
                 view.navigate(R.id.error_select);
                 break;
-            case CustomClient.STATE_SELECT:
-            case CustomClient.STATE_SESSION:
-            case CustomClient.STATE_INVITATION:
-            case CustomClient.STATE_KEYPART:
-            case CustomClient.STATE_DISTRIBUTED:
-            case CustomClient.STATE_SHARES:
-            case CustomClient.STATE_PERSIST:
+            case CustomKeyGenerationClient.STATE_SELECT:
+            case CustomKeyGenerationClient.STATE_SESSION:
+            case CustomKeyGenerationClient.STATE_INVITATION:
+            case CustomKeyGenerationClient.STATE_KEYPART:
+            case CustomKeyGenerationClient.STATE_DISTRIBUTED:
+            case CustomKeyGenerationClient.STATE_SHARES:
+            case CustomKeyGenerationClient.STATE_PERSIST:
                 logger.logEvent(COMPONENT_NAME, EVENT_SESSION_FAILED, "high");
                 setMessage(DistributedKeyGenerationActivity.KEY_ERROR_MESSAGES, "Session failed");
                 view.navigate(R.id.error_generation);

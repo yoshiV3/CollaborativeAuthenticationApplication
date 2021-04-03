@@ -8,8 +8,8 @@
 
     <Button
         android:id="@+id/button_dkg"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="260dp"
+        android:layout_height="40dp"
         android:layout_marginTop="48dp"
         android:layout_marginEnd="80dp"
         android:onClick="onClickKeyGeneration"
@@ -21,11 +21,12 @@
         android:id="@+id/textView_main_status_service"
         android:layout_width="252dp"
         android:layout_height="39dp"
-        android:layout_marginTop="44dp"
+        android:layout_marginTop="24dp"
         android:layout_marginEnd="80dp"
         android:text="@string/text_status_service_off"
+        android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/button_dkg" />
+        app:layout_constraintTop_toBottomOf="@+id/button_management" />
 
     <Button
         android:id="@+id/button_debug"
@@ -38,5 +39,16 @@
         android:textSize="14sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
+
+    <Button
+        android:id="@+id/button_management"
+        android:layout_width="260dp"
+        android:layout_height="40dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="80dp"
+        android:onClick="onClickKeyManagement"
+        android:text="@string/manage_credentials"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/button_dkg" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

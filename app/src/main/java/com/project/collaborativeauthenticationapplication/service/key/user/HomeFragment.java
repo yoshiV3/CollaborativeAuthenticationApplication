@@ -13,8 +13,8 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import com.project.collaborativeauthenticationapplication.R;
-import com.project.collaborativeauthenticationapplication.service.key.CustomKeyPresenter;
-import com.project.collaborativeauthenticationapplication.service.key.KeyPresenter;
+import com.project.collaborativeauthenticationapplication.service.key.CustomKeyGenerationPresenter;
+import com.project.collaborativeauthenticationapplication.service.key.KeyGenerationPresenter;
 
 
 public class HomeFragment extends Fragment {
@@ -48,10 +48,10 @@ public class HomeFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 String newApplication = ((EditText) appEditor ).getText().toString();
-                CustomKeyPresenter.getInstance().setMessage(DistributedKeyGenerationActivity.KEY_APPLICATION_NAME, newApplication);
+                CustomKeyGenerationPresenter.getInstance().setMessage(DistributedKeyGenerationActivity.KEY_APPLICATION_NAME, newApplication);
                 String newLogin = ((EditText) loginEditor).getText().toString();
-                CustomKeyPresenter.getInstance().setMessage(DistributedKeyGenerationActivity.KEY_LOGIN, newLogin);
-                CustomKeyPresenter.getInstance().submitLoginDetails();
+                CustomKeyGenerationPresenter.getInstance().setMessage(DistributedKeyGenerationActivity.KEY_LOGIN, newLogin);
+                CustomKeyGenerationPresenter.getInstance().submitLoginDetails();
             }
         });
 
@@ -62,7 +62,7 @@ public class HomeFragment extends Fragment {
 
     @Override
     public void onStart() {
-        KeyPresenter presenter = CustomKeyPresenter.getInstance();
+        KeyGenerationPresenter presenter = CustomKeyGenerationPresenter.getInstance();
         String login           = presenter.getMessage(DistributedKeyGenerationActivity.KEY_LOGIN);
         String application     = presenter.getMessage(DistributedKeyGenerationActivity.KEY_APPLICATION_NAME);
 

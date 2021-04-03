@@ -4,18 +4,20 @@ import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 
 import com.project.collaborativeauthenticationapplication.CustomAuthenticationControllerActivity;
+import com.project.collaborativeauthenticationapplication.NavigationEnabledAuthenticationControllerActivity;
 import com.project.collaborativeauthenticationapplication.R;
 import com.project.collaborativeauthenticationapplication.logger.AndroidLogger;
 import com.project.collaborativeauthenticationapplication.logger.Logger;
-import com.project.collaborativeauthenticationapplication.service.key.CustomKeyPresenter;
-import com.project.collaborativeauthenticationapplication.service.key.KeyPresenter;
+import com.project.collaborativeauthenticationapplication.service.key.CustomKeyGenerationPresenter;
+import com.project.collaborativeauthenticationapplication.service.key.KeyGenerationPresenter;
 
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.TextView;
 
-public class DistributedKeyGenerationActivity extends CustomAuthenticationControllerActivity implements KeyView {
+public class DistributedKeyGenerationActivity extends NavigationEnabledAuthenticationControllerActivity implements KeyGenerationView {
 
 
     public static final  String KEY_LOGIN             = "Login";
@@ -35,8 +37,8 @@ public class DistributedKeyGenerationActivity extends CustomAuthenticationContro
 
     private Logger logger = new AndroidLogger();
 
-    private Navigator    navigator;
-    private KeyPresenter keyPresenter;
+
+    private KeyGenerationPresenter keyGenerationPresenter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,61 +51,50 @@ public class DistributedKeyGenerationActivity extends CustomAuthenticationContro
         String application = intent.getStringExtra(APPLICATION_NAME_FIELD_KEY);
 
 
-        CustomKeyPresenter.newInstance(this);
-        keyPresenter =  CustomKeyPresenter.getInstance();
+        CustomKeyGenerationPresenter.newInstance(this);
+        keyGenerationPresenter =  CustomKeyGenerationPresenter.getInstance();
 
 
-        keyPresenter.setMessage(KEY_APPLICATION_NAME, application);
-        keyPresenter.setMessage(KEY_LOGIN, login);
+        keyGenerationPresenter.setMessage(KEY_APPLICATION_NAME, application);
+        keyGenerationPresenter.setMessage(KEY_LOGIN, login);
 
+        buildNavigator(R.id.fragment);
 
 
         logger.logEvent(COMPONENT_NAME, EVENT_START, getString(R.string.PRIORITY_HIGH), "(" + login + "," + application + ")");
 
-        NavController controller = Navigation.findNavController(this, R.id.fragment);
-        navigator = new Navigator() {
-            NavController androidNavigator = controller;
-            @Override
-            public void navigate(int target) {
-                androidNavigator.navigate(target);
-            }
 
-            @Override
-            public int getLocation() {
-                return controller.getCurrentDestination().getId();
-            }
-        };
 
     }
 
 
     @Override
     protected void onStart() {
-        keyPresenter.onStart();
+        keyGenerationPresenter.onStart();
         super.onStart();
     }
 
     @Override
     public void onBackPressed() {
-        keyPresenter.onBackPressed();
+        keyGenerationPresenter.onBackPressed();
     }
 
 
     @Override
     protected void onPause() {
-        keyPresenter.onPause();
+        keyGenerationPresenter.onPause();
         super.onPause();
     }
 
     @Override
     protected void onStop() {
-        keyPresenter.onStop();
+        keyGenerationPresenter.onStop();
         super.onStop();
     }
 
     @Override
     protected void onDestroy() {
-        keyPresenter.onStop();
+        keyGenerationPresenter.onStop();
         super.onDestroy();
     }
 
@@ -114,12 +105,12 @@ public class DistributedKeyGenerationActivity extends CustomAuthenticationContro
 
     @Override
     public void navigate(int target) {
-        navigator.navigate(target);
+        getNavigator().navigate(target);
     }
 
     @Override
     public int locate() {
-        return navigator.getLocation();
+        return getNavigator().getLocation();
 
     }
 
@@ -129,8 +120,10 @@ public class DistributedKeyGenerationActivity extends CustomAuthenticationContro
         ((TextView) findViewById(R.id.textViewLogin)).setText(login);
     }
 
-    private interface Navigator {
-        void navigate(int target);
-        int getLocation();
+    @Override
+    public Context getContext() {
+        return this;
     }
+
+
 }
