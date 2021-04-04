@@ -94,7 +94,7 @@ public class CustomKeyManagementClient implements KeyManagementClient{
 
     @Override
     public void remove(Task task)  {
-        logger.logError("CLIENT: key management", "not properly managed states", "CRITICAL");
+        logger.logError("CLIENT: key management", "request to remove credentials" , "medium");
         persistenceManager.removeCredentials(task.getApplicationName(), task.getLogin(), storage);
         task.done();
 
@@ -102,7 +102,7 @@ public class CustomKeyManagementClient implements KeyManagementClient{
 
     @Override
     public void extend(FeedbackTask task) {
-        logger.logEvent("CLIENT: key management", "request to extend a secret to a nex share", "high");
+        logger.logEvent("CLIENT: key management", "request to extend a secret to a new share", "high");
         ArrayList<BigNumber> shares = new ArrayList<>();
 
         try {
