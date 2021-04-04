@@ -42,7 +42,7 @@ public abstract class KeyPersistenceManager extends  CustomTokenConsumer<KeyToke
             List<SecretEntity> secrets = secretDao.getAllSecretsForApplicationLogin(entity.applicationLoginId);
             for (SecretEntity secretEntity: secrets){
                 try {
-                    storage.removeSecrets(applicationName, login, secretEntity.identifier);
+                    storage.removeSecret(applicationName, login, secretEntity.identifier);
                 } catch (SecureStorageException e) {
                     logger.logError(COMPONENT, ERROR_REMOVE, "Critical", e.toString());
                 }

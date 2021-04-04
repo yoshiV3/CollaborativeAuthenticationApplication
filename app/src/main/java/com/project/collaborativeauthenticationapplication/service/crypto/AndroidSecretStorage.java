@@ -90,6 +90,14 @@ public class AndroidSecretStorage {
             editor.apply();
     }
 
+
+    public void storeSecret(BigNumber share, int identifier, String applicationName, String login) throws SecureStorageException {
+        SharedPreferences.Editor editor = getEncryptedSharedPreferences().edit();
+        String alias                    = getkeyAlias(applicationName, login) + ":" + identifier;
+        editor.putString(alias, new String(share.getBigNumberAsByteArray(), StandardCharsets.ISO_8859_1));
+        editor.apply();
+    }
+
     private String getkeyAlias(String applicationName, String login) {
         String builder = login +
                 ":" +
@@ -98,12 +106,17 @@ public class AndroidSecretStorage {
     }
 
 
-    public List<BigNumber> getSecrets(String applicationName, String login, int weight){
-        return null;
+    public BigNumber getSecrets(String applicationName, String login, int identifier) throws SecureStorageException {
+        String key    = getkeyAlias(applicationName, login) + ":" + identifier;
+        String value  = getEncryptedSharedPreferences().getString(key, null);
+        if (value == null){
+            throw new  SecureStorageException("Keys cannot be found in the secret storage");
+        }
+        return new BigNumber(value.getBytes(StandardCharsets.ISO_8859_1));
     }
 
 
-    public void removeSecrets(String applicationName, String login, int identifier) throws SecureStorageException {
+    public void removeSecret(String applicationName, String login, int identifier) throws SecureStorageException {
         SharedPreferences storage       = getEncryptedSharedPreferences();
         SharedPreferences.Editor editor = storage.edit();
         String alias               = getkeyAlias(applicationName, login)+ ":"  + identifier;

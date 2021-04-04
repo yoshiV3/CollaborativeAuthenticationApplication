@@ -3,14 +3,16 @@ package com.project.collaborativeauthenticationapplication.service.key;
 import com.project.collaborativeauthenticationapplication.data.ApplicationLoginEntity;
 import com.project.collaborativeauthenticationapplication.logger.AndroidLogger;
 import com.project.collaborativeauthenticationapplication.logger.Logger;
-import com.project.collaborativeauthenticationapplication.service.key.application.CustomKeyManagementViewManager;
+import com.project.collaborativeauthenticationapplication.service.key.application.key_management.CustomKeyManagementViewManager;
 
-import com.project.collaborativeauthenticationapplication.service.key.application.ThreadedKeyManagementClient;
+import com.project.collaborativeauthenticationapplication.service.key.application.key_management.FeedbackTask;
+import com.project.collaborativeauthenticationapplication.service.key.application.key_management.ThreadedKeyManagementClient;
 
 import com.project.collaborativeauthenticationapplication.service.key.application.key_management.Task;
-import com.project.collaborativeauthenticationapplication.service.key.user.KeyManagementView;
+import com.project.collaborativeauthenticationapplication.service.key.user.key_management.KeyManagementView;
 import com.project.collaborativeauthenticationapplication.R;
-import com.project.collaborativeauthenticationapplication.service.key.user.Requester;
+import com.project.collaborativeauthenticationapplication.service.key.user.key_management.Requester;
+import com.project.collaborativeauthenticationapplication.service.key.user.key_management.RequesterOfFeedbackTask;
 
 import java.util.HashMap;
 import java.util.List;
@@ -24,6 +26,8 @@ public class CustomKeyManagementPresenter implements KeyManagementPresenter{
     public static final String  KEY_NB_OF_REM_DEV    = "RD";
     public static final String  KEY_NB_OF_REM_KEYS   = "RK";
     public static final String  KEY_NB_OF_LOC_KEYS   = "LK";
+
+    public static final String  KEY_MESS_REC         = "MR";
 
 
     private Logger logger = new AndroidLogger();
@@ -134,6 +138,11 @@ public class CustomKeyManagementPresenter implements KeyManagementPresenter{
     }
 
     @Override
+    public void onExtendSecret() {
+        view.navigate(R.id.action_credentialManagementFragment_to_keyRecoveryFragment);
+    }
+
+    @Override
     public void openManagementSessionFor(String applicationName, String login) {
         KeyManagementPresenter presenter = this;
         Thread thread = new Thread(new Runnable() {
@@ -185,13 +194,43 @@ public class CustomKeyManagementPresenter implements KeyManagementPresenter{
         if (applicationName == null | login ==  null ){
             throw new  IllegalStateException();
         }
-        Task task = new Task(applicationName, login,
-                new Requester() {
-                    @Override
-                    public void signalJobDone() {
-                        view.showTemporally("Added new secret");
-                        requester.signalJobDone();
-                    }
-                });
+        RequesterOfFeedbackTask requesterInternal = new RequesterOfFeedbackTask() {
+            private FeedbackTask task = null;
+            @Override
+            public void setTask(FeedbackTask task) {
+                this.task = task;
+            }
+
+            @Override
+            public FeedbackTask getTask() {
+                return task;
+            }
+
+            @Override
+            public void signalJobDone() {
+                if (getTask().hasBeenSuccessful()){
+                    view.showTemporally("Added new secret");
+                    messages.put(KEY_MESS_REC, "Complete");
+                }
+                else {
+                    view.showTemporally("Failed");
+                    messages.put(KEY_MESS_REC, "Failed");
+                    view.showTemporally(task.getMessage());
+
+                }
+                requester.signalJobDone();
+            }
+        };
+
+        FeedbackTask task = new FeedbackTask(applicationName, login, requesterInternal);
+
+        requesterInternal.setTask(task);
+
+        client.extend(task);
+    }
+
+    @Override
+    public void onFinishedRecovery() {
+        view.navigate(R.id.action_keyRecoveryFragment_to_credentialManagementFragment);
     }
 }

@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".service.key.user.KeyManagementActivity">
+    tools:context=".service.key.user.key_management.KeyManagementActivity">
 
     <fragment
         android:id="@+id/fragment2"

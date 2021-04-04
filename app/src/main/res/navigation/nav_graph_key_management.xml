@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/secretOverviewFragment"
-        android:name="com.project.collaborativeauthenticationapplication.service.key.user.SecretOverviewFragment"
+        android:name="com.project.collaborativeauthenticationapplication.service.key.user.key_management.SecretOverviewFragment"
         android:label="fragment_secret_overview"
         tools:layout="@layout/fragment_secret_overview" >
         <action
@@ -16,11 +16,26 @@
     </fragment>
     <fragment
         android:id="@+id/credentialManagementFragment"
-        android:name="com.project.collaborativeauthenticationapplication.service.key.user.CredentialManagementFragment"
+        android:name="com.project.collaborativeauthenticationapplication.service.key.user.key_management.CredentialManagementFragment"
         android:label="fragment_credential_management"
         tools:layout="@layout/fragment_credential_management" >
         <action
             android:id="@+id/action_credentialManagementFragment_to_secretOverviewFragment"
             app:destination="@id/secretOverviewFragment" />
+        <action
+            android:id="@+id/action_credentialManagementFragment_to_keyRecoveryFragment"
+            app:destination="@id/keyRecoveryFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/keyRecoveryFragment"
+        android:name="com.project.collaborativeauthenticationapplication.service.key.user.key_management.KeyRecoveryFragment"
+        android:label="fragment_key_recovery"
+        tools:layout="@layout/fragment_key_recovery" >
+        <action
+            android:id="@+id/action_keyRecoveryFragment_to_credentialManagementFragment"
+            app:destination="@id/credentialManagementFragment"
+            app:popUpTo="@+id/secretOverviewFragment"
+
+            />
     </fragment>
 </navigation>
