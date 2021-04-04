@@ -6,5 +6,5 @@ public interface KeyGenerationView extends KeyView {
 
 
     void showMetaData(String login, String application);
-    Context getContext();
+
 }

@@ -16,20 +16,19 @@ import com.project.collaborativeauthenticationapplication.service.key.KeyToken;
 import  java.util.ArrayList;
 import  java.util.List;
 
-public class CustomKeyGenerationPersistenceManager extends CustomTokenConsumer<KeyToken>{
+public class CustomKeyGenerationPersistenceManager extends KeyPersistenceManager{
 
 
-    private static final String COMPONENT    = "Persistence manager";
-    private static final String ERROR_REMOVE = "error during destruction of the secrets";
-    private static Logger logger = new AndroidLogger();
+
 
     private        KeyPartDistributionSession session;
-    private final  AuthenticationDatabase     db;
+
     private        ArrayList<BigNumber>       shares;
 
-    public CustomKeyGenerationPersistenceManager() {
-        db = AuthenticationDatabase.getAuthenticationDatabaseInstance();
+    protected CustomKeyGenerationPersistenceManager() {
+        super();
     }
+
 
     public void receiveKeyDistributionSession(KeyPartDistributionSession session){
         this.session = session;
@@ -48,8 +47,8 @@ public class CustomKeyGenerationPersistenceManager extends CustomTokenConsumer<K
             throw new IllegalStateException("Insufficient amount of information to properly persist the data");
         }
         ApplicationLoginEntity application             = new ApplicationLoginEntity(session.getApplicationName(), session.getLogin(), session.getThreshold());
-        ApplicationLoginDao    applicationLoginDao     = db.getApplicationLoginDao();
-        SecretDao secretDao = db.getSecretDao();
+        ApplicationLoginDao    applicationLoginDao     = getDb().getApplicationLoginDao();
+        SecretDao secretDao = getDb().getSecretDao();
         try {
             applicationLoginDao.insert(application);
         }
@@ -83,19 +82,5 @@ public class CustomKeyGenerationPersistenceManager extends CustomTokenConsumer<K
         this.shares = shares;
     }
 
-    public void removeCredentials(String applicationName, String login, AndroidSecretStorage storage){
-        ApplicationLoginDao applicationLoginDao = db.getApplicationLoginDao();
-        List<ApplicationLoginEntity> entities = applicationLoginDao.getApplicationWithNameAndLogin(applicationName, login);
-        SecretDao secretDao = db.getSecretDao();
-        for (ApplicationLoginEntity entity : entities){
-            List<SecretEntity> secrets = secretDao.getAllSecretsForApplicationLogin(entity.applicationLoginId);
-            int length = secrets.get(0).length;
-            try {
-                storage.removeSecrets(applicationName, login, length);
-            } catch (SecureStorageException e) {
-                logger.logError(COMPONENT, ERROR_REMOVE, "Critical", e.toString());
-            }
-            applicationLoginDao.delete(entity);
-        }
-    }
+
 }

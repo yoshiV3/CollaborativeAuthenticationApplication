@@ -23,8 +23,8 @@ public class CryptoKeyShareGenerator {
         if ((parts.get(0).size() == 1) ){
             for (ArrayList<BigNumber> identifier: parts){
                 shares.add(identifier.get(0));
-                return shares;
             }
+            return shares;
         }
         generateShares(shares, parts);
         return shares;

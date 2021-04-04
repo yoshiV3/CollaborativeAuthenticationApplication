@@ -1,5 +1,7 @@
 package com.project.collaborativeauthenticationapplication.service.key.application;
 
+import com.project.collaborativeauthenticationapplication.logger.AndroidLogger;
+import com.project.collaborativeauthenticationapplication.logger.Logger;
 import com.project.collaborativeauthenticationapplication.service.IllegalUseOfClosedTokenException;
 import com.project.collaborativeauthenticationapplication.service.crypto.BigNumber;
 import com.project.collaborativeauthenticationapplication.service.crypto.CryptoKeyShareGenerator;
@@ -12,7 +14,7 @@ public class CustomLocalKeyShareGenerator extends  CustomTokenConsumer implement
     
     private final CryptoKeyShareGenerator generator;
     private ArrayList<ArrayList<BigNumber>> keyParts = new ArrayList<>();
-
+    private static Logger logger = new AndroidLogger();
 
     public CustomLocalKeyShareGenerator()
     {
@@ -25,7 +27,7 @@ public class CustomLocalKeyShareGenerator extends  CustomTokenConsumer implement
         consumeToken(token);
         shares = generator.generate(keyParts);
         persistenceManager.receiveShares(shares);
-
+        logger.logEvent("LOCAL SHARE GENERATOR", "generated new shates", "low", String.valueOf(shares.size()));
     }
 
 
@@ -36,6 +38,6 @@ public class CustomLocalKeyShareGenerator extends  CustomTokenConsumer implement
         {
             this.keyParts.add(new ArrayList<BigNumber>(keyPart));
         }
-
+        logger.logEvent("LOCAL SHARE GENERATOR", "Received new key parts", "low", String.valueOf(keyParts.size()));
     }
 }

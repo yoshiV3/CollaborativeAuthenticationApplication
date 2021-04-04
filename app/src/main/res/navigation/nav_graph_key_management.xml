@@ -9,5 +9,18 @@
         android:id="@+id/secretOverviewFragment"
         android:name="com.project.collaborativeauthenticationapplication.service.key.user.SecretOverviewFragment"
         android:label="fragment_secret_overview"
-        tools:layout="@layout/fragment_secret_overview" />
+        tools:layout="@layout/fragment_secret_overview" >
+        <action
+            android:id="@+id/action_secretOverviewFragment_to_credentialManagementFragment"
+            app:destination="@id/credentialManagementFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/credentialManagementFragment"
+        android:name="com.project.collaborativeauthenticationapplication.service.key.user.CredentialManagementFragment"
+        android:label="fragment_credential_management"
+        tools:layout="@layout/fragment_credential_management" >
+        <action
+            android:id="@+id/action_credentialManagementFragment_to_secretOverviewFragment"
+            app:destination="@id/secretOverviewFragment" />
+    </fragment>
 </navigation>

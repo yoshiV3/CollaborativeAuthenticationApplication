@@ -2,6 +2,7 @@ package com.project.collaborativeauthenticationapplication.service.key.user;
 
 
 
+import android.content.Context;
 import android.os.Bundle;
 
 
@@ -76,12 +77,22 @@ public class KeyManagementActivity extends NavigationEnabledAuthenticationContro
 
     @Override
     public void navigate(int target) {
-        getNavigator().navigate(target);
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                getNavigator().navigate(target);
+            }
+        });
     }
 
     @Override
     public int locate() {
         return getNavigator().getLocation();
+    }
+
+    @Override
+    public Context getContext() {
+        return this;
     }
 
     @Override

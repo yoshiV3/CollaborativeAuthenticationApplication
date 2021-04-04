@@ -1,5 +1,7 @@
 package com.project.collaborativeauthenticationapplication.service.key.application;
 
+import com.project.collaborativeauthenticationapplication.logger.AndroidLogger;
+import com.project.collaborativeauthenticationapplication.logger.Logger;
 import com.project.collaborativeauthenticationapplication.service.IllegalUseOfClosedTokenException;
 import com.project.collaborativeauthenticationapplication.service.crypto.BigNumber;
 import com.project.collaborativeauthenticationapplication.service.key.KeyToken;
@@ -8,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CustomKeyPartDistributor extends CustomTokenConsumer<KeyToken> {
+    private static Logger logger = new AndroidLogger();
 
 
     private KeyPartDistributionSession session;
@@ -30,6 +33,7 @@ public class CustomKeyPartDistributor extends CustomTokenConsumer<KeyToken> {
             partsForParticipant.add(session.getKeyPartsFor(identifier));
             localKeyParts.add(partsForParticipant);
         }
+        logger.logEvent("Distributor", "request to distribute", "low");
         local.receiveLocalKeyPartsFromLocalSource(localKeyParts);
         //Remote: currently impossible
 

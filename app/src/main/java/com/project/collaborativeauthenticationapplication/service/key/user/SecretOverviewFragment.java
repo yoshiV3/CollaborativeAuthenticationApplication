@@ -47,6 +47,7 @@ public class SecretOverviewFragment extends Fragment {
             {
                 int position = overview.getChildLayoutPosition(v);
                 ApplicationLoginEntity item  = KeyManagementActivity.currentInstance.getAdapter().getItemAt(position);
+                CustomKeyManagementPresenter.getInstance().openManagementSessionFor(item.applicationName, item.login);
             }
         };
         KeyManagementActivity.currentInstance.getAdapter().setOnClickListener(listenerAdapter);

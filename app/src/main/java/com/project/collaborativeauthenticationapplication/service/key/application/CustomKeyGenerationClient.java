@@ -25,6 +25,8 @@ public class CustomKeyGenerationClient implements keyGenerationClient {
 
 
 
+    private static Logger logger = new AndroidLogger();
+
 
     public static final int STATE_INIT          = 0;
     public static final int STATE_CLOSED        = 1;
@@ -179,6 +181,8 @@ public class CustomKeyGenerationClient implements keyGenerationClient {
 
     @Override
     public void run() {
+        logger.logEvent("CLIENT generation", "request to run", "low");
+
         if (state != STATE_SELECT)
         {
             throw new IllegalStateException("Cannot run during this state");

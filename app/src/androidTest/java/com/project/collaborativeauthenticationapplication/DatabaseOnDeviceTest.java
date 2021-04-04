@@ -152,6 +152,9 @@ public class DatabaseOnDeviceTest {
 
         List<ParticipantEntity> participantEntities = applicationLoginParticipantDao.getAllParticipantsForApplication(applicationLoginEntities.get(0).applicationLoginId);
         Assert.assertEquals(participantEntities.size(), 2);
+
+        List<ApplicationLoginParticipantJoin> applicationLoginEntityList = applicationLoginParticipantDao.getAllInformation(applicationName, login);
+        Assert.assertEquals(applicationLoginEntityList.size(), 2);
     }
 
 
