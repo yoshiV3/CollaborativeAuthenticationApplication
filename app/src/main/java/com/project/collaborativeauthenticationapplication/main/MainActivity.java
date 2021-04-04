@@ -13,7 +13,6 @@ import android.widget.TextView;
 import com.project.collaborativeauthenticationapplication.CustomAuthenticationControllerActivity;
 import com.project.collaborativeauthenticationapplication.R;
 import com.project.collaborativeauthenticationapplication.data.AuthenticationDatabase;
-import com.project.collaborativeauthenticationapplication.debug.DebugActivity;
 import com.project.collaborativeauthenticationapplication.logger.AndroidLogger;
 import com.project.collaborativeauthenticationapplication.logger.Logger;
 import com.project.collaborativeauthenticationapplication.service.controller.AuthenticationForegroundService;
@@ -113,16 +112,6 @@ public class MainActivity extends CustomAuthenticationControllerActivity impleme
             showTemporally("Service is disabled");
         }
     }
-
-
-
-    public void onClickDebug(View view)
-    {
-        Intent intent = new Intent(this, DebugActivity.class);
-        startActivity(intent);
-    }
-
-
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {

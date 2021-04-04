@@ -15,7 +15,6 @@ import android.widget.TextView;
 import com.project.collaborativeauthenticationapplication.R;
 import com.project.collaborativeauthenticationapplication.service.key.CustomKeyManagementPresenter;
 import com.project.collaborativeauthenticationapplication.service.key.KeyManagementPresenter;
-import com.project.collaborativeauthenticationapplication.service.key.application.CustomKeyManagementClient;
 
 
 public class CredentialManagementFragment extends Fragment {
@@ -61,6 +60,29 @@ public class CredentialManagementFragment extends Fragment {
                 });
             }
         });
+
+        view.findViewById(R.id.button_extend).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                presenter.onExtend(new Requester() {
+                    @Override
+                    public void signalJobDone() {
+                        presenter.onUpDate();
+                        Activity activity = getActivity();
+                        if (activity != null){
+                            activity.runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    displayInformation(view, presenter);
+                                }
+                            });
+                        }
+                    }
+                });
+            }
+        });
+
+
 
     }
 

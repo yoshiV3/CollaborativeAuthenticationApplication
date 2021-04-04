@@ -41,10 +41,7 @@ public class CustomKeyManagementViewManager {
         }
         long applicationLoginId = applicationLoginEntities.get(0).applicationLoginId;
         List<SecretEntity> secretEntities = secretDao.getAllSecretsForApplicationLogin(applicationLoginId);
-        if (secretEntities.size()==0){
-            return 0;
-        }
-        return secretEntities.get(0).length;
+        return secretEntities.size();
     }
 
     public int getNumberOfRemoteKeys(String applicationName, String login){

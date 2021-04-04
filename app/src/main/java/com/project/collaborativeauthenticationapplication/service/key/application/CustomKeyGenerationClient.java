@@ -75,6 +75,7 @@ public class CustomKeyGenerationClient implements keyGenerationClient {
 
     @Override
     public void open(Context context) {
+        logger.logEvent("Client", "new open request", "low");
         if (state != STATE_INIT)
         {
             throw  new IllegalStateException();
@@ -89,7 +90,7 @@ public class CustomKeyGenerationClient implements keyGenerationClient {
             } catch (IllegalNumberOfTokensException | ServiceStateException e) {
                 presenter.setMessage(DistributedKeyGenerationActivity.KEY_ERROR_MESSAGES, e.getMessage());
                 state = STATE_ERROR;
-                presenter.SignalClientInNewState(state, STATE_CLOSED);
+                presenter.SignalClientInNewState(state, STATE_INIT);
             }
         }
         else
@@ -117,6 +118,7 @@ public class CustomKeyGenerationClient implements keyGenerationClient {
 
     @Override
     public void submitLoginDetails(String login, String application) {
+        logger.logEvent("Client", "new details submitted", "low");
         if (state != STATE_START)
         {
             throw new IllegalStateException("Presenter should not call this method during this state");
@@ -202,9 +204,11 @@ public class CustomKeyGenerationClient implements keyGenerationClient {
             persist(persistenceManager);
             int previous = state;
             changeState(STATE_FINISHED, previous);
-        } catch (IllegalUseOfClosedTokenException | UnreachableParticipantException e) {
+        } catch (IllegalUseOfClosedTokenException | UnreachableParticipantException | SecureStorageException e) {
             int previousState = state;
             changeState(STATE_ERROR, previousState);
+            logger.logError("Client", "Error occurred during run", "Critical", String.valueOf(previousState) );
+            logger.logError("Client", "Error occurred during run", "Critical", e.getMessage() );
         }
     }
 
@@ -247,14 +251,9 @@ public class CustomKeyGenerationClient implements keyGenerationClient {
     }
 
 
-    private void persist(CustomKeyGenerationPersistenceManager persistenceManager) throws IllegalUseOfClosedTokenException {
+    private void persist(CustomKeyGenerationPersistenceManager persistenceManager) throws IllegalUseOfClosedTokenException, SecureStorageException {
         int previousState = state;
-        try {
-            persistenceManager.persist(token, storage);
-        } catch (SecureStorageException e) {
-
-            changeState(STATE_ERROR, previousState);
-        }
+        persistenceManager.persist(token, storage);
         changeState(STATE_PERSIST, previousState);
     }
 

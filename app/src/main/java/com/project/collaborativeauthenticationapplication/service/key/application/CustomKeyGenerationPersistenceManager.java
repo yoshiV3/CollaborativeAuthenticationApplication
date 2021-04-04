@@ -42,6 +42,17 @@ public class CustomKeyGenerationPersistenceManager extends KeyPersistenceManager
     }
 
     public void persist(KeyToken token, AndroidSecretStorage storage) throws IllegalUseOfClosedTokenException, SecureStorageException {
+        int totalWeight = shares.size();
+        int[] identifiers = new int[totalWeight];
+        for (int i = 1; i <= totalWeight; i++){
+            identifiers[i-1] = i;
+        }
+        persist(token, storage, identifiers);
+    }
+
+
+
+    public void persist(KeyToken token, AndroidSecretStorage storage, int[] identifiers) throws IllegalUseOfClosedTokenException, SecureStorageException {
         consumeToken(token);
         if (session == null){
             throw new IllegalStateException("Insufficient amount of information to properly persist the data");
@@ -56,7 +67,7 @@ public class CustomKeyGenerationPersistenceManager extends KeyPersistenceManager
             throw  new SecureStorageException("could not insert details into the system");
         }
         try{
-            storage.storeSecrets(shares, session.getApplicationName(), session.getLogin());
+            storage.storeSecrets(shares, identifiers, session.getApplicationName(), session.getLogin());
         }
         catch(Exception e){
             List<ApplicationLoginEntity> entities = applicationLoginDao.getApplicationWithNameAndLogin(session.getApplicationName(), session.getLogin());
@@ -68,8 +79,10 @@ public class CustomKeyGenerationPersistenceManager extends KeyPersistenceManager
         }
         try{
             List<ApplicationLoginEntity> list = applicationLoginDao.getApplicationWithNameAndLogin(session.getApplicationName(), session.getLogin());
-            SecretEntity s = new SecretEntity(list.get(0).applicationLoginId, shares.size());
-            secretDao.insert(s);
+            for (int i: identifiers){
+                SecretEntity s = new SecretEntity(list.get(0).applicationLoginId, i);
+                secretDao.insert(s);
+            }
         }
         catch (Exception e){
             removeCredentials(session.getApplicationName(), session.getLogin(), storage);

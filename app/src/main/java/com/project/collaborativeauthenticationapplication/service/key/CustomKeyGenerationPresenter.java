@@ -51,6 +51,7 @@ public class CustomKeyGenerationPresenter implements KeyGenerationPresenter, Pro
     private static final String EVENT_UNAVAILABLE_LOGIN             =  "Could not submit the requested login";
     private static final String EVENT_NEW_MESSAGE                   =  "New message received" ;
     private static final String EVENT_KEY_DONE                      =  "Finished the key generation process";
+    private static final String EVENT_RUN_FAILED                    =  "Something went wrong during the generation process";
 
 
     private Logger logger = new AndroidLogger();
@@ -223,7 +224,7 @@ public class CustomKeyGenerationPresenter implements KeyGenerationPresenter, Pro
         client.close();
         switch (oldState)
         {
-            case CustomKeyGenerationClient.STATE_CLOSED:
+            case CustomKeyGenerationClient.STATE_INIT:
                 logger.logEvent(COMPONENT_NAME, EVENT_NOT_RECEIVED_TOKEN, "low");
                 view.navigate(R.id.error_home);
                 break;
@@ -249,7 +250,7 @@ public class CustomKeyGenerationPresenter implements KeyGenerationPresenter, Pro
             case CustomKeyGenerationClient.STATE_DISTRIBUTED:
             case CustomKeyGenerationClient.STATE_SHARES:
             case CustomKeyGenerationClient.STATE_PERSIST:
-                logger.logEvent(COMPONENT_NAME, EVENT_SESSION_FAILED, "high");
+                logger.logEvent(COMPONENT_NAME, EVENT_RUN_FAILED, "high", String.valueOf(oldState));
                 setMessage(DistributedKeyGenerationActivity.KEY_ERROR_MESSAGES, "Session failed");
                 view.navigate(R.id.error_generation);
                 break;

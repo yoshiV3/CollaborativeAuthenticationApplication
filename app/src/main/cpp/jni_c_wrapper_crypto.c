@@ -1,4 +1,8 @@
 //
+// Created by yoshi on 04/04/21.
+//
+
+//
 // Created by yoshi on 24/02/21.
 //
 
@@ -140,4 +144,40 @@ Java_com_project_collaborativeauthenticationapplication_service_crypto_CryptoPro
     fillResultWithData(env,evals,parts, total_weight);
     fillPointWithData(env, &publicKey, public_key_part);
     freeArrayOfArrays(evals, total_weight);
+}
+
+JNIEXPORT jobject JNICALL
+Java_com_project_collaborativeauthenticationapplication_service_crypto_CryptoPartKeyRecovery_createLocalSecretSharePartsFromSharesForTargetNative(
+        JNIEnv *env, jobject thiz, jobject shares, jintArray identifiers, jint identifier_target) {
+    jsize lenIdentifiers = (*env)->GetArrayLength(env, identifiers);
+    jsize lenShares      = getArrayListSize(env, shares);
+    if (lenShares != lenIdentifiers){
+        jclass Exception = (*env)->FindClass(env, "java/lang/IllegalArgumentException");
+        (*env)->ThrowNew(env, Exception,"not as many shares as identifiers");
+    }
+    uint32_t *identifiersC = (uint32_t *) (*env)->GetIntArrayElements(env, identifiers, 0);
+    uint32_t  ** sharesC = (uint32_t **)  malloc(lenShares*sizeof(uint32_t*));
+    transformArrayListBigNumbersToCArray(env, shares, sharesC, lenShares);
+    uint32_t newShare[SIZE] = {0};
+    uint32_t * x_values = malloc((lenShares - 1) * sizeof(uint32_t));
+    uint32_t x_target = (uint32_t) identifier_target;
+    uint32_t degree   = ((uint32_t)lenShares) - 1;
+    for (uint32_t x=0; x<lenShares; x++){
+        for (uint32_t i = 0; i<lenShares; i++){
+            if (x>i){
+                x_values[i] = identifiersC[i];
+            }
+            else if (x< i){
+                x_values[i-1] = identifiersC[i];
+            }
+        }
+        uint32_t e[SIZE];
+        calculate_share_part_for_x(x_values, identifiersC[x], x_target, degree, sharesC[x], e );
+        add_mod_p(newShare, e, newShare);
+    }
+    free(x_values);
+    freeArrayOfArrays(sharesC, lenShares);
+    (*env)->ReleaseIntArrayElements(env, identifiers, identifiersC, 0);
+    return getNewBigNumberObject(env, newShare);
+
 }

@@ -15,4 +15,5 @@
     jobject getObjectFromArrayList(const JNIEnv *env, const jobject arr, int index);
     void    transformArrayListBigNumbersToCArray(const JNIEnv *env, const jobject arr,  uint32_t ** result, int size);
     void    fillPointWithData(JNIEnv *env, Point * c_point, jobject java_point);
+    jobject getNewBigNumberObject(JNIEnv *env, uint32_t * results);
 #endif //COLLABORATIVEAUTHENTICATIONAPPLICATION_INTERFACE_H

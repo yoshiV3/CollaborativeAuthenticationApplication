@@ -166,7 +166,32 @@ public class CustomKeyManagementPresenter implements KeyManagementPresenter{
         if (applicationName == null | login ==  null ){
             throw new  IllegalStateException();
         }
-        Task task = new Task(applicationName, login, requester);
+        Task task = new Task(applicationName, login,
+                new Requester() {
+                    @Override
+                    public void signalJobDone() {
+                        view.showTemporally("Delete operation complete");
+                        requester.signalJobDone();
+                    }
+                });
         client.remove(task);
+    }
+
+    @Override
+    public void onExtend(Requester requester) {
+        String applicationName = messages.getOrDefault(KEY_APPLICATION_NAME, null);
+        String login           = messages.getOrDefault(KEY_LOGIN, null);
+
+        if (applicationName == null | login ==  null ){
+            throw new  IllegalStateException();
+        }
+        Task task = new Task(applicationName, login,
+                new Requester() {
+                    @Override
+                    public void signalJobDone() {
+                        view.showTemporally("Added new secret");
+                        requester.signalJobDone();
+                    }
+                });
     }
 }

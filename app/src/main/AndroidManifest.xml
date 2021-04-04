@@ -17,13 +17,6 @@
         android:theme="@style/Theme.CollaborativeAuthenticationApplication">
         <activity android:name=".service.key.user.KeyManagementActivity"></activity>
         <activity
-            android:name=".debug.DebugActivity"
-            android:parentActivityName=".main.MainActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="main.MainActivity" />
-        </activity>
-        <activity
             android:name=".service.key.user.DistributedKeyGenerationActivity"
             android:label="@string/title_activity_distributed_key_generation"
             android:parentActivityName=".main.MainActivity">

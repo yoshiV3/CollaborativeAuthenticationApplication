@@ -13,4 +13,5 @@ public interface KeyManagementPresenter extends KeyPresenter{
     String retrieveMessage(String key);
 
     void onRemove(Requester requester);
+    void onExtend(Requester requester);
 }

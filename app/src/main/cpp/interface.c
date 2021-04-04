@@ -12,7 +12,7 @@
 
 
 
-jobject getNewBigNumberObject(JNIEnv *env, uint32_t * results);
+
 
 
 uint32_t getIntegerFromByteArray(JNIEnv *env, jbyteArray arr)
