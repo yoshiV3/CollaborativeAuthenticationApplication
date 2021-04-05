@@ -7,9 +7,9 @@
 
     <fragment
         android:id="@+id/secretOverviewFragment"
-        android:name="com.project.collaborativeauthenticationapplication.service.key.user.key_management.SecretOverviewFragment"
+        android:name="com.project.collaborativeauthenticationapplication.service.key.user.key_management.SecretOverviewKeyManagementFragment"
         android:label="fragment_secret_overview"
-        tools:layout="@layout/fragment_secret_overview" >
+        tools:layout="@layout/fragment_secret_overview_key_management" >
         <action
             android:id="@+id/action_secretOverviewFragment_to_credentialManagementFragment"
             app:destination="@id/credentialManagementFragment" />
@@ -35,7 +35,6 @@
             android:id="@+id/action_keyRecoveryFragment_to_credentialManagementFragment"
             app:destination="@id/credentialManagementFragment"
             app:popUpTo="@+id/secretOverviewFragment"
-
             />
     </fragment>
 </navigation>

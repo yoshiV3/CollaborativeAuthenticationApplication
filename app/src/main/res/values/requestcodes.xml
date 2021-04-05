@@ -5,4 +5,5 @@
     <integer name="serviceStatusNotification">3</integer>
     <integer name="keyGenerationRequestCode">4</integer>
     <integer name="keyManagementRequestCode">5</integer>
+    <integer name="SignatureRequestCode">6</integer>
 </resources>

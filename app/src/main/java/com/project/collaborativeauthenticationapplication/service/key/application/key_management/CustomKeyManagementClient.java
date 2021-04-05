@@ -6,6 +6,7 @@ import com.project.collaborativeauthenticationapplication.logger.AndroidLogger;
 import com.project.collaborativeauthenticationapplication.service.IllegalNumberOfTokensException;
 import com.project.collaborativeauthenticationapplication.service.IllegalUseOfClosedTokenException;
 import com.project.collaborativeauthenticationapplication.service.ServiceStateException;
+import com.project.collaborativeauthenticationapplication.service.Task;
 import com.project.collaborativeauthenticationapplication.service.controller.CustomAuthenticationServicePool;
 import com.project.collaborativeauthenticationapplication.service.controller.CustomServiceMonitor;
 import com.project.collaborativeauthenticationapplication.service.crypto.AndroidSecretStorage;
@@ -94,7 +95,7 @@ public class CustomKeyManagementClient implements KeyManagementClient{
 
     @Override
     public void remove(Task task)  {
-        logger.logError("CLIENT: key management", "request to remove credentials" , "medium");
+        logger.logEvent("CLIENT: key management", "request to remove credentials" , "medium");
         persistenceManager.removeCredentials(task.getApplicationName(), task.getLogin(), storage);
         task.done();
 

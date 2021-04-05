@@ -3,7 +3,7 @@ package com.project.collaborativeauthenticationapplication.service.key.applicati
 
 
 import com.project.collaborativeauthenticationapplication.service.Participant;
-import com.project.collaborativeauthenticationapplication.service.key.application.Client;
+import com.project.collaborativeauthenticationapplication.service.Client;
 
 import java.util.List;
 

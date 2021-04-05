@@ -42,6 +42,7 @@ public class CustomKeyGenerationClient implements keyGenerationClient {
     public static final int STATE_DISTRIBUTED   = 11;
     public static final int STATE_SHARES        = 12;
     public static final int STATE_PERSIST       = 13;
+    public static final int STATE_TOKEN_REVOKED = 14;
 
     private KeyGenerationPresenter presenter;
 
@@ -84,12 +85,14 @@ public class CustomKeyGenerationClient implements keyGenerationClient {
             try {
                 token = CustomAuthenticationServicePool.getInstance().getNewKeyToken();
                 state = STATE_START;
-                presenter.SignalClientInNewState(state, STATE_CLOSED);
                 this.storage =  new AndroidSecretStorage(context);
 
-            } catch (IllegalNumberOfTokensException | ServiceStateException e) {
+            } catch ( ServiceStateException e) {
                 presenter.setMessage(DistributedKeyGenerationActivity.KEY_ERROR_MESSAGES, e.getMessage());
                 state = STATE_ERROR;
+            } catch (IllegalNumberOfTokensException  e){
+                state = STATE_TOKEN_REVOKED;
+            }finally {
                 presenter.SignalClientInNewState(state, STATE_INIT);
             }
         }
@@ -134,7 +137,7 @@ public class CustomKeyGenerationClient implements keyGenerationClient {
         }
         else
         {
-            state = STATE_ERROR;
+            state = STATE_TOKEN_REVOKED;
         }
         presenter.SignalClientInNewState(state, STATE_START);
     }
@@ -170,7 +173,7 @@ public class CustomKeyGenerationClient implements keyGenerationClient {
         }
         else
         {
-            state = STATE_ERROR;
+            state = STATE_TOKEN_REVOKED;
         }
         presenter.SignalClientInNewState(state, STATE_DETAILS);
     }
@@ -189,6 +192,7 @@ public class CustomKeyGenerationClient implements keyGenerationClient {
         {
             throw new IllegalStateException("Cannot run during this state");
         }
+        int previousState = state;
         KeyGenerationSessionGenerator            generator              = new CustomKeyGenerationSessionGenerator();
         KeyGenerationDistributedInvitationSender invitationSender       = new CustomKeyGenerationDistributedInvitationSender();
         CustomLocalKeyPartGenerator              keyPartGenerator       = new CustomLocalKeyPartGenerator();
@@ -202,13 +206,15 @@ public class CustomKeyGenerationClient implements keyGenerationClient {
             distributeKeyParts(keyPartGenerator, keyPartDistributor, remoteKeyPartHandler, shareGenerator, persistenceManager);
             generateLocalShares(shareGenerator);
             persist(persistenceManager);
-            int previous = state;
-            changeState(STATE_FINISHED, previous);
-        } catch (IllegalUseOfClosedTokenException | UnreachableParticipantException | SecureStorageException e) {
-            int previousState = state;
-            changeState(STATE_ERROR, previousState);
+            state = STATE_FINISHED;
+        } catch (UnreachableParticipantException | SecureStorageException e) {
+            state = STATE_ERROR;
             logger.logError("Client", "Error occurred during run", "Critical", String.valueOf(previousState) );
             logger.logError("Client", "Error occurred during run", "Critical", e.getMessage() );
+        }catch (IllegalUseOfClosedTokenException e){
+            state = STATE_TOKEN_REVOKED;
+        } finally {
+            changeState(state, previousState);
         }
     }
 

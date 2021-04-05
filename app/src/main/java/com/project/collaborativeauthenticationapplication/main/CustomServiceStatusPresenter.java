@@ -1,6 +1,8 @@
 package com.project.collaborativeauthenticationapplication.main;
 
 
+import com.project.collaborativeauthenticationapplication.logger.AndroidLogger;
+import com.project.collaborativeauthenticationapplication.logger.Logger;
 import com.project.collaborativeauthenticationapplication.service.controller.CustomServiceMonitor;
 import com.project.collaborativeauthenticationapplication.service.controller.Notifiable;
 import com.project.collaborativeauthenticationapplication.service.controller.ServiceMonitor;
@@ -8,6 +10,8 @@ import com.project.collaborativeauthenticationapplication.service.controller.Ser
 public class CustomServiceStatusPresenter  implements ServiceStatusPresenter, Notifiable {
 
 
+
+    private final Logger logger              = new AndroidLogger();
 
     private final ServiceStatusView view;
 
@@ -21,6 +25,7 @@ public class CustomServiceStatusPresenter  implements ServiceStatusPresenter, No
     {
         this.view = view;
         CustomServiceMonitor.getInstance().subscribeMe(this);
+        logger.logEvent("Main status presenter", "presenter has subscribed", "low");
     }
 
     @Override
@@ -55,6 +60,7 @@ public class CustomServiceStatusPresenter  implements ServiceStatusPresenter, No
     @Override
     public void stop() {
         CustomServiceMonitor.getInstance().unsubscribeMe(this);
+        logger.logEvent("Main status presenter", "presenter stopped", "low");
         active = false;
     }
 

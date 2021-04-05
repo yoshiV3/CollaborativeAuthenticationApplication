@@ -1,7 +1,7 @@
 package com.project.collaborativeauthenticationapplication.service.key.application.key_management;
 
-import com.project.collaborativeauthenticationapplication.service.key.application.Client;
-import com.project.collaborativeauthenticationapplication.service.key.application.key_management.Task;
+import com.project.collaborativeauthenticationapplication.service.Client;
+import com.project.collaborativeauthenticationapplication.service.Task;
 
 public interface KeyManagementClient extends Client {
 

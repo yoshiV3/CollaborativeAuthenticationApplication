@@ -1,4 +1,4 @@
-package com.project.collaborativeauthenticationapplication.service.key.application.key_management;
+package com.project.collaborativeauthenticationapplication.service;
 
 import com.project.collaborativeauthenticationapplication.data.ApplicationLoginDao;
 import com.project.collaborativeauthenticationapplication.data.ApplicationLoginEntity;
@@ -12,7 +12,7 @@ import com.project.collaborativeauthenticationapplication.logger.Logger;
 
 import java.util.List;
 
-public class CustomKeyManagementViewManager {
+public class CustomKeyViewManager {
 
     private static final String COMPONENT       =  "Key Management persistence manager";
     private static final String EVENT_FOUND_AL  =  "found application logins";
@@ -20,7 +20,7 @@ public class CustomKeyManagementViewManager {
 
     private final AuthenticationDatabase db;
 
-    public CustomKeyManagementViewManager() {
+    public CustomKeyViewManager() {
         db = AuthenticationDatabase.getAuthenticationDatabaseInstance();
     }
 

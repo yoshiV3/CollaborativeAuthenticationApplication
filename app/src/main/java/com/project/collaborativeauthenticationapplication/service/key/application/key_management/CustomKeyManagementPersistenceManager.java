@@ -5,6 +5,7 @@ import com.project.collaborativeauthenticationapplication.data.ApplicationLoginD
 import com.project.collaborativeauthenticationapplication.data.ApplicationLoginEntity;
 import com.project.collaborativeauthenticationapplication.data.SecretDao;
 import com.project.collaborativeauthenticationapplication.data.SecretEntity;
+import com.project.collaborativeauthenticationapplication.service.CustomKeyViewManager;
 import com.project.collaborativeauthenticationapplication.service.IllegalUseOfClosedTokenException;
 import com.project.collaborativeauthenticationapplication.service.crypto.AndroidSecretStorage;
 import com.project.collaborativeauthenticationapplication.service.crypto.BigNumber;
@@ -18,7 +19,7 @@ import java.util.List;
 
 public class CustomKeyManagementPersistenceManager extends KeyPersistenceManager {
 
-    CustomKeyManagementViewManager viewManager=  new CustomKeyManagementViewManager();
+    CustomKeyViewManager viewManager=  new CustomKeyViewManager();
 
 
     public int [] getSharesAndIdentifiersForRecovery(KeyToken token, String applicationName, String login,

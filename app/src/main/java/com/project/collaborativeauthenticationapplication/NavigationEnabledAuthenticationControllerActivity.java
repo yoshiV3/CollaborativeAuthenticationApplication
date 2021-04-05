@@ -4,7 +4,7 @@ package com.project.collaborativeauthenticationapplication;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 
-import com.project.collaborativeauthenticationapplication.service.key.user.Navigator;
+import com.project.collaborativeauthenticationapplication.service.Navigator;
 
 public abstract class NavigationEnabledAuthenticationControllerActivity extends  CustomAuthenticationControllerActivity{
 
@@ -25,6 +25,7 @@ public abstract class NavigationEnabledAuthenticationControllerActivity extends 
             public int getLocation() {
                 return controller.getCurrentDestination().getId();
             }
+
         };
     }
 

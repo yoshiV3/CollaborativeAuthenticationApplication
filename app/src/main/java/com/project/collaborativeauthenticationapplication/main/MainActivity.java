@@ -18,6 +18,7 @@ import com.project.collaborativeauthenticationapplication.logger.Logger;
 import com.project.collaborativeauthenticationapplication.service.controller.AuthenticationForegroundService;
 import com.project.collaborativeauthenticationapplication.service.key.user.key_generation.DistributedKeyGenerationActivity;
 import com.project.collaborativeauthenticationapplication.service.key.user.key_management.KeyManagementActivity;
+import com.project.collaborativeauthenticationapplication.service.signature.user.SignatureActivity;
 
 
 public class MainActivity extends CustomAuthenticationControllerActivity implements MainMenuView, ServiceStatusView{
@@ -61,9 +62,9 @@ public class MainActivity extends CustomAuthenticationControllerActivity impleme
     }
 
     @Override
-    protected void onStop() {
+    protected void onDestroy() {
         statusPresenter.stop();
-        super.onStop();
+        super.onDestroy();
     }
 
     @Override
@@ -101,6 +102,25 @@ public class MainActivity extends CustomAuthenticationControllerActivity impleme
             try {
                 Intent intent = new Intent(this, KeyManagementActivity.class);
                 int requestCode = getResources().getInteger(R.integer.keyManagementRequestCode);
+                startActivityForResult(intent, requestCode);
+            } catch (Exception e) {
+                logger.logError(COMPONENT_NAME, e.getMessage(), getString(R.string.PRIORITY_CRITICAL));
+            }
+        }
+        else
+        {
+            logger.logEvent(COMPONENT_NAME, "Service disabled so no generation of keys", getString(R.string.PRIORITY_LOW));
+            showTemporally("Service is disabled");
+        }
+    }
+
+
+    public void onClickSign(View view){
+        logger.logEvent(COMPONENT_NAME, "clicked button", getString(R.string.PRIORITY_LOW));
+        if (statusPresenter.isServiceEnabled()) {
+            try {
+                Intent intent = new Intent(this, SignatureActivity.class);
+                int requestCode = getResources().getInteger(R.integer.SignatureRequestCode);
                 startActivityForResult(intent, requestCode);
             } catch (Exception e) {
                 logger.logError(COMPONENT_NAME, e.getMessage(), getString(R.string.PRIORITY_CRITICAL));
@@ -171,8 +191,13 @@ public class MainActivity extends CustomAuthenticationControllerActivity impleme
 
 
     private void showStatus(String status) {
-        TextView view = findViewById(R.id.textView_main_status_service);
-        view.setText(status);
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                TextView view = findViewById(R.id.textView_main_status_service);
+                view.setText(status);
+            }
+        });
     }
 
     private void onActionOnService(String action)

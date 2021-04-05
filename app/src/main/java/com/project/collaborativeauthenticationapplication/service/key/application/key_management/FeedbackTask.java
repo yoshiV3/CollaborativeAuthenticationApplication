@@ -1,6 +1,7 @@
 package com.project.collaborativeauthenticationapplication.service.key.application.key_management;
 
-import com.project.collaborativeauthenticationapplication.service.key.user.key_management.Requester;
+import com.project.collaborativeauthenticationapplication.service.Requester;
+import com.project.collaborativeauthenticationapplication.service.Task;
 
 public class FeedbackTask  extends Task {
 

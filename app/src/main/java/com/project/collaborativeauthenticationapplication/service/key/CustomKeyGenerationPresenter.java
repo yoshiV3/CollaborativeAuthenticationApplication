@@ -221,7 +221,9 @@ public class CustomKeyGenerationPresenter implements KeyGenerationPresenter, Pro
     }
 
     private void handleClientErrors(int oldState) {
-        client.close();
+        if (client != null){
+            client.close();
+        }
         switch (oldState)
         {
             case CustomKeyGenerationClient.STATE_INIT:
@@ -253,6 +255,9 @@ public class CustomKeyGenerationPresenter implements KeyGenerationPresenter, Pro
                 logger.logEvent(COMPONENT_NAME, EVENT_RUN_FAILED, "high", String.valueOf(oldState));
                 setMessage(DistributedKeyGenerationActivity.KEY_ERROR_MESSAGES, "Session failed");
                 view.navigate(R.id.error_generation);
+                break;
+            case CustomKeyGenerationClient.STATE_TOKEN_REVOKED:
+                logger.logEvent(COMPONENT_NAME, EVENT_RUN_FAILED, "high", "Token revoked");
                 break;
             default:
                 logger.logError(COMPONENT_NAME, "impossible state of the client", "Critical");

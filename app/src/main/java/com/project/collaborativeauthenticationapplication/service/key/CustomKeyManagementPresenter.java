@@ -3,15 +3,16 @@ package com.project.collaborativeauthenticationapplication.service.key;
 import com.project.collaborativeauthenticationapplication.data.ApplicationLoginEntity;
 import com.project.collaborativeauthenticationapplication.logger.AndroidLogger;
 import com.project.collaborativeauthenticationapplication.logger.Logger;
-import com.project.collaborativeauthenticationapplication.service.key.application.key_management.CustomKeyManagementViewManager;
+import com.project.collaborativeauthenticationapplication.service.CustomKeyViewManager;
 
 import com.project.collaborativeauthenticationapplication.service.key.application.key_management.FeedbackTask;
+import com.project.collaborativeauthenticationapplication.service.key.application.key_management.KeyManagementClient;
 import com.project.collaborativeauthenticationapplication.service.key.application.key_management.ThreadedKeyManagementClient;
 
-import com.project.collaborativeauthenticationapplication.service.key.application.key_management.Task;
+import com.project.collaborativeauthenticationapplication.service.Task;
 import com.project.collaborativeauthenticationapplication.service.key.user.key_management.KeyManagementView;
 import com.project.collaborativeauthenticationapplication.R;
-import com.project.collaborativeauthenticationapplication.service.key.user.key_management.Requester;
+import com.project.collaborativeauthenticationapplication.service.Requester;
 import com.project.collaborativeauthenticationapplication.service.key.user.key_management.RequesterOfFeedbackTask;
 
 import java.util.HashMap;
@@ -47,9 +48,9 @@ public class CustomKeyManagementPresenter implements KeyManagementPresenter{
 
     private KeyManagementView view;
 
-    private CustomKeyManagementViewManager persistenceManager = new CustomKeyManagementViewManager();
+    private CustomKeyViewManager persistenceManager = new CustomKeyViewManager();
 
-    private ThreadedKeyManagementClient client;
+    private KeyManagementClient client;
 
     private HashMap<String, String> messages = new HashMap<>();
 
@@ -62,15 +63,7 @@ public class CustomKeyManagementPresenter implements KeyManagementPresenter{
 
     @Override
     public void onStart() {
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                view.clearAdapter();
-                List<ApplicationLoginEntity> items = persistenceManager.getAllCredentials();
-                view.fillAdapter(items);
-            }
-        });
-        thread.start();
+        onStartOverview();
     }
 
     @Override
@@ -232,5 +225,18 @@ public class CustomKeyManagementPresenter implements KeyManagementPresenter{
     @Override
     public void onFinishedRecovery() {
         view.navigate(R.id.action_keyRecoveryFragment_to_credentialManagementFragment);
+    }
+
+    @Override
+    public void onStartOverview() {
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                view.clearAdapter();
+                List<ApplicationLoginEntity> items = persistenceManager.getAllCredentials();
+                view.fillAdapter(items);
+            }
+        });
+        thread.start();
     }
 }

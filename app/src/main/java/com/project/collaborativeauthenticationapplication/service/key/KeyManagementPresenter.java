@@ -1,8 +1,9 @@
 package com.project.collaborativeauthenticationapplication.service.key;
 
-import com.project.collaborativeauthenticationapplication.service.key.user.key_management.Requester;
+import com.project.collaborativeauthenticationapplication.service.SecretOverviewAdapterPresenter;
+import com.project.collaborativeauthenticationapplication.service.Requester;
 
-public interface KeyManagementPresenter extends KeyPresenter{
+public interface KeyManagementPresenter extends KeyPresenter, SecretOverviewAdapterPresenter {
 
     void onError(String message);
 

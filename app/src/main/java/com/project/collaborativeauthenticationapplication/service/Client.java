@@ -1,4 +1,4 @@
-package com.project.collaborativeauthenticationapplication.service.key.application;
+package com.project.collaborativeauthenticationapplication.service;
 
 import android.content.Context;
 

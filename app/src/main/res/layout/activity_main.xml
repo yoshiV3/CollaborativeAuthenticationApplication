@@ -21,12 +21,12 @@
         android:id="@+id/textView_main_status_service"
         android:layout_width="252dp"
         android:layout_height="39dp"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="56dp"
         android:layout_marginEnd="80dp"
         android:text="@string/text_status_service_off"
         android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/button_management" />
+        app:layout_constraintTop_toBottomOf="@+id/button_signature" />
 
     <Button
         android:id="@+id/button_management"
@@ -38,5 +38,16 @@
         android:text="@string/manage_credentials"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/button_dkg" />
+
+    <Button
+        android:id="@+id/button_signature"
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="80dp"
+        android:onClick="onClickSign"
+        android:text="@string/text_signature"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/button_management" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

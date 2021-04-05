@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph_signature"
+    app:startDestination="@id/secretOverviewSignatureFragment">
+
+    <fragment
+        android:id="@+id/secretOverviewSignatureFragment"
+        android:name="com.project.collaborativeauthenticationapplication.service.signature.user.SecretOverviewSignatureFragment"
+        android:label="fragment_secret_overview_signature"
+        tools:layout="@layout/fragment_secret_overview_signature" >
+        <action
+            android:id="@+id/action_secretOverviewSignatureFragment_to_signatureFragment"
+            app:destination="@id/signatureFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/errorSignatureFragment"
+        android:name="com.project.collaborativeauthenticationapplication.service.signature.user.ErrorSignatureFragment"
+        android:label="fragment_error_signature"
+        tools:layout="@layout/fragment_error_signature"/>
+    <fragment
+        android:id="@+id/signatureFragment"
+        android:name="com.project.collaborativeauthenticationapplication.service.signature.user.SignatureFragment"
+        android:label="fragment_signature"
+        tools:layout="@layout/fragment_signature" >
+        <action
+            android:id="@+id/action_signatureFragment_to_errorSignatureFragment"
+            app:destination="@id/errorSignatureFragment"
+            app:popUpTo="@+id/secretOverviewSignatureFragment"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_signatureFragment_to_verifySignatureFragment"
+            app:destination="@id/verifySignatureFragment"
+            app:popUpTo="@+id/secretOverviewSignatureFragment"
+            app:popUpToInclusive="true"/>
+        <action
+            android:id="@+id/action_signatureFragment_to_secretOverviewSignatureFragment"
+            app:destination="@id/secretOverviewSignatureFragment"
+            app:popUpTo="@+id/secretOverviewSignatureFragment"
+            app:popUpToInclusive="true"/>
+    </fragment>
+    <fragment
+        android:id="@+id/verifySignatureFragment"
+        android:name="com.project.collaborativeauthenticationapplication.service.signature.user.VerifySignatureFragment"
+        android:label="fragment_verify_signature"
+        tools:layout="@layout/fragment_verify_signature" />
+</navigation>

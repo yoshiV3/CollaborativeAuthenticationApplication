@@ -91,16 +91,64 @@ public class CustomAuthenticationServicePool extends StartStopAuthenticationServ
             {
                 currentState = "DISABLED";
             }
-            logger.logEvent(COMPONENT_NAME, EVENT_CREATE_TOKEN_WRONG_STATE, PRIORITY_NORMAL );
+            logger.logEvent(COMPONENT_NAME, EVENT_CREATE_TOKEN_WRONG_STATE, PRIORITY_NORMAL, currentState);
             throw  new ServiceStateException(currentState, "Active");
         }
         return new CustomKeyToken();
     }
 
     @Override
-    public synchronized SignatureToken getNewSignatureToken() {
-        return null;
+    public synchronized SignatureToken getNewSignatureToken() throws ServiceStateException, IllegalNumberOfTokensException {
+        if (! isActive())
+        {
+            String currentState;
+            if (isEnabled())
+            {
+                currentState = "INACTIVE";
+            }
+            else
+            {
+                currentState = "DISABLED";
+            }
+            logger.logEvent(COMPONENT_NAME, EVENT_CREATE_TOKEN_WRONG_STATE, PRIORITY_NORMAL, currentState);
+            throw  new ServiceStateException(currentState, "Active");
+        }
+        return new CustomSignatureToken();
     }
+
+
+    private static class CustomSignatureToken extends CustomToken implements SignatureToken {
+        private static final String COMPONENT_NAME_INNER   = COMPONENT_NAME + ":signatureToken";
+
+        private static final String ERROR_CLOSE                     = "Token not closed before finalized, potential  resource leakage";
+        private static final String ERROR_CREATE                    = "Too many active tokens";
+        private static final String EVENT_CREATE                    = "New Key token";
+
+        private static final int number_of_concurrent_signatures    = 1;
+
+        public CustomSignatureToken() throws IllegalNumberOfTokensException {
+            super();
+            if (getNumberOfActiveTokens() > number_of_concurrent_signatures)
+            {
+                logger.logError(COMPONENT_NAME_INNER, ERROR_CREATE, PRIORITY_NORMAL);
+                close();
+                throw new IllegalNumberOfTokensException("Too many active tokens");
+            }
+            logger.logEvent(COMPONENT_NAME_INNER, EVENT_CREATE, PRIORITY_NORMAL, String.valueOf(getIdentifier()));
+        }
+
+
+        @Override
+        protected void finalize() throws Throwable {
+            if (!isClosed())
+            {
+                logger.logError(COMPONENT_NAME_INNER, ERROR_CLOSE, PRIORITY_CRITICAL, String.valueOf(getIdentifier()));
+                close();
+            }
+            super.finalize();
+        }
+    }
+
 
 
     private static class CustomKeyToken extends CustomToken implements KeyToken

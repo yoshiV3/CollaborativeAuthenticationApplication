@@ -1,6 +1,4 @@
-package com.project.collaborativeauthenticationapplication.service.key.user.key_management;
-
-
+package com.project.collaborativeauthenticationapplication.service.signature.user;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -11,35 +9,33 @@ import com.project.collaborativeauthenticationapplication.R;
 import com.project.collaborativeauthenticationapplication.data.ApplicationLoginEntity;
 import com.project.collaborativeauthenticationapplication.service.AdapterManager;
 import com.project.collaborativeauthenticationapplication.service.CustomOverviewSecretsAdapter;
-import com.project.collaborativeauthenticationapplication.service.key.CustomKeyManagementPresenter;
-import com.project.collaborativeauthenticationapplication.service.key.KeyManagementPresenter;
+import com.project.collaborativeauthenticationapplication.service.signature.CustomSignaturePresenter;
+import com.project.collaborativeauthenticationapplication.service.signature.SignaturePresenter;
+
 
 import java.util.List;
 
-public class KeyManagementActivity extends NavigationEnabledAuthenticationControllerActivity implements KeyManagementView {
+public class SignatureActivity extends NavigationEnabledAuthenticationControllerActivity implements SignatureView {
 
 
-    public static KeyManagementActivity currentInstance;
+    public static SignatureActivity currentInstance;
 
     private CustomOverviewSecretsAdapter adapter;
 
-    private KeyManagementPresenter presenter;
-
+    private SignaturePresenter presenter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_key_management);
-        buildNavigator(R.id.fragment2);
-        CustomKeyManagementPresenter.newInstance(this);
-        presenter = CustomKeyManagementPresenter.getInstance();
-        currentInstance = this;
-        adapter = new CustomOverviewSecretsAdapter();
+        setContentView(R.layout.activity_signature);
+        buildNavigator(R.id.fragment3);
+
+        CustomSignaturePresenter.newInstance(this);
+        presenter        = CustomSignaturePresenter.getInstance();
+        currentInstance  = this;
+        adapter          = new CustomOverviewSecretsAdapter();
     }
 
-    public CustomOverviewSecretsAdapter getAdapter() {
-        return adapter;
-    }
 
     @Override
     protected void onStart() {
@@ -63,7 +59,6 @@ public class KeyManagementActivity extends NavigationEnabledAuthenticationContro
     @Override
     protected void onStop() {
         presenter.onStop();
-        currentInstance = null;
         super.onStop();
     }
 
@@ -74,9 +69,15 @@ public class KeyManagementActivity extends NavigationEnabledAuthenticationContro
         super.onDestroy();
     }
 
+
     @Override
     public void onDone() {
         finish();
+    }
+
+    @Override
+    public Context getContext() {
+        return this;
     }
 
     @Override
@@ -95,8 +96,8 @@ public class KeyManagementActivity extends NavigationEnabledAuthenticationContro
     }
 
     @Override
-    public Context getContext() {
-        return this;
+    public CustomOverviewSecretsAdapter getAdapter() {
+        return adapter;
     }
 
     @Override

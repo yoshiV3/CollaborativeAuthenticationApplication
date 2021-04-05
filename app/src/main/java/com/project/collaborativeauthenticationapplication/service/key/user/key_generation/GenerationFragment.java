@@ -55,6 +55,9 @@ public class GenerationFragment extends Fragment implements ProgressView {
         super.onViewCreated(view, savedInstanceState);
     }
 
+
+
+
     @Override
     public void onResume() {
         CustomKeyGenerationPresenter presenter = (CustomKeyGenerationPresenter) CustomKeyGenerationPresenter.getInstance();

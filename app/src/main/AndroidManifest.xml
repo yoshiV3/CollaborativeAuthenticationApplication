@@ -15,7 +15,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.CollaborativeAuthenticationApplication">
-        <activity android:name=".service.key.user.key_management.KeyManagementActivity"
+        <activity android:name=".service.signature.user.SignatureActivity"></activity>
+        <activity
+            android:name=".service.key.user.key_management.KeyManagementActivity"
             android:label="Key Management"
             android:parentActivityName=".main.MainActivity">
             <meta-data

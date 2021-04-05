@@ -52,10 +52,14 @@
     <string name="remote_devices">Remote Devices:</string>
     <string name="local_keys">Local keys:</string>
     <string name="remove">Remove</string>
-    <string name="add_new_secret">Add new secret</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="add_new_secret">Add</string>
     <string name="recovery_text">Share generation in progress</string>
     <string name="text_finished_recovery">OK</string>
     <string name="text_start_recovery">Start</string>
+    <string name="refresh">Refresh</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="text_signature">Sign</string>
+    <string name="some_error_occurred">Some error occurred</string>
+    <string name="finish">Finish</string>
 </resources>

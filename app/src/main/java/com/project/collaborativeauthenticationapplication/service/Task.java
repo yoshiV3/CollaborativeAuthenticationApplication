@@ -1,6 +1,6 @@
-package com.project.collaborativeauthenticationapplication.service.key.application.key_management;
+package com.project.collaborativeauthenticationapplication.service;
 
-import com.project.collaborativeauthenticationapplication.service.key.user.key_management.Requester;
+import com.project.collaborativeauthenticationapplication.service.Requester;
 
 public class Task {
 

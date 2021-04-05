@@ -16,7 +16,7 @@ public interface AuthenticationServicePool {
 
      KeyToken getNewKeyToken() throws IllegalNumberOfTokensException, ServiceStateException;
 
-     SignatureToken getNewSignatureToken();
+     SignatureToken getNewSignatureToken() throws ServiceStateException, IllegalNumberOfTokensException;
 
 
 }
