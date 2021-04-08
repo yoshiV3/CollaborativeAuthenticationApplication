@@ -4,7 +4,7 @@ package com.project.collaborativeauthenticationapplication.service.key.applicati
 import com.project.collaborativeauthenticationapplication.data.ApplicationLoginDao;
 import com.project.collaborativeauthenticationapplication.data.ApplicationLoginEntity;
 import com.project.collaborativeauthenticationapplication.data.SecretDao;
-import com.project.collaborativeauthenticationapplication.data.SecretEntity;
+import com.project.collaborativeauthenticationapplication.data.LocalSecretEntity;
 import com.project.collaborativeauthenticationapplication.service.CustomKeyViewManager;
 import com.project.collaborativeauthenticationapplication.service.IllegalUseOfClosedTokenException;
 import com.project.collaborativeauthenticationapplication.service.crypto.AndroidSecretStorage;
@@ -36,10 +36,10 @@ public class CustomKeyManagementPersistenceManager extends KeyPersistenceManager
             if (loginEntities.size() == 0){
                 throw new IllegalArgumentException("Credentials are unknown");
             }
-            List<SecretEntity> entities = secretDao.getAllSecretsForApplicationLogin(loginEntities.get(0).applicationLoginId);
+            List<LocalSecretEntity> entities = secretDao.getAllSecretsForApplicationLogin(loginEntities.get(0).applicationLoginId);
             for (int i =0; i < threshold; i++){
-                SecretEntity secretEntity = entities.get(i);
-                int identifier = secretEntity.identifier;
+                LocalSecretEntity localSecretEntity = entities.get(i);
+                int identifier = localSecretEntity.identifier;
                 shares.add(storage.getSecrets(applicationName,login, identifier));
                 identifiers[i] = identifier;
             }
@@ -64,7 +64,7 @@ public class CustomKeyManagementPersistenceManager extends KeyPersistenceManager
             if (loginEntities.size() == 0){
                 throw new IllegalArgumentException("Credentials are unknown");
             }
-            SecretEntity s = new SecretEntity(loginEntities.get(0).applicationLoginId, identifier);
+            LocalSecretEntity s = new LocalSecretEntity(loginEntities.get(0).applicationLoginId, identifier);
             secretDao.insert(s);
         }
         catch (Exception e){

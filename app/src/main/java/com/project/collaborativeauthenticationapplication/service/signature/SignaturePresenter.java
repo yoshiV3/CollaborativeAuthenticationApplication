@@ -1,5 +1,6 @@
 package com.project.collaborativeauthenticationapplication.service.signature;
 
+import com.project.collaborativeauthenticationapplication.service.FeedbackRequester;
 import com.project.collaborativeauthenticationapplication.service.Requester;
 import com.project.collaborativeauthenticationapplication.service.SecretOverviewAdapterPresenter;
 
@@ -13,7 +14,7 @@ public interface SignaturePresenter extends SecretOverviewAdapterPresenter {
     void onFinishSignature();
     void onFinishVerification();
 
-    void onCredentialSelectedForSignature(String message, String applicationName, String login);
+    void onCredentialSelectedForSignature(String applicationName, String login);
 
     void onComputeSignature(Requester requester);
 
@@ -26,5 +27,7 @@ public interface SignaturePresenter extends SecretOverviewAdapterPresenter {
     void onStop();
 
     void onPauseSignature();
+
+    void onVerify(FeedbackRequester requester);
 
 }

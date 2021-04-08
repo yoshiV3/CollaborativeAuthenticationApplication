@@ -7,7 +7,7 @@ import com.project.collaborativeauthenticationapplication.service.Requester;
 import com.project.collaborativeauthenticationapplication.service.ServiceHandler;
 import com.project.collaborativeauthenticationapplication.service.crypto.BigNumber;
 import com.project.collaborativeauthenticationapplication.service.crypto.Point;
-import com.project.collaborativeauthenticationapplication.service.key.application.key_generation.local_system.FeedbackRequester;
+import com.project.collaborativeauthenticationapplication.service.FeedbackRequester;
 
 import java.util.List;
 

@@ -5,6 +5,8 @@ import com.project.collaborativeauthenticationapplication.service.crypto.BigNumb
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.nio.charset.StandardCharsets;
+
 public class TestBigNumber {
 
     @Test
@@ -46,6 +48,15 @@ public class TestBigNumber {
             number[i] += -1;
             int result = BigNumber.getN().compareTo(new BigNumber(number));
             Assert.assertEquals(result, 1);;
+        }
+    }
+
+    @Test
+    public void encoding(){
+        String encodedVersionN = new String(BigNumber.getN().getBigNumberAsByteArray(), StandardCharsets.ISO_8859_1);
+        byte   decode[] = encodedVersionN.getBytes(StandardCharsets.ISO_8859_1);
+        for(int i = 0; i <32;i++){
+            Assert.assertEquals(decode[i], BigNumber.getN().getBigNumberAsByteArray()[i]);
         }
     }
 }

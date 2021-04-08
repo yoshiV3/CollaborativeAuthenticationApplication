@@ -12,9 +12,11 @@ import com.project.collaborativeauthenticationapplication.data.ApplicationLoginD
 import com.project.collaborativeauthenticationapplication.data.ApplicationLoginParticipantJoin;
 import com.project.collaborativeauthenticationapplication.data.ApplicationLoginParticipantDao;
 import com.project.collaborativeauthenticationapplication.data.AuthenticationDatabase;
+import com.project.collaborativeauthenticationapplication.data.LocalSecretEntity;
 import com.project.collaborativeauthenticationapplication.data.ParticipantEntity;
 import com.project.collaborativeauthenticationapplication.data.ParticipantDao;
-import com.project.collaborativeauthenticationapplication.data.SecretEntity;
+import com.project.collaborativeauthenticationapplication.data.RemoteDao;
+import com.project.collaborativeauthenticationapplication.data.RemoteSecretEntity;
 import com.project.collaborativeauthenticationapplication.data.SecretDao;
 import com.project.collaborativeauthenticationapplication.service.crypto.BigNumber;
 import com.project.collaborativeauthenticationapplication.service.crypto.Point;
@@ -27,7 +29,6 @@ import org.junit.runner.RunWith;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.security.PublicKey;
 import java.util.List;
 
 @RunWith(AndroidJUnit4.class)
@@ -37,6 +38,7 @@ public class DatabaseOnDeviceTest {
     private ApplicationLoginParticipantDao  applicationLoginParticipantDao;
     private ParticipantDao                  participantDao;
     private SecretDao                       secretDao;
+    private RemoteDao                       remoteDao;
     private AuthenticationDatabase          db;
 
 
@@ -49,6 +51,8 @@ public class DatabaseOnDeviceTest {
         applicationLoginParticipantDao  = db.getApplicationLoginParticipantDao();
         participantDao                  = db.getParticipantDao();
         secretDao                       = db.getSecretDao();
+        remoteDao                       = db.getRemoteDao();
+
     }
 
     @After
@@ -126,10 +130,10 @@ public class DatabaseOnDeviceTest {
         applicationLoginDao.insert(applicationLoginEntity);
         List<ApplicationLoginEntity> applicationLoginEntities = applicationLoginDao.getApplications();
 
-        SecretEntity secretEntity = new SecretEntity(applicationLoginEntities.get(0).applicationLoginId, 2);
-        secretDao.insert(secretEntity);
+        LocalSecretEntity localSecretEntity = new LocalSecretEntity(applicationLoginEntities.get(0).applicationLoginId, 2);
+        secretDao.insert(localSecretEntity);
 
-        List<SecretEntity> secretEntities = secretDao.getAllSecretsForApplicationLogin(applicationLoginEntities.get(0).applicationLoginId);
+        List<LocalSecretEntity> secretEntities = secretDao.getAllSecretsForApplicationLogin(applicationLoginEntities.get(0).applicationLoginId);
         Assert.assertEquals(secretEntities.size(), 1);
     }
 
@@ -167,10 +171,10 @@ public class DatabaseOnDeviceTest {
         List<ApplicationLoginEntity> applicationLoginEntities = applicationLoginDao.getApplications();
 
         ApplicationLoginParticipantJoin applicationLoginParticipantJoinOne = new ApplicationLoginParticipantJoin(applicationLoginEntities.get(0).applicationLoginId,
-                                                                                                    addressOne, 4, 1
+                                                                                                    addressOne, 1
                                                                                                   );
         ApplicationLoginParticipantJoin applicationLoginParticipantJoinTwo = new ApplicationLoginParticipantJoin(applicationLoginEntities.get(0).applicationLoginId,
-                                                                                    addressTwo, 4, 1
+                                                                                    addressTwo, 1
                                                                             );
         applicationLoginParticipantDao.insert(applicationLoginParticipantJoinOne);
         applicationLoginParticipantDao.insert(applicationLoginParticipantJoinTwo);
@@ -206,10 +210,10 @@ public class DatabaseOnDeviceTest {
         List<ApplicationLoginEntity> applicationLoginEntities = applicationLoginDao.getApplications();
 
         ApplicationLoginParticipantJoin applicationLoginParticipantJoinOne = new ApplicationLoginParticipantJoin(applicationLoginEntities.get(0).applicationLoginId,
-                addressOne, 4, 1
+                addressOne,  1
         );
         ApplicationLoginParticipantJoin applicationLoginParticipantJoinTwo = new ApplicationLoginParticipantJoin(applicationLoginEntities.get(0).applicationLoginId,
-                addressTwo, 4, 1
+                addressTwo, 1
         );
         applicationLoginParticipantDao.insert(applicationLoginParticipantJoinOne);
         applicationLoginParticipantDao.insert(applicationLoginParticipantJoinTwo);
@@ -221,6 +225,61 @@ public class DatabaseOnDeviceTest {
 
         applicationLoginEntities = applicationLoginDao.getApplications();
         Assert.assertEquals(applicationLoginEntities.size(), 0);
+
+    }
+
+    @Test
+    public void testRemoteSecret(){
+        final String addressOne    = "abc";
+        ParticipantEntity participantEntityOne =  new ParticipantEntity(addressOne);
+        participantDao.insert(participantEntityOne);
+
+        final String addressTwo    = "def";
+        ParticipantEntity participantEntityTwo =  new ParticipantEntity(addressTwo);
+        participantDao.insert(participantEntityTwo);
+
+        final String applicationName = "name";
+        final String login           = "login";
+        final int    threshold       = 2;
+        Point publicKey   = new Point(BigNumber.getZero(), BigNumber.getZero(), true);
+        String publicKeyX = new String(publicKey.getX().getBigNumberAsByteArray(), StandardCharsets.ISO_8859_1);
+        String publicKeyY = new String(publicKey.getY().getBigNumberAsByteArray(), StandardCharsets.ISO_8859_1);
+        Boolean publicKeyIsZero = publicKey.isZero();
+        ApplicationLoginEntity applicationLoginEntity = new ApplicationLoginEntity(applicationName, login, threshold, publicKeyX, publicKeyY, publicKeyIsZero);
+        applicationLoginDao.insert(applicationLoginEntity);
+
+        List<ApplicationLoginEntity> applicationLoginEntities = applicationLoginDao.getApplications();
+
+        ApplicationLoginEntity loginEntity = applicationLoginEntities.get(0);
+        ApplicationLoginParticipantJoin applicationLoginParticipantJoinOne = new ApplicationLoginParticipantJoin(loginEntity.applicationLoginId,
+                addressOne,  1
+        );
+        ApplicationLoginParticipantJoin applicationLoginParticipantJoinTwo = new ApplicationLoginParticipantJoin(loginEntity.applicationLoginId,
+                addressTwo,  1
+        );
+        applicationLoginParticipantDao.insert(applicationLoginParticipantJoinOne);
+        applicationLoginParticipantDao.insert(applicationLoginParticipantJoinTwo);
+
+        for (int i = 0; i <2; i++){
+            RemoteSecretEntity entity = new RemoteSecretEntity(loginEntity.applicationLoginId, addressOne, 1);
+            remoteDao.insert(entity);
+        }
+        for (int i = 0; i <2; i++){
+            RemoteSecretEntity entity = new RemoteSecretEntity(loginEntity.applicationLoginId, addressTwo, 1);
+            remoteDao.insert(entity);
+        }
+
+        List<RemoteSecretEntity> remoteSecretEntitiesOne = remoteDao.getRemoteSecretsFor(loginEntity.applicationLoginId, addressOne);
+        List<RemoteSecretEntity> remoteSecretEntitiesTwo  = remoteDao.getRemoteSecretsFor(loginEntity.applicationLoginId, addressTwo);
+
+        String addressThree = "lll";
+
+        List<RemoteSecretEntity> remoteSecretEntitiesThree = remoteDao.getRemoteSecretsFor(loginEntity.applicationLoginId, addressThree);
+
+        Assert.assertEquals(remoteSecretEntitiesOne.size(), 2);
+        Assert.assertEquals(remoteSecretEntitiesTwo.size(), 2);
+        Assert.assertEquals(remoteSecretEntitiesThree.size(), 0);
+
 
     }
 

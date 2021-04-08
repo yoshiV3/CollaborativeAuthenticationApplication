@@ -17,14 +17,14 @@ import static androidx.room.ForeignKey.CASCADE;
                 )
             }
         )
-public class SecretEntity {
+public class LocalSecretEntity {
     @PrimaryKey(autoGenerate = true)
     public long   SecretId;
     public long   applicationLoginId;
     public int    identifier;
 
 
-    public SecretEntity(long applicationLoginId, int identifier){
+    public LocalSecretEntity(long applicationLoginId, int identifier){
         this.applicationLoginId  = applicationLoginId;
         this.identifier          = identifier;
     }

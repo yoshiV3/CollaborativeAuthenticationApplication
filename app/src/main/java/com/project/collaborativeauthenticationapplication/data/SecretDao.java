@@ -10,8 +10,8 @@ import java.util.List;
 @Dao
 public interface SecretDao {
     @Insert
-    void insert(SecretEntity... secretEntities);
+    void insert(LocalSecretEntity... secretEntities);
 
-    @Query("SELECT * FROM SecretEntity WHERE applicationLoginId = :applicationLoginId")
-    List<SecretEntity> getAllSecretsForApplicationLogin(final long applicationLoginId);
+    @Query("SELECT * FROM LocalSecretEntity WHERE applicationLoginId = :applicationLoginId")
+    List<LocalSecretEntity> getAllSecretsForApplicationLogin(final long applicationLoginId);
 }

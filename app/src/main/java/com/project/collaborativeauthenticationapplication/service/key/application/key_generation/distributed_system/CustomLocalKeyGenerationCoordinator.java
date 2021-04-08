@@ -16,7 +16,7 @@ import com.project.collaborativeauthenticationapplication.service.crypto.Point;
 import com.project.collaborativeauthenticationapplication.service.key.KeyGenerationPresenter;
 import com.project.collaborativeauthenticationapplication.service.key.KeyToken;
 import com.project.collaborativeauthenticationapplication.service.key.application.CustomTokenConsumer;
-import com.project.collaborativeauthenticationapplication.service.key.application.key_generation.local_system.FeedbackRequester;
+import com.project.collaborativeauthenticationapplication.service.FeedbackRequester;
 import com.project.collaborativeauthenticationapplication.service.key.application.key_generation.local_system.control.CustomKeyGenerationClient;
 import com.project.collaborativeauthenticationapplication.service.key.application.key_generation.local_system.control.CustomKeyGenerationSessionGenerator;
 import com.project.collaborativeauthenticationapplication.service.key.application.key_generation.local_system.control.KeyGenerationClient;
@@ -252,9 +252,7 @@ public class CustomLocalKeyGenerationCoordinator extends CustomTokenConsumer imp
             };
             client.calculatePartsAndPublicKey(requester, parts, publicKey);
         } catch (IllegalUseOfClosedTokenException e){
-                    state = STATE_TOKEN_REVOKED;
-        } finally {
-            changeState(state, previousState);
+            changeState(STATE_TOKEN_REVOKED, previousState);
         }
     }
 
@@ -281,14 +279,13 @@ public class CustomLocalKeyGenerationCoordinator extends CustomTokenConsumer imp
                 @Override
                 public void signalJobDone() {
                     changeState(STATE_SHARES, previousState);
+                    logger.logEvent("coordinator", "successfully calculated the shares ", "normal");
                     addPublicKey();
                 }
             };
             client.calculateShares(requester, partsForShares);
         } catch (IllegalUseOfClosedTokenException e){
-            state = STATE_TOKEN_REVOKED;
-        } finally {
-            changeState(state, previousState);
+            changeState(STATE_TOKEN_REVOKED, previousState);
         }
     }
 
@@ -317,22 +314,22 @@ public class CustomLocalKeyGenerationCoordinator extends CustomTokenConsumer imp
                 @Override
                 public void signalJobDone() {
                     int previousState = state;
+                    int newState = 0;
                     if(!result){
-                        state = STATE_ERROR;
+                        newState = STATE_ERROR;
                         logger.logError("coordinator", "Error occurred during run", "Critical");
 
                     } else{
-                        changeState(STATE_PERSIST, previousState);
+                        logger.logEvent("coordinator", "successful persistence", "normal");
+                        newState = STATE_PERSIST;
                     }
-                    presenter.SignalCoordinatorInNewState(state, previousState);
+                    changeState(newState, previousState);
                     finish();
                 }
             };
             client.persist(requester);
         } catch (IllegalUseOfClosedTokenException e){
-            state = STATE_TOKEN_REVOKED;
-        } finally {
-            changeState(state, previousState);
+            changeState(STATE_TOKEN_REVOKED, previousState);
         }
     }
 

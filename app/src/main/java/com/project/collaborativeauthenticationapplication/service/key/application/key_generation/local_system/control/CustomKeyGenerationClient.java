@@ -10,11 +10,11 @@ import com.project.collaborativeauthenticationapplication.service.crypto.BigNumb
 import com.project.collaborativeauthenticationapplication.service.crypto.Point;
 import com.project.collaborativeauthenticationapplication.service.crypto.SecureStorageException;
 import com.project.collaborativeauthenticationapplication.service.key.application.key_generation.distributed_system.KeyGenerationCoordinator;
-import com.project.collaborativeauthenticationapplication.service.key.application.key_generation.local_system.FeedbackRequester;
+import com.project.collaborativeauthenticationapplication.service.FeedbackRequester;
 import com.project.collaborativeauthenticationapplication.service.key.application.key_generation.local_system.computations.CustomLocalKeyGenerator;
-import com.project.collaborativeauthenticationapplication.service.key.application.key_management.FeedbackTask;
 
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,11 +22,12 @@ public class CustomKeyGenerationClient implements KeyGenerationClient {
 
 
 
-    public static final int STATE_INIT    = 0;
-    public static final int STATE_OPEN    = 1;
-    public static final int STATE_SESSION = 2;
-    public static final int STATE_SHARES  = 3;
-    public static final int STATE_CLOSED  = 4;
+    public static final int STATE_INIT      = 0;
+    public static final int STATE_OPEN      = 1;
+    public static final int STATE_SESSION   = 2;
+    public static final int STATE_SHARES    = 3;
+    public static final int STATE_CLOSED    = 4;
+    public static final int STATE_PERSISTED = 5;
 
 
     private static Logger logger = new AndroidLogger();
@@ -84,7 +85,6 @@ public class CustomKeyGenerationClient implements KeyGenerationClient {
 
         String extra = "(" + String.valueOf(parts.size()) + "," + String.valueOf(shares.size()) + ")";
         logger.logEvent("Client", "Request to calculate shares", "low", extra);
-
         state = STATE_SHARES;
         requester.signalJobDone();
     }
@@ -104,12 +104,14 @@ public class CustomKeyGenerationClient implements KeyGenerationClient {
 
     @Override
     public void persist(FeedbackRequester requester) {
+        logger.logEvent("client key generation", "request for persistence", "low");
         if (state != STATE_SHARES){
             throw new IllegalStateException();
         }
         try{
             persistenceManager.persist(storage, shares, finalPubicKey, session );
             requester.setResult(true);
+            state = STATE_PERSISTED;
         } catch (SecureStorageException e) {
             e.printStackTrace();
             requester.setResult(false);
@@ -129,7 +131,7 @@ public class CustomKeyGenerationClient implements KeyGenerationClient {
         {
             throw  new IllegalStateException();
         }
-        state = STATE_OPEN;
+        state        = STATE_OPEN;
         this.storage =  new AndroidSecretStorage(context);
     }
 

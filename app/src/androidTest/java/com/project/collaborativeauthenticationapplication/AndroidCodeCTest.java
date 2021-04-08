@@ -8,6 +8,7 @@ import com.project.collaborativeauthenticationapplication.service.crypto.CryptoP
 import com.project.collaborativeauthenticationapplication.service.crypto.CryptoThresholdSignatureProcessor;
 import com.project.collaborativeauthenticationapplication.service.crypto.CryptoVerificationProcessor;
 import com.project.collaborativeauthenticationapplication.service.crypto.Point;
+import com.project.collaborativeauthenticationapplication.service.crypto.RandomnessGenerator;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -26,6 +27,7 @@ public class AndroidCodeCTest {
     private   CryptoPartKeyRecovery recovery;
     private   CryptoThresholdSignatureProcessor signatureProcessor;
     private   CryptoVerificationProcessor verificationProcessor;
+    private   RandomnessGenerator randomnessGenerator;
 
 
     @Before
@@ -36,6 +38,7 @@ public class AndroidCodeCTest {
             recovery                 = new CryptoPartKeyRecovery();
             signatureProcessor       = new CryptoThresholdSignatureProcessor();
             verificationProcessor    = new CryptoVerificationProcessor();
+            randomnessGenerator      = new RandomnessGenerator();
     }
     @Test
     public void testPartGenerator(){
@@ -467,5 +470,62 @@ public class AndroidCodeCTest {
 
         Assert.assertTrue(result);
     }
+
+    @Test
+    public void testSignatureProcedureWithRandomness(){
+        for (int number = 0; number <20; number++) {
+            ArrayList<ArrayList<BigNumber>> polynomials = new ArrayList<>();
+
+            int degree = 4;
+
+            int identifiers[] = new int[degree + 1];
+
+            for (int i = 1; i <= degree + 1; i++) {
+                identifiers[i - 1] = i;
+            }
+
+            for (int i = 0; i < degree + 1; i++) {
+                ArrayList<BigNumber> poly;
+                poly = randomnessGenerator.generatePoly(degree);
+                polynomials.add(poly);
+            }
+
+            ArrayList<BigNumber> result_secrets = new ArrayList<>();
+            Point result_public = new Point(BigNumber.getZero(), BigNumber.getZero(), true);
+            processor.generateParts(degree + 1, polynomials, result_secrets, result_public);
+
+            BigNumber message = randomnessGenerator.generateRandomness();
+
+            ArrayList<BigNumber> e = new ArrayList<>();
+            ArrayList<BigNumber> d = new ArrayList<>();
+
+            for (int i = 0; i < degree + 1; i++) {
+                e.add(randomnessGenerator.generateRandomness());
+                d.add(randomnessGenerator.generateRandomness());
+            }
+            signatureProcessor.receiveRandomness(e, d);
+
+            signatureProcessor.calculateCommitmentsToRandomness();
+
+            List<Point> commE = signatureProcessor.publishCommitmentsE();
+            List<Point> commD = signatureProcessor.publishCommitmentsD();
+
+            signatureProcessor.receiveAllRandomness(commE, commD);
+
+            signatureProcessor.receiveShares(result_secrets);
+
+            signatureProcessor.produceSignatureShare(message, identifiers);
+
+
+            List<BigNumber> signatureShares = signatureProcessor.publishSignatureShare();
+
+            Assert.assertEquals(signatureShares.size(), 2);
+            boolean result = verificationProcessor.verify(signatureShares, message, result_public);
+
+            Assert.assertTrue(result);
+        }
+    }
+
+
 
 }

@@ -1,6 +1,6 @@
 package com.project.collaborativeauthenticationapplication.service;
 
-import com.project.collaborativeauthenticationapplication.service.Requester;
+
 
 public class Task {
 
@@ -14,6 +14,7 @@ public class Task {
         this.login = login;
         this.requester = requester;
     }
+
 
 
     public String getLogin() {

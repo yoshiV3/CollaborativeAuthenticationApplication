@@ -3,13 +3,12 @@ package com.project.collaborativeauthenticationapplication.service.key.applicati
 import com.project.collaborativeauthenticationapplication.data.ApplicationLoginDao;
 import com.project.collaborativeauthenticationapplication.data.ApplicationLoginEntity;
 import com.project.collaborativeauthenticationapplication.data.AuthenticationDatabase;
+import com.project.collaborativeauthenticationapplication.data.LocalSecretEntity;
 import com.project.collaborativeauthenticationapplication.data.SecretDao;
-import com.project.collaborativeauthenticationapplication.data.SecretEntity;
 import com.project.collaborativeauthenticationapplication.logger.AndroidLogger;
 import com.project.collaborativeauthenticationapplication.logger.Logger;
 import com.project.collaborativeauthenticationapplication.service.crypto.AndroidSecretStorage;
 import com.project.collaborativeauthenticationapplication.service.crypto.SecureStorageException;
-import com.project.collaborativeauthenticationapplication.service.key.KeyToken;
 
 import java.util.List;
 
@@ -39,10 +38,10 @@ public abstract class KeyPersistenceManager {
         List<ApplicationLoginEntity> entities = applicationLoginDao.getApplicationWithNameAndLogin(applicationName, login);
         SecretDao secretDao = db.getSecretDao();
         for (ApplicationLoginEntity entity : entities){
-            List<SecretEntity> secrets = secretDao.getAllSecretsForApplicationLogin(entity.applicationLoginId);
-            for (SecretEntity secretEntity: secrets){
+            List<LocalSecretEntity> secrets = secretDao.getAllSecretsForApplicationLogin(entity.applicationLoginId);
+            for (LocalSecretEntity localSecretEntity : secrets){
                 try {
-                    storage.removeSecret(applicationName, login, secretEntity.identifier);
+                    storage.removeSecret(applicationName, login, localSecretEntity.identifier);
                 } catch (SecureStorageException e) {
                     logger.logError(COMPONENT, ERROR_REMOVE, "Critical", e.toString());
                 }

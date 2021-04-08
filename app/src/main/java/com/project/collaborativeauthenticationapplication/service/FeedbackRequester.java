@@ -1,4 +1,4 @@
-package com.project.collaborativeauthenticationapplication.service.key.application.key_generation.local_system;
+package com.project.collaborativeauthenticationapplication.service;
 
 import com.project.collaborativeauthenticationapplication.service.Requester;
 

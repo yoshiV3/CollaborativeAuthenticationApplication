@@ -49,12 +49,13 @@ public class CustomLocalKeyGenerator {
 
         for (int virtualParticipant = 1; virtualParticipant <= localWeight; virtualParticipant++)
         {
-            polynomials.add(randomnessGenerator.generatePoly(threshold)); // only polynomials for the local participants
+            ArrayList<BigNumber> poly = randomnessGenerator.generatePoly(threshold - 1);
+            polynomials.add(poly); // only polynomials for the local participants
+            logger.logEvent(COMPONENT_NAME, "New polynomial", "low", String.valueOf(poly.size()));
         }
         keyPartGenerator.generateParts(totalWeight, polynomials, keyParts, publicKey ); // calculate the parts of all the other participants and a part of the public key
-        logger.logEvent(COMPONENT_NAME, EVENT_DONE_GENERATE_LOCAL_PARTS+ "we have so many parts", "low", String.valueOf(keyParts.size()) );
+        logger.logEvent(COMPONENT_NAME, EVENT_DONE_GENERATE_LOCAL_PARTS+ " we have so many parts", "low", String.valueOf(keyParts.size()) );
         parts.addAll(keyParts);
-        logger.logEvent(COMPONENT_NAME, EVENT_DONE_GENERATE_LOCAL_PARTS+ "we have so many parts", "low", String.valueOf(parts.size()) );
         logger.logEvent(COMPONENT_NAME, EVENT_DONE_GENERATE_LOCAL_PARTS, "low", extra );
     }
 

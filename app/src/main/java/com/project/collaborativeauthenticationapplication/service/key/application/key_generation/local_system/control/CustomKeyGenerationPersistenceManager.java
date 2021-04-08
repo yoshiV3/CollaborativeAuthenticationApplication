@@ -4,7 +4,9 @@ import com.project.collaborativeauthenticationapplication.data.ApplicationLoginD
 import com.project.collaborativeauthenticationapplication.data.ApplicationLoginEntity;
 import com.project.collaborativeauthenticationapplication.data.AuthenticationDatabase;
 import com.project.collaborativeauthenticationapplication.data.SecretDao;
-import com.project.collaborativeauthenticationapplication.data.SecretEntity;
+import com.project.collaborativeauthenticationapplication.data.LocalSecretEntity;
+import com.project.collaborativeauthenticationapplication.logger.AndroidLogger;
+import com.project.collaborativeauthenticationapplication.logger.Logger;
 import com.project.collaborativeauthenticationapplication.service.IdentifiedParticipant;
 import com.project.collaborativeauthenticationapplication.service.crypto.AndroidSecretStorage;
 import com.project.collaborativeauthenticationapplication.service.crypto.BigNumber;
@@ -24,6 +26,8 @@ public class CustomKeyGenerationPersistenceManager extends KeyPersistenceManager
     }
 
 
+    private static Logger logger = new AndroidLogger();
+
     public boolean hasApplicationLoginWithGivenCredentials(String applicationName, String login){
         AuthenticationDatabase db            = AuthenticationDatabase.getAuthenticationDatabaseInstance();
         List<ApplicationLoginEntity> applicationLoginEntityList = db.getApplicationLoginDao().getApplicationWithNameAndLogin(applicationName, login);
@@ -36,6 +40,8 @@ public class CustomKeyGenerationPersistenceManager extends KeyPersistenceManager
         int firstIndex   = local.getIdentifier();
         int weight       = local.getWeight();
 
+        logger.logEvent("Storage", "persist request", "low", String.valueOf(firstIndex));
+
         int[] identifiers = new int[weight];
         for (int i = 0; i < weight; i++){
             identifiers[i] = firstIndex + i;
@@ -43,7 +49,8 @@ public class CustomKeyGenerationPersistenceManager extends KeyPersistenceManager
 
         String publicKeyX = new String(publicKey.getX().getBigNumberAsByteArray(), StandardCharsets.ISO_8859_1);
         String publicKeyY = new String(publicKey.getY().getBigNumberAsByteArray(), StandardCharsets.ISO_8859_1);
-        ApplicationLoginEntity application             = new ApplicationLoginEntity(session.getApplicationName(), session.getLogin(), session.getThreshold(), publicKeyX, publicKeyY, publicKey.isZero());
+        ApplicationLoginEntity application             = new ApplicationLoginEntity(session.getApplicationName(), session.getLogin(), session.getThreshold(),
+                                                                    publicKeyX, publicKeyY, publicKey.isZero());
         ApplicationLoginDao    applicationLoginDao     = getDb().getApplicationLoginDao();
         SecretDao               secretDao              = getDb().getSecretDao();
         try {
@@ -63,10 +70,10 @@ public class CustomKeyGenerationPersistenceManager extends KeyPersistenceManager
             e.printStackTrace();
             throw new SecureStorageException("Could not store the secrets");
         }
-        try{
+        try {
             List<ApplicationLoginEntity> list = applicationLoginDao.getApplicationWithNameAndLogin(session.getApplicationName(), session.getLogin());
             for (int i: identifiers){
-                SecretEntity s = new SecretEntity(list.get(0).applicationLoginId, i);
+                LocalSecretEntity s = new LocalSecretEntity(list.get(0).applicationLoginId, i);
                 secretDao.insert(s);
             }
         }

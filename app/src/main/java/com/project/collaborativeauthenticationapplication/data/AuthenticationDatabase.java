@@ -10,8 +10,8 @@ import com.project.collaborativeauthenticationapplication.logger.AndroidLogger;
 import com.project.collaborativeauthenticationapplication.logger.Logger;
 
 
-@Database(entities = { ApplicationLoginEntity.class, ApplicationLoginParticipantJoin.class, ParticipantEntity.class, SecretEntity.class },
-        version = 1)
+@Database(entities = { ApplicationLoginEntity.class, ApplicationLoginParticipantJoin.class, ParticipantEntity.class, LocalSecretEntity.class, RemoteSecretEntity.class },
+        version = 2)
 public abstract class AuthenticationDatabase extends RoomDatabase {
 
     private static final String COMPONENT = "DATABASE";
@@ -40,10 +40,10 @@ public abstract class AuthenticationDatabase extends RoomDatabase {
     }
 
 
-
     public abstract ApplicationLoginDao            getApplicationLoginDao();
     public abstract ApplicationLoginParticipantDao getApplicationLoginParticipantDao();
     public abstract ParticipantDao                 getParticipantDao();
-    public abstract SecretDao                      getSecretDao(); 
+    public abstract SecretDao                      getSecretDao();
+    public abstract RemoteDao                      getRemoteDao();
 
 }

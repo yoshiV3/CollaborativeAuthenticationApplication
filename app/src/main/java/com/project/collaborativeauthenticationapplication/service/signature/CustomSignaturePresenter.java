@@ -7,11 +7,14 @@ import com.project.collaborativeauthenticationapplication.data.ApplicationLoginE
 import com.project.collaborativeauthenticationapplication.logger.AndroidLogger;
 import com.project.collaborativeauthenticationapplication.logger.Logger;
 import com.project.collaborativeauthenticationapplication.service.CustomKeyViewManager;
+import com.project.collaborativeauthenticationapplication.service.FeedbackRequester;
 import com.project.collaborativeauthenticationapplication.service.Requester;
-import com.project.collaborativeauthenticationapplication.service.signature.application.CustomSignatureClient;
-import com.project.collaborativeauthenticationapplication.service.signature.application.SignatureClient;
-import com.project.collaborativeauthenticationapplication.service.signature.application.SignatureTask;
-import com.project.collaborativeauthenticationapplication.service.signature.application.ThreadedSignatureClient;
+import com.project.collaborativeauthenticationapplication.service.Task;
+import com.project.collaborativeauthenticationapplication.service.crypto.BigNumber;
+import com.project.collaborativeauthenticationapplication.service.signature.application.CustomSignatureCoordinator;
+import com.project.collaborativeauthenticationapplication.service.signature.application.SignatureCoordinator;
+import com.project.collaborativeauthenticationapplication.service.signature.application.ThreadedVerificationClient;
+import com.project.collaborativeauthenticationapplication.service.signature.application.VerificationClient;
 import com.project.collaborativeauthenticationapplication.service.signature.user.SignatureView;
 
 import java.util.List;
@@ -30,11 +33,16 @@ public class CustomSignaturePresenter implements SignaturePresenter{
 
     private SignatureView view;
 
-    private SignatureClient client;
+    private SignatureCoordinator coordinator;
 
     private String applicationName;
     private String login;
-    private String message;
+
+    private BigNumber hash;
+    private BigNumber signature;
+    private BigNumber message;
+
+    private VerificationClient verificationClient = new ThreadedVerificationClient();
 
 
     public static void newInstance(SignatureView view) {
@@ -66,11 +74,11 @@ public class CustomSignaturePresenter implements SignaturePresenter{
         thread.start();
     }
 
-    public synchronized void closeClient(){
-            if (client !=null){
-                synchronized (client){
-                    client.close();
-                    client = null;
+    public synchronized void closeCoordinator(){
+            if (coordinator !=null){
+                synchronized (coordinator){
+                    coordinator.close();
+                    coordinator = null;
             }
         }
     }
@@ -79,7 +87,7 @@ public class CustomSignaturePresenter implements SignaturePresenter{
     public void onErrorSignature(String message) {
         view.showTemporally(message);
         view.navigate(R.id.action_signatureFragment_to_errorSignatureFragment);
-        closeClient();
+        closeCoordinator();
     }
 
     @Override
@@ -94,7 +102,10 @@ public class CustomSignaturePresenter implements SignaturePresenter{
 
     @Override
     public void onFinishSignature() {
-        closeClient();
+        message   = coordinator.getMessage();
+        hash      = coordinator.getHash();
+        signature = coordinator.getSignature();
+        closeCoordinator();
         view.navigate(R.id.action_signatureFragment_to_verifySignatureFragment);
     }
 
@@ -104,24 +115,23 @@ public class CustomSignaturePresenter implements SignaturePresenter{
     }
 
     @Override
-    public void onCredentialSelectedForSignature(String message, String applicationName, String login){
+    public void onCredentialSelectedForSignature(String applicationName, String login){
         logger.logEvent(COMPONENT_NAME, "Received request for signature", "low");
-        this.message         = message;
         this.applicationName = applicationName;
         this.login           = login;
         view.navigate(R.id.action_secretOverviewSignatureFragment_to_signatureFragment);
-        client = new ThreadedSignatureClient(this);
-        client.open(view.getContext());
+        coordinator = new CustomSignatureCoordinator(this);
+        coordinator.open(view.getContext());
     }
 
     @Override
     public void onComputeSignature(Requester requester ) {
             logger.logEvent(COMPONENT_NAME, "Start signature", "low");
-            if (client == null || client.getState() != CustomSignatureClient.STATE_START){
+            if (coordinator == null || coordinator.getState() != CustomSignatureCoordinator.STATE_START){
                 view.navigate(R.id.action_signatureFragment_to_secretOverviewSignatureFragment);
             }
             else {
-                synchronized (client){
+                synchronized (coordinator){
                     Requester inner = new Requester() {
                         @Override
                         public void signalJobDone() {
@@ -129,8 +139,8 @@ public class CustomSignaturePresenter implements SignaturePresenter{
                             requester.signalJobDone();
                         }
                     };
-                    SignatureTask task = new SignatureTask(message, applicationName, login, inner);
-                    client.sign(task);
+                    Task task = new Task(applicationName, login, inner);
+                    coordinator.sign(task);
                 }
             }
     }
@@ -142,25 +152,30 @@ public class CustomSignaturePresenter implements SignaturePresenter{
 
     @Override
     public void onBackPressed() {
-        closeClient();
+        closeCoordinator();
     }
 
     @Override
     public void onPause() {
-        closeClient();
+        closeCoordinator();
     }
 
     @Override
     public void onStop() {
-        if (client != null){
-            client.close();
-            client = null;
+        if (coordinator != null){
+            coordinator.close();
+            coordinator = null;
         }
     }
 
     @Override
     public void onPauseSignature() {
-        closeClient();
+        closeCoordinator();
+    }
+
+    @Override
+    public void onVerify(FeedbackRequester requester) {
+        verificationClient.verify(signature, hash, message, applicationName, login, requester);
     }
 
 

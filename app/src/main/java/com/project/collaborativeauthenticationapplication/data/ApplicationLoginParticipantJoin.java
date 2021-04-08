@@ -20,7 +20,7 @@ import static androidx.room.ForeignKey.CASCADE;
                             childColumns  = "participantId",
                             onDelete      =   CASCADE
                 )
-        }
+            }
         )
 public class ApplicationLoginParticipantJoin {
     @NonNull
@@ -28,13 +28,11 @@ public class ApplicationLoginParticipantJoin {
     @NonNull
     public String participantId;
 
-    public int weight;
     public int state;
 
-    public ApplicationLoginParticipantJoin(long applicationLoginId, String participantId, int weight, int state){
+    public ApplicationLoginParticipantJoin(long applicationLoginId, String participantId, int state){
         this.applicationLoginId    = applicationLoginId;
         this.participantId         = participantId;
-        this.weight                = weight;
         this.state                 = state;
     }
 }
