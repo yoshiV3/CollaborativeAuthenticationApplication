@@ -8,4 +8,5 @@
     void signed_sub(uint32_t const * const a, uint32_t const * const b, uint32_t * const res, const uint32_t size);
     void signed_add(uint32_t const * const a, uint32_t const * const b, uint32_t * const res, const uint32_t size);
     void signed_mod(uint32_t const * const a, uint32_t * const res, const uint32_t size);
+    void signed_mod_n(uint32_t const * const a, uint32_t * const res, const uint32_t size);
 #endif //COLLABORATIVEAUTHENTICATIONAPPLICATION_SIGNED_ARITHMETIC_H

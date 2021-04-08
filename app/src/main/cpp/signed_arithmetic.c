@@ -236,3 +236,35 @@ void signed_mod(uint32_t const * const a, uint32_t * const res, const uint32_t s
         }
     }
 }
+
+
+void signed_mod_n(uint32_t const * const a, uint32_t * const res, const uint32_t size)
+{
+    if( a[size] == 0)
+    {
+        mod_n_size(a,res,size);
+    }
+    else
+    {
+        uint32_t addition[2*SIZE  + 1]  = {0,0,0,0,0,0,0,0,0};
+        uint32_t additionr[2*SIZE + 2]  = {0,0,0,0,0,0,0,0,0,0};
+        signed_add(a, N,additionr,size);
+        for (uint8_t i =0; i < SIZE; i++)
+        {
+            res[i] = additionr[i];
+        }
+        while  (additionr[size+1] == 1)
+        {
+            for (uint8_t i =0; i < size + 1; i++)
+            {
+                addition[i] = additionr[i];
+            }
+            addition[size] = additionr[size+1];
+            signed_add(addition, N,additionr,size);
+            for (uint8_t i =0; i < SIZE; i++)
+            {
+                res[i] = additionr[i];
+            }
+        }
+    }
+}

@@ -13,7 +13,7 @@ import com.project.collaborativeauthenticationapplication.service.key.KeyToken;
 
 import java.util.List;
 
-public abstract class KeyPersistenceManager extends  CustomTokenConsumer<KeyToken>{
+public abstract class KeyPersistenceManager {
 
 
     private static final String COMPONENT    = "Persistence manager";
@@ -25,7 +25,7 @@ public abstract class KeyPersistenceManager extends  CustomTokenConsumer<KeyToke
 
     private final AuthenticationDatabase db;
 
-    protected KeyPersistenceManager() {
+    public KeyPersistenceManager() {
         this.db = AuthenticationDatabase.getAuthenticationDatabaseInstance();
     }
 

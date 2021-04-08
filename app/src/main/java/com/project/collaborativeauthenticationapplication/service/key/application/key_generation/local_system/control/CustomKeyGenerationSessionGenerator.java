@@ -1,8 +1,7 @@
-package com.project.collaborativeauthenticationapplication.service.key.application.key_generation;
+package com.project.collaborativeauthenticationapplication.service.key.application.key_generation.local_system.control;
 
 import com.project.collaborativeauthenticationapplication.service.CustomIdentifiedParticipant;
 import com.project.collaborativeauthenticationapplication.service.IdentifiedParticipant;
-import com.project.collaborativeauthenticationapplication.service.IllegalUseOfClosedTokenException;
 import com.project.collaborativeauthenticationapplication.service.Participant;
 import com.project.collaborativeauthenticationapplication.service.key.KeyToken;
 import com.project.collaborativeauthenticationapplication.service.key.application.CustomTokenConsumer;
@@ -15,11 +14,10 @@ public class CustomKeyGenerationSessionGenerator extends CustomTokenConsumer<Key
 
 
 
-    private KeyGenerationSession session;
 
     public CustomKeyGenerationSessionGenerator() {}
     @Override
-    public void generateSession(List<Participant> participants, int threshold, String applicationName, String login, KeyToken token) throws IllegalUseOfClosedTokenException {
+    public KeyGenerationSession  generateSession(List<Participant> participants, int threshold, String applicationName, String login )  {
         class ConfigurableParticipant implements IdentifiedParticipant
         {
             String name;
@@ -65,7 +63,8 @@ public class CustomKeyGenerationSessionGenerator extends CustomTokenConsumer<Key
                 return 1;
             }
         }
-        consumeToken(token);
+
+        KeyGenerationSession session;
         ArrayList<Participant> remoteParticipants             = new ArrayList<>();
         final ConfigurableParticipant      localParticipant   = new ConfigurableParticipant();
 
@@ -116,11 +115,6 @@ public class CustomKeyGenerationSessionGenerator extends CustomTokenConsumer<Key
                 return Collections.unmodifiableList(remoteIdentifiedParticipants);
             }
         };
-    }
-
-    @Override
-    public void giveKeyGenerationSessionTo(KeyGenerationDistributedInvitationSender invitationSender) {
-        invitationSender.receiveKeyGenerationSession(session);
-        session = null;
+        return session;
     }
 }

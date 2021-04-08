@@ -24,7 +24,6 @@
     #define MODTT        0x1F
     #define BYTESPBL     64
 
-
     #define ROLL(a,b) (((a) << (b)) | ((a) >> (32-(b))))
     #define ROLR(a,b) (((a) >> (b)) | ((a) << (32-(b))))
     #define CH(x,y,z) (((x) & (y)) ^ (~(x) & (z)))

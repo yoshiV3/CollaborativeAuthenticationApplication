@@ -6,9 +6,8 @@ import com.project.collaborativeauthenticationapplication.R;
 import com.project.collaborativeauthenticationapplication.logger.AndroidLogger;
 import com.project.collaborativeauthenticationapplication.logger.Logger;
 import com.project.collaborativeauthenticationapplication.service.Participant;
-import com.project.collaborativeauthenticationapplication.service.key.application.key_generation.keyGenerationClient;
-import com.project.collaborativeauthenticationapplication.service.key.application.key_generation.CustomKeyGenerationClient;
-import com.project.collaborativeauthenticationapplication.service.key.application.key_generation.ThreadedKeyGenerationClient;
+import com.project.collaborativeauthenticationapplication.service.key.application.key_generation.distributed_system.KeyGenerationCoordinator;
+import com.project.collaborativeauthenticationapplication.service.key.application.key_generation.distributed_system.CustomLocalKeyGenerationCoordinator;
 import com.project.collaborativeauthenticationapplication.service.key.user.key_generation.DistributedKeyGenerationActivity;
 import com.project.collaborativeauthenticationapplication.service.key.user.key_generation.KeyGenerationView;
 import com.project.collaborativeauthenticationapplication.service.key.user.key_generation.ProgressNotifier;
@@ -76,7 +75,7 @@ public class CustomKeyGenerationPresenter implements KeyGenerationPresenter, Pro
     private final KeyGenerationView view;
 
 
-    private keyGenerationClient client;
+    private KeyGenerationCoordinator coordinator;
 
     private HashMap<String, String> messages = new HashMap<>();
 
@@ -91,19 +90,19 @@ public class CustomKeyGenerationPresenter implements KeyGenerationPresenter, Pro
     @Override
     public void onStart() {
         logger.logEvent(COMPONENT_NAME, EVENT_START, "low");
-        if (client != null){
+        if (coordinator != null){
             throw new IllegalStateException();
         }
-        client = new ThreadedKeyGenerationClient(this);
-        client.open(view.getContext());
+        coordinator = new CustomLocalKeyGenerationCoordinator(this);
+        coordinator.open(view.getContext());
     }
 
     @Override
     public void close() {
-        if (client != null)
+        if (coordinator != null)
         {
-            client.close();
-            client = null;
+            coordinator.close();
+            coordinator = null;
         }
     }
 
@@ -146,12 +145,12 @@ public class CustomKeyGenerationPresenter implements KeyGenerationPresenter, Pro
 
     @Override
     public void onRun() {
-        client.run();
+        coordinator.run();
     }
 
     @Override
     public boolean isCurrentlyActive() {
-        return client != null && client.getState() != CustomKeyGenerationClient.STATE_FINISHED && client.getState() != CustomKeyGenerationClient.STATE_CLOSED;
+        return coordinator != null && coordinator.getState() != CustomLocalKeyGenerationCoordinator.STATE_FINISHED && coordinator.getState() != CustomLocalKeyGenerationCoordinator.STATE_CLOSED;
     }
 
     @Override
@@ -166,51 +165,51 @@ public class CustomKeyGenerationPresenter implements KeyGenerationPresenter, Pro
     }
 
     @Override
-    public void SignalClientInNewState(int clientState, int oldState) {
+    public void SignalCoordinatorInNewState(int clientState, int oldState) {
         switch (clientState)
         {
-            case CustomKeyGenerationClient.STATE_START:
+            case CustomLocalKeyGenerationCoordinator.STATE_START:
                 logger.logEvent(COMPONENT_NAME, EVENT_RECEIVED_TOKEN, "low");
                 break;
-            case CustomKeyGenerationClient.STATE_DETAILS:
+            case CustomLocalKeyGenerationCoordinator.STATE_DETAILS:
                 view.navigate(R.id.select);
                 logger.logEvent(COMPONENT_NAME, EVENT_DETAILS_SUBMITTED, "low");
                 view.showMetaData(getMessage(DistributedKeyGenerationActivity.KEY_LOGIN), getMessage(DistributedKeyGenerationActivity.KEY_APPLICATION_NAME));
                 break;
-            case CustomKeyGenerationClient.STATE_SELECT:
+            case CustomLocalKeyGenerationCoordinator.STATE_SELECT:
                 logger.logEvent(COMPONENT_NAME, EVENT_PARTICIPANTS_SUBMITTED, "low");
                 view.navigate(R.id.run);
                 break;
-            case CustomKeyGenerationClient.STATE_BAD_INP_SEL:
+            case CustomLocalKeyGenerationCoordinator.STATE_BAD_INP_SEL:
                 view.showTemporally("Incorrect input");
                 break;
-            case CustomKeyGenerationClient.STATE_SESSION:
+            case CustomLocalKeyGenerationCoordinator.STATE_SESSION:
                 notifySubscribers(MESSAGE_STATE_SESSION);
                 break;
-            case CustomKeyGenerationClient.STATE_INVITATION:
+            case CustomLocalKeyGenerationCoordinator.STATE_INVITATION:
                 notifySubscribers(MESSAGE_STATE_INVITATIONS);
                 break;
-            case CustomKeyGenerationClient.STATE_KEYPART:
+            case CustomLocalKeyGenerationCoordinator.STATE_KEYPART:
                 logger.logEvent(COMPONENT_NAME, EVENT_KEY_PARTS_LOCALLY_AVAILABLE, "low");
                 notifySubscribers(MESSAGE_STATE_KEYPART);
                 break;
-            case CustomKeyGenerationClient.STATE_DISTRIBUTED:
+            case CustomLocalKeyGenerationCoordinator.STATE_DISTRIBUTED:
                 notifySubscribers(MESSAGE_STATE_DISTRIBUTED);
                 break;
-            case CustomKeyGenerationClient.STATE_SHARES:
+            case CustomLocalKeyGenerationCoordinator.STATE_SHARES:
                 notifySubscribers(MESSAGE_STATE_SHARES);
                 break;
-            case CustomKeyGenerationClient.STATE_PERSIST:
+            case CustomLocalKeyGenerationCoordinator.STATE_PERSIST:
                 notifySubscribers(MESSAGE_STATE_PERSISTED);
                 break;
-            case CustomKeyGenerationClient.STATE_ERROR:
+            case CustomLocalKeyGenerationCoordinator.STATE_ERROR:
                 handleClientErrors(oldState);
                 break;
-            case CustomKeyGenerationClient.STATE_CLOSED:
+            case CustomLocalKeyGenerationCoordinator.STATE_CLOSED:
                 break;
-            case CustomKeyGenerationClient.STATE_FINISHED:
+            case CustomLocalKeyGenerationCoordinator.STATE_FINISHED:
                 logger.logEvent(COMPONENT_NAME, EVENT_KEY_DONE, "low");
-                client.close();
+                coordinator.close();
                 view.navigate(R.id.success);
                 break;
             default:
@@ -221,42 +220,42 @@ public class CustomKeyGenerationPresenter implements KeyGenerationPresenter, Pro
     }
 
     private void handleClientErrors(int oldState) {
-        if (client != null){
-            client.close();
+        if (coordinator != null){
+            coordinator.close();
         }
         switch (oldState)
         {
-            case CustomKeyGenerationClient.STATE_INIT:
+            case CustomLocalKeyGenerationCoordinator.STATE_INIT:
                 logger.logEvent(COMPONENT_NAME, EVENT_NOT_RECEIVED_TOKEN, "low");
                 view.navigate(R.id.error_home);
                 break;
-            case CustomKeyGenerationClient.STATE_START:
+            case CustomLocalKeyGenerationCoordinator.STATE_START:
                 logger.logEvent(COMPONENT_NAME, EVENT_DETAILS_NOT_SUBMITTED, "low");
                 setMessage(DistributedKeyGenerationActivity.KEY_ERROR_MESSAGES, "Token revocation");
                 view.navigate(R.id.error_home);
                 break;
-            case CustomKeyGenerationClient.STATE_DETAILS:
+            case CustomLocalKeyGenerationCoordinator.STATE_DETAILS:
                 logger.logEvent(COMPONENT_NAME, EVENT_PARTICIPANTS_NOT_SUBMITTED, "high");
                 setMessage(DistributedKeyGenerationActivity.KEY_ERROR_MESSAGES, "Token revocation");
                 view.navigate(R.id.error_select);
                 break;
-            case CustomKeyGenerationClient.STATE_BAD_INP_SEL:
+            case CustomLocalKeyGenerationCoordinator.STATE_BAD_INP_SEL:
                 logger.logEvent(COMPONENT_NAME, EVENT_SESSION_FAILED, "high");
                 setMessage(DistributedKeyGenerationActivity.KEY_ERROR_MESSAGES, "Token revocation");
                 view.navigate(R.id.error_select);
                 break;
-            case CustomKeyGenerationClient.STATE_SELECT:
-            case CustomKeyGenerationClient.STATE_SESSION:
-            case CustomKeyGenerationClient.STATE_INVITATION:
-            case CustomKeyGenerationClient.STATE_KEYPART:
-            case CustomKeyGenerationClient.STATE_DISTRIBUTED:
-            case CustomKeyGenerationClient.STATE_SHARES:
-            case CustomKeyGenerationClient.STATE_PERSIST:
+            case CustomLocalKeyGenerationCoordinator.STATE_SELECT:
+            case CustomLocalKeyGenerationCoordinator.STATE_SESSION:
+            case CustomLocalKeyGenerationCoordinator.STATE_INVITATION:
+            case CustomLocalKeyGenerationCoordinator.STATE_KEYPART:
+            case CustomLocalKeyGenerationCoordinator.STATE_DISTRIBUTED:
+            case CustomLocalKeyGenerationCoordinator.STATE_SHARES:
+            case CustomLocalKeyGenerationCoordinator.STATE_PERSIST:
                 logger.logEvent(COMPONENT_NAME, EVENT_RUN_FAILED, "high", String.valueOf(oldState));
                 setMessage(DistributedKeyGenerationActivity.KEY_ERROR_MESSAGES, "Session failed");
                 view.navigate(R.id.error_generation);
                 break;
-            case CustomKeyGenerationClient.STATE_TOKEN_REVOKED:
+            case CustomLocalKeyGenerationCoordinator.STATE_TOKEN_REVOKED:
                 logger.logEvent(COMPONENT_NAME, EVENT_RUN_FAILED, "high", "Token revoked");
                 break;
             default:
@@ -267,13 +266,13 @@ public class CustomKeyGenerationPresenter implements KeyGenerationPresenter, Pro
 
     @Override
     public List<Participant> getInitialOptions() {
-        return client.getOptions();
+        return coordinator.getOptions();
     }
 
 
     @Override
     public void submitLoginDetails() {
-            client.submitLoginDetails(getMessage(DistributedKeyGenerationActivity.KEY_LOGIN), getMessage(DistributedKeyGenerationActivity.KEY_APPLICATION_NAME));
+            coordinator.submitLoginDetails(getMessage(DistributedKeyGenerationActivity.KEY_LOGIN), getMessage(DistributedKeyGenerationActivity.KEY_APPLICATION_NAME));
     }
 
     @Override
@@ -284,12 +283,12 @@ public class CustomKeyGenerationPresenter implements KeyGenerationPresenter, Pro
 
     @Override
     public void submitSelectedParticipants(List<Participant> participants) {
-        client.submitSelection(participants);
+        coordinator.submitSelection(participants);
     }
 
     @Override
     public void submitThreshold(int threshold) {
-        client.submitThreshold(threshold);
+        coordinator.submitThreshold(threshold);
         logger.logEvent(COMPONENT_NAME, EVENT_THRESHOLD_SUBMITTED, "low", String.valueOf(threshold));
     }
 

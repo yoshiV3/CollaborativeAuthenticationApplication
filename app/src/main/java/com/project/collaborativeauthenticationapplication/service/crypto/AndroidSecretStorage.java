@@ -79,8 +79,10 @@ public class AndroidSecretStorage {
     public void storeSecrets(List<BigNumber> secrets, int[] identifiers,  String applicationName, String login) throws SecureStorageException {
             SharedPreferences.Editor editor = getEncryptedSharedPreferences().edit();
             String baseAlias                = getkeyAlias(applicationName, login);
+            logger.logEvent(COMPONENT, "new secret", "low");
             int sequenceNumber = 0;
             for (BigNumber share: secrets){
+                logger.logEvent(COMPONENT, "new secret", "low", String.valueOf(identifiers[sequenceNumber]));
                 String stringBuilder = baseAlias +
                         ":" +
                         identifiers[sequenceNumber];

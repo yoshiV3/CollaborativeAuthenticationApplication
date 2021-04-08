@@ -16,6 +16,8 @@ import com.project.collaborativeauthenticationapplication.data.ParticipantEntity
 import com.project.collaborativeauthenticationapplication.data.ParticipantDao;
 import com.project.collaborativeauthenticationapplication.data.SecretEntity;
 import com.project.collaborativeauthenticationapplication.data.SecretDao;
+import com.project.collaborativeauthenticationapplication.service.crypto.BigNumber;
+import com.project.collaborativeauthenticationapplication.service.crypto.Point;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -24,6 +26,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.PublicKey;
 import java.util.List;
 
 @RunWith(AndroidJUnit4.class)
@@ -60,7 +64,14 @@ public class DatabaseOnDeviceTest {
         final String applicationNameFalse = "nameFalse";
         final String login                = "login";
         final int    threshold            = 2;
-        ApplicationLoginEntity applicationLoginEntity = new ApplicationLoginEntity(applicationName, login, threshold);
+
+
+        Point publicKey   = new Point(BigNumber.getZero(), BigNumber.getZero(), true);
+        String publicKeyX = new String(publicKey.getX().getBigNumberAsByteArray(), StandardCharsets.ISO_8859_1);
+        String publicKeyY = new String(publicKey.getY().getBigNumberAsByteArray(), StandardCharsets.ISO_8859_1);
+
+
+        ApplicationLoginEntity applicationLoginEntity = new ApplicationLoginEntity(applicationName, login, threshold, publicKeyX, publicKeyY, publicKey.isZero());
         applicationLoginDao.insert(applicationLoginEntity);
 
         List<ApplicationLoginEntity> applicationLoginEntities = applicationLoginDao.getApplications();
@@ -83,7 +94,13 @@ public class DatabaseOnDeviceTest {
         final String login                = "login";
         final String loginFalse           = "user";
         final int    threshold            = 2;
-        ApplicationLoginEntity applicationLoginEntity = new ApplicationLoginEntity(applicationName, login, threshold);
+
+
+        Point publicKey   = new Point(BigNumber.getZero(), BigNumber.getZero(), true);
+        String publicKeyX = new String(publicKey.getX().getBigNumberAsByteArray(), StandardCharsets.ISO_8859_1);
+        String publicKeyY = new String(publicKey.getY().getBigNumberAsByteArray(), StandardCharsets.ISO_8859_1);
+        Boolean publicKeyIsZero = publicKey.isZero();
+        ApplicationLoginEntity applicationLoginEntity = new ApplicationLoginEntity(applicationName, login, threshold, publicKeyX, publicKeyY, publicKeyIsZero);
         applicationLoginDao.insert(applicationLoginEntity);
 
 
@@ -101,7 +118,11 @@ public class DatabaseOnDeviceTest {
         final String applicationName = "name";
         final String login           = "login";
         final int    threshold       = 2;
-        ApplicationLoginEntity applicationLoginEntity = new ApplicationLoginEntity(applicationName, login, threshold);
+        Point publicKey   = new Point(BigNumber.getZero(), BigNumber.getZero(), true);
+        String publicKeyX = new String(publicKey.getX().getBigNumberAsByteArray(), StandardCharsets.ISO_8859_1);
+        String publicKeyY = new String(publicKey.getY().getBigNumberAsByteArray(), StandardCharsets.ISO_8859_1);
+        Boolean publicKeyIsZero = publicKey.isZero();
+        ApplicationLoginEntity applicationLoginEntity = new ApplicationLoginEntity(applicationName, login, threshold, publicKeyX, publicKeyY, publicKeyIsZero);
         applicationLoginDao.insert(applicationLoginEntity);
         List<ApplicationLoginEntity> applicationLoginEntities = applicationLoginDao.getApplications();
 
@@ -136,7 +157,11 @@ public class DatabaseOnDeviceTest {
         final String applicationName = "name";
         final String login           = "login";
         final int    threshold       = 2;
-        ApplicationLoginEntity applicationLoginEntity = new ApplicationLoginEntity(applicationName, login, threshold);
+        Point publicKey   = new Point(BigNumber.getZero(), BigNumber.getZero(), true);
+        String publicKeyX = new String(publicKey.getX().getBigNumberAsByteArray(), StandardCharsets.ISO_8859_1);
+        String publicKeyY = new String(publicKey.getY().getBigNumberAsByteArray(), StandardCharsets.ISO_8859_1);
+        Boolean publicKeyIsZero = publicKey.isZero();
+        ApplicationLoginEntity applicationLoginEntity = new ApplicationLoginEntity(applicationName, login, threshold, publicKeyX, publicKeyY, publicKeyIsZero);
         applicationLoginDao.insert(applicationLoginEntity);
 
         List<ApplicationLoginEntity> applicationLoginEntities = applicationLoginDao.getApplications();
@@ -171,7 +196,11 @@ public class DatabaseOnDeviceTest {
         final String applicationName = "name";
         final String login           = "login";
         final int    threshold       = 2;
-        ApplicationLoginEntity applicationLoginEntity = new ApplicationLoginEntity(applicationName, login, threshold);
+        Point publicKey   = new Point(BigNumber.getZero(), BigNumber.getZero(), true);
+        String publicKeyX = new String(publicKey.getX().getBigNumberAsByteArray(), StandardCharsets.ISO_8859_1);
+        String publicKeyY = new String(publicKey.getY().getBigNumberAsByteArray(), StandardCharsets.ISO_8859_1);
+        Boolean publicKeyIsZero = publicKey.isZero();
+        ApplicationLoginEntity applicationLoginEntity = new ApplicationLoginEntity(applicationName, login, threshold, publicKeyX, publicKeyY, publicKeyIsZero);
         applicationLoginDao.insert(applicationLoginEntity);
 
         List<ApplicationLoginEntity> applicationLoginEntities = applicationLoginDao.getApplications();

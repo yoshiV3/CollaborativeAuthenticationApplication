@@ -9,5 +9,6 @@
 
 
     void inverse_p(uint32_t const * const a, uint32_t * const res);
+    void inverse_n(uint32_t const * const a, uint32_t * const res);
 
 #endif //COLLABORATIVEAUTHENTICATIONAPPLICATION_INVERSION_H

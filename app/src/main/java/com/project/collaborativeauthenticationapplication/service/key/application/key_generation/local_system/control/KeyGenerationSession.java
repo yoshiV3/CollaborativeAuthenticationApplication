@@ -1,11 +1,12 @@
-package com.project.collaborativeauthenticationapplication.service.key.application.key_generation;
+package com.project.collaborativeauthenticationapplication.service.key.application.key_generation.local_system.control;
 
+import com.project.collaborativeauthenticationapplication.service.IdentifiedParticipant;
 import com.project.collaborativeauthenticationapplication.service.Participant;
 import com.project.collaborativeauthenticationapplication.service.key.application.AuthenticationSession;
 
 public interface KeyGenerationSession extends RemoteParticipantIterator, AuthenticationSession {
 
-    Participant getLocalParticipant();
+    IdentifiedParticipant getLocalParticipant();
 
     int getThreshold();
 

@@ -2,14 +2,12 @@ package com.project.collaborativeauthenticationapplication.service.crypto;
 
 import androidx.annotation.NonNull;
 
-import java.util.Arrays;
-
-public class BigNumber {
+public class BigNumber implements  Comparable<BigNumber>{
 
 
 
 
-    private final byte[]  representation = new byte[PolynomialGenerator.NUMBER_INTEGER_SIZE*PolynomialGenerator.INTEGER_BYTE_SIZE];
+    private final byte[]  representation = new byte[RandomnessGenerator.NUMBER_INTEGER_SIZE* RandomnessGenerator.INTEGER_BYTE_SIZE];
 
     public BigNumber(byte[]  partOne, byte[]  partTwo, byte[]  partThree, byte[]  partFour, byte[]  partFive, byte[]  partSix, byte[]  partSeven, byte[]  partEight) {
         System.arraycopy(partOne,   0, representation, 0, 4);
@@ -25,7 +23,7 @@ public class BigNumber {
 
     public  BigNumber(byte[] fullNumber)
     {
-        int length = PolynomialGenerator.NUMBER_INTEGER_SIZE*PolynomialGenerator.INTEGER_BYTE_SIZE;
+        int length = RandomnessGenerator.NUMBER_INTEGER_SIZE* RandomnessGenerator.INTEGER_BYTE_SIZE;
         if (fullNumber.length != length )
         {
             throw new IllegalArgumentException("number is not the correct size of 8 4 byte integers");
@@ -74,6 +72,42 @@ public class BigNumber {
         return new BigNumber(zero.clone(),zero.clone(),zero.clone(),zero.clone(),zero.clone(),zero.clone(),zero.clone(),zero.clone());
     }
 
+    public static BigNumber getN(){
+        return new BigNumber(new byte[]{5, 65, 54, -48, -116, 94, -46, -65, 59, -96, 72, -81, -26, -36, -82, -70, -2, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1});
+    }
 
 
+    @Override
+    public int compareTo(BigNumber o) {
+        byte[] thisByteArr        = this.getBigNumberAsByteArray();
+        byte[] oByteArr           = o.getBigNumberAsByteArray();
+        boolean hasMadeDecision   = false;
+        int result =0;
+        for (int i = 31; i > -1; i--) {
+            if (thisByteArr[i] > -1 && oByteArr[i] < 0) { //this positive, other negative:  other is larger
+                if (!hasMadeDecision) {
+                    result = -1;
+                    hasMadeDecision = true;
+                }
+            } else if (thisByteArr[i] < 0 && oByteArr[i] > -1) { //this negative, other positive; this is larger
+                if (!hasMadeDecision) {
+                    result = 1;
+                    hasMadeDecision = true;
+                }
+            } else { // both same size so take biggest
+                if (thisByteArr[i] != oByteArr[i] && !hasMadeDecision) {
+                    if (thisByteArr[i] > oByteArr[i]) {
+                        result = 1;
+                        hasMadeDecision = true;
+                    }
+                    else {
+                        result = -1;
+                        hasMadeDecision = true;
+                    }
+
+                }
+            }
+        }
+        return result;
+    }
 }

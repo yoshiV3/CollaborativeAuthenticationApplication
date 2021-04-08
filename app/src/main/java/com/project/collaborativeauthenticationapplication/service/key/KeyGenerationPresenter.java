@@ -20,7 +20,7 @@ public interface KeyGenerationPresenter extends KeyPresenter {
     void setMessage(String key, String message );
     String getMessage(String key);
 
-    void SignalClientInNewState(int clientState, int oldState);
+    void SignalCoordinatorInNewState(int clientState, int oldState);
 
     List<Participant> getInitialOptions();
 

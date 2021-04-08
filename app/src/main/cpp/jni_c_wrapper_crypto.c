@@ -14,6 +14,10 @@
 #include "signed_arithmetic.h"
 #include "interface.h"
 #include "ecc_arithmetic.h"
+#include "threshold_signature.h"
+#include "signatureThresholdInterface.h"
+#include "array.h"
+#include "hash.h"
 #include </home/yoshi/Android/Sdk/ndk/21.1.6352462/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/stdint.h>
 #include </home/yoshi/Android/Sdk/ndk/21.1.6352462/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/malloc.h>
 #include </home/yoshi/Android/Sdk/ndk/21.1.6352462/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/jni.h>
@@ -43,10 +47,10 @@ Java_com_project_collaborativeauthenticationapplication_service_crypto_CryptoKey
     {
         uint32_t *c    = malloc(SIZE*sizeof(uint32_t));
         evals[identifier-min_weight]    = c;
-        evaluate_poly(poly, identifier, size-1, c);
+        evaluate_poly_n(poly, identifier, size-1, c);
     }
 
-    fillResultWithData(env,evals,result, resultSize );
+    fillArrayListWithData(env, evals, result, resultSize);
 
     freeArrayOfArrays(evals, resultSize);
     freeArrayOfArrays(poly, size);
@@ -77,10 +81,10 @@ Java_com_project_collaborativeauthenticationapplication_service_crypto_CryptoKey
         transformArrayListBigNumbersToCArray(env,  parts , partsC, totalWeight);
         uint32_t *sum    = malloc(SIZE*sizeof(uint32_t));
         sharesC[index]   = sum;
-        sum_mod_p(partsC, sum, totalWeight);
+        sum_mod_n(partsC, sum, totalWeight);
     }
 
-    fillResultWithData(env, sharesC, shares, weight);
+    fillArrayListWithData(env, sharesC, shares, weight);
     freeArrayOfArrays(partsC, totalWeight);
     freeArrayOfArrays(sharesC, weight);
 }
@@ -122,7 +126,7 @@ Java_com_project_collaborativeauthenticationapplication_service_crypto_CryptoPro
     {
         uint32_t * point_on_poly    = malloc(SIZE*sizeof(uint32_t));
         evals[identifier-1]         = point_on_poly;
-        evaluate_poly(poly, identifier, threshold-1, point_on_poly);
+        evaluate_poly_n(poly, identifier, threshold-1, point_on_poly);
     }
 
 
@@ -135,13 +139,13 @@ Java_com_project_collaborativeauthenticationapplication_service_crypto_CryptoPro
     for(uint32_t local = 1; local <number_of_local; local++){
         for (uint32_t identifier = 1; identifier <= total_weight; identifier++)
         {
-            evaluate_poly(poly, identifier, threshold-1, share);
-            add_mod_p(evals[identifier-1], share, evals[identifier-1]);
+            evaluate_poly_n(poly, identifier, threshold-1, share);
+            add_mod_n(evals[identifier-1], share, evals[identifier-1]);
         }
         ecc_exponentiation(A,B, poly[threshold-1], &publicKeyPart);
         add_points(&publicKey, &publicKeyPart, &publicKey);
     }
-    fillResultWithData(env,evals,parts, total_weight);
+    fillArrayListWithData(env, evals, parts, total_weight);
     fillPointWithData(env, &publicKey, public_key_part);
     freeArrayOfArrays(evals, total_weight);
 }
@@ -164,20 +168,127 @@ Java_com_project_collaborativeauthenticationapplication_service_crypto_CryptoPar
     uint32_t degree   = ((uint32_t)lenShares) - 1;
     for (uint32_t x=0; x<lenShares; x++){
         for (uint32_t i = 0; i<lenShares; i++){
-            if (x>i){
+            if (x>i) {
                 x_values[i] = identifiersC[i];
-            }
-            else if (x< i){
+            } else if (x< i){
                 x_values[i-1] = identifiersC[i];
             }
         }
         uint32_t e[SIZE];
-        calculate_share_part_for_x(x_values, identifiersC[x], x_target, degree, sharesC[x], e );
-        add_mod_p(newShare, e, newShare);
+        calculate_share_part_for_x_n(x_values, identifiersC[x], x_target, degree, sharesC[x], e );
+        add_mod_n(newShare, e, newShare);
     }
     free(x_values);
     freeArrayOfArrays(sharesC, lenShares);
     (*env)->ReleaseIntArrayElements(env, identifiers, identifiersC, 0);
     return getNewBigNumberObject(env, newShare);
 
+}
+
+JNIEXPORT void JNICALL
+Java_com_project_collaborativeauthenticationapplication_service_crypto_CryptoThresholdSignatureProcessor_calculateCommitmentsToRandomnessNative(
+        JNIEnv *env, jobject thiz) {
+
+    int localWeight = getLocalWeight(env, thiz);
+    uint32_t ** e   = malloc(localWeight*sizeof(uint32_t*));
+    uint32_t ** d   = malloc(localWeight*sizeof(uint32_t*));
+
+    getRandomnessLists(env, thiz, e, d, localWeight);
+
+    Point * E = malloc(localWeight*sizeof(Point));
+    Point * D = malloc(localWeight*sizeof(Point));
+    Calculate_commitments_to_random_numbers(e, d, E, D, localWeight);
+
+    placeCommitmentsInProcessor(env, thiz, E, D, localWeight);
+
+    free(E);
+    free(D);
+
+    freeArrayOfArrays(e, localWeight);
+    freeArrayOfArrays(d, localWeight);
+
+}
+
+JNIEXPORT void JNICALL
+Java_com_project_collaborativeauthenticationapplication_service_crypto_CryptoThresholdSignatureProcessor_calculateSignatureShare(
+        JNIEnv *env, jobject thiz, jobject message, jintArray identifiers) {
+    // get all the inputs to c
+    uint32_t messageC[SIZE];
+    bigNumberToArrayC(env, message, messageC);
+    uint32_t *identifiersC = (uint32_t *) (*env)->GetIntArrayElements(env, identifiers, 0);
+
+    int totalWeight        =  getTotalWeight(env, thiz);
+    int localWeight        =  getLocalWeight(env, thiz);
+    uint32_t ** e   = malloc(localWeight*sizeof(uint32_t*));
+    uint32_t ** d   = malloc(localWeight*sizeof(uint32_t*));
+
+    Point * E = malloc(totalWeight*sizeof(Point));
+    Point * D = malloc(totalWeight*sizeof(Point));
+
+    getAllRandomness(env, thiz ,E ,D , totalWeight);
+    getRandomnessLists(env, thiz, e, d, localWeight);
+
+    uint32_t ** rhos;
+    rhos = (uint32_t **) malloc(totalWeight*sizeof(uint32_t *));
+    Point R;
+    uint32_t hash[SIZE] = {0};
+    calculate_hash_and_nonce_and_rhos(totalWeight, E, D, identifiersC, messageC, hash, &R, rhos);
+
+    uint32_t * signature[2];
+    uint32_t signature_s[SIZE]  = {0};
+    uint32_t signature_e[SIZE]  = {0};
+    signature[0] = signature_s;
+    signature[1] = signature_e;
+
+    uint32_t * identifiers_indexes;
+    createIdentifiersIndexes(identifiers_indexes, localWeight);
+
+    uint32_t ** sharesC;
+    sharesC = malloc(localWeight*sizeof(uint32_t));
+    getShares(env, thiz, sharesC, localWeight);
+
+
+
+
+    produce_signature_shares_for_subset(localWeight, totalWeight, &R, identifiersC, identifiers_indexes, e, d, rhos, sharesC, hash, signature[0]);
+    for (uint32_t index =0; index <SIZE; index++) {
+        signature[1][index] = hash[index];
+    }
+
+
+
+    writeSignatureShareToJava(env, thiz, signature);
+
+    FREE_2D_ARRAY(sharesC, localWeight);
+    FREE_2D_ARRAY(rhos, totalWeight);
+    free(identifiers_indexes);
+    free(E);
+    free(D);
+    free(e);
+    free(d);
+    (*env)->ReleaseIntArrayElements(env, identifiers, identifiersC, 0);
+}
+
+JNIEXPORT jboolean JNICALL
+Java_com_project_collaborativeauthenticationapplication_service_crypto_CryptoVerificationProcessor_verifyNative(
+        JNIEnv *env, jobject thiz, jobject signature, jobject message, jobject public_key) {
+    uint32_t messageC[SIZE];
+    bigNumberToArrayC(env, message, messageC);
+
+    uint32_t * signatureC[2];
+    uint32_t signature_s[SIZE]  = {0};
+    uint32_t signature_e[SIZE]  = {0};
+    signatureC[0] = signature_s;
+    signatureC[1] = signature_e;
+    transformArrayListBigNumbersToCArray(env, signature, signatureC, 2);
+
+    Point pk;
+    javaPointToPointC(env, public_key, &pk);
+
+    uint8_t  correct = verify_threshold(messageC, SIZE, &pk, signatureC);
+
+    if (correct){
+        return JNI_TRUE;
+    }
+    return JNI_FALSE;
 }

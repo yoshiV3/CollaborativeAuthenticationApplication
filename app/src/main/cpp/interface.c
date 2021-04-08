@@ -17,7 +17,7 @@
 
 uint32_t getIntegerFromByteArray(JNIEnv *env, jbyteArray arr)
 {
-    jbyte *b = (jbyte *) (*env)->GetByteArrayElements(env, arr, 0);
+    uint8_t *b = (jbyte *) (*env)->GetByteArrayElements(env, arr, 0);
 
     uint32_t one   = (uint32_t) b[0];
     uint32_t two   = (uint32_t) b[1];
@@ -64,10 +64,39 @@ int getSizeOfArrayListRandomPoly(JNIEnv *env, jobject thiz)
 
 }
 
+void getXFromJavaPoint(const JNIEnv *env, jobject java_point, uint32_t *x){
+    jclass    pointClass     = (*env)->GetObjectClass(env, java_point);
+    jmethodID getXMethod     = (*env)->GetMethodID(env, pointClass, "getX", "()Lcom/project/collaborativeauthenticationapplication/service/crypto/BigNumber;");
+    jobject   x_bigNumber    = (*env)->CallObjectMethod(env,java_point, getXMethod);
+    bigNumberToArrayC(env, x_bigNumber, x);
+}
 
 
+void getYFromJavaPoint(const JNIEnv *env, jobject java_point, uint32_t *y){
+    jclass    pointClass     = (*env)->GetObjectClass(env, java_point);
+    jmethodID getYMethod     = (*env)->GetMethodID(env, pointClass, "getY", "()Lcom/project/collaborativeauthenticationapplication/service/crypto/BigNumber;");
+    jobject   y_bigNumber    = (*env)->CallObjectMethod(env,java_point, getYMethod);
+    bigNumberToArrayC(env, y_bigNumber, y);
+}
 
 
+void isZeroFromJavaPoint(const JNIEnv *env, jobject java_point, uint8_t *isZero){
+    jclass    pointClass     = (*env)->GetObjectClass(env, java_point);
+    jmethodID isZeroMethod   = (*env)->GetMethodID(env, pointClass, "isZero", "()Z");
+    jboolean  isZeroJava     = (*env)->CallBooleanMethod(env, java_point, isZeroMethod);
+    if (isZeroJava == JNI_TRUE){
+        *isZero = TRUE;
+    } else {
+        *isZero = FALSE;
+    }
+}
+
+
+void javaPointToPointC(const JNIEnv *env, jobject java_point, Point * c_point){
+    getXFromJavaPoint(env, java_point, c_point->x);
+    getYFromJavaPoint(env, java_point, c_point->y);
+    isZeroFromJavaPoint(env, java_point, &c_point->isZero);
+}
 
 
 jobject getObjectFromArrayList(const JNIEnv *env, const jobject arr, int index)
@@ -78,6 +107,24 @@ jobject getObjectFromArrayList(const JNIEnv *env, const jobject arr, int index)
 
     jobject object  =  (*env)->CallObjectMethod(env,arr, getMethod, index);
     return object;
+}
+
+
+void bigNumberToArrayC(const JNIEnv *env, jobject bigNumber, uint32_t * c){
+    jclass bigNumberClass = (*env)->GetObjectClass(env, bigNumber);
+
+
+
+    jmethodID getPartMethod = (*env)->GetMethodID(env,bigNumberClass,"getPart", "(I)[B");
+
+
+
+    for (int innerIndex = 0; innerIndex < SIZE; innerIndex++)
+    {
+        jbyteArray  bigNumberAsArray;
+        bigNumberAsArray = (*env)->CallObjectMethod(env, bigNumber,  getPartMethod, innerIndex);
+        c[innerIndex]    = getIntegerFromByteArray(env, bigNumberAsArray) ;//getIntegerFromByteArray(env, bigNumberAsArray);
+    }
 }
 
 
@@ -92,20 +139,8 @@ void transformArrayListBigNumbersToCArray(const JNIEnv *env, const jobject arr, 
 
         jobject bigNumber  =  getObjectFromArrayList(env, arr , index);
 
-        jclass bigNumberClass = (*env)->GetObjectClass(env, bigNumber);
+        bigNumberToArrayC(env, bigNumber, c);
 
-
-
-        jmethodID getPartMethod = (*env)->GetMethodID(env,bigNumberClass,"getPart", "(I)[B");
-
-
-
-        for (int innerIndex = 0; innerIndex < SIZE; innerIndex++)
-        {
-            jbyteArray  bigNumberAsArray;
-            bigNumberAsArray = (*env)->CallObjectMethod(env, bigNumber,  getPartMethod, innerIndex);
-            c[innerIndex]    = getIntegerFromByteArray(env, bigNumberAsArray) ;//getIntegerFromByteArray(env, bigNumberAsArray);
-        }
     }
 }
 
@@ -124,16 +159,16 @@ void fillPolyWithData(JNIEnv *env, jobject thiz, uint32_t **poly, int size)
     transformArrayListBigNumbersToCArray(env, objPoly, poly, size);
 }
 
-void fillResultWithData(JNIEnv *env, uint32_t ** results, jobject result, int resultSize )
+void fillArrayListWithData(JNIEnv *env, uint32_t ** results, jobject arrayList, int resultSize )
 {
-    jclass listClass = (*env)->GetObjectClass(env,result );
+    jclass listClass = (*env)->GetObjectClass(env, arrayList );
 
     jmethodID addMethod = (*env)->GetMethodID(env,listClass,"add", "(Ljava/lang/Object;)Z");
 
     for (int res = 0; res <resultSize; res++)
     {
         jobject newObj = getNewBigNumberObject(env, results[res]);
-        (*env)->CallBooleanMethod(env, result,  addMethod, newObj);
+        (*env)->CallBooleanMethod(env, arrayList, addMethod, newObj);
     }
 }
 
@@ -188,7 +223,11 @@ jobject getNewBigNumberObject(JNIEnv *env, uint32_t * results){
 }
 
 
-
+jobject getNewPoint(JNIEnv *env, jobject x, jobject  y){
+    jclass pointClass = (*env)->FindClass(env, "com/project/collaborativeauthenticationapplication/service/crypto/Point");
+    jmethodID constructorMethodId = (*env)->GetMethodID(env, pointClass, "<init>", "(Lcom/project/collaborativeauthenticationapplication/service/crypto/BigNumber;Lcom/project/collaborativeauthenticationapplication/service/crypto/BigNumber;)V");
+    return (*env)->NewObject(env, pointClass, constructorMethodId, x, y);
+}
 
 
 

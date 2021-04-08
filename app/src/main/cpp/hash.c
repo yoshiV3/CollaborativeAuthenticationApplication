@@ -23,17 +23,17 @@ const uint32_t K[64] = {
 
 
 
-void init_message_schedule(uint32_t const * const message, uint32_t * const w)
+void init_message_schedule(uint32_t const * const message, uint32_t * const w, uint32_t index)
 {
-    uint8_t i;
+    uint32_t i;
     for (i=0; i < 16; i++)
     {
-        w[i] = message[i];
+       w[i] =  message[index + i];
     }
     uint8_t j;
     for(j = i;j < 64; j++)
     {
-        w[j] = SIG1(w[j-2]) + w[j-7] + SIG0(w[j-15]) + w[j-16];
+       w[j] = SIG1(w[j-2]) + w[j-7] + SIG0(w[j-15]) + w[j-16];
     }
 }
 
@@ -50,31 +50,38 @@ void sha(uint32_t const * const message, uint32_t const bitlength, uint32_t * co
     {
         k =  PADDON - l;
     }
-    const uint32_t nb_rem_bits    = bitlength&MODTT;
-    const uint32_t nb_full_words  = bitlength>>5;
-    const uint32_t nb_blocks      = (bitlength + 1 + k + 64) >> 9;
+    const uint32_t nb_rem_bits    = bitlength&MODTT; //mod 32
+    const uint32_t nb_full_words  = bitlength>>5; //div by 32
+    const uint32_t nb_blocks      = (bitlength + 1 + k + 64) >> 9; //div by 512
 
-    uint32_t * const pad   = (uint32_t*) malloc(nb_blocks*BYTESPBL);
+    uint32_t * const mes   = (uint32_t*) malloc(nb_blocks*BYTESPBL);
 
     uint32_t i;
     for (i=0; i < nb_full_words; i++)
     {
-        pad[i] = message[i];
+        mes[i] = message[i];
     }
-    uint32_t add_zeros = 32 - nb_rem_bits -1;
-    uint32_t extra_one = 1 << (add_zeros);
-    pad[i] = message[i] ^ extra_one;
+    uint32_t add_zeros;
+    if (nb_rem_bits > 0){
+         add_zeros = 32 - nb_rem_bits -1;
+        uint32_t extra_one = 1 << (add_zeros);
+        mes[i] = message[i] ^ extra_one;
+    }
+    else {
+           add_zeros = 31;
+           mes[i] = 1<<31;
+    }
     k = k - add_zeros;
     while (k > 32)
     {
         i      = i + 1;
-        pad[i] = 0;
+        mes[i] = 0;
         k      = k -32;
     }
     i = i +1;
-    pad[i]   = 0;
-    pad[i+1] = 0;
-    pad[i+2] = bitlength;
+    mes[i]   = 0;
+    mes[i+1] = 0;
+    mes[i+2] = bitlength;
     uint32_t w[64] = {0};
     uint32_t h0    = Hzero;
     uint32_t h1    = Hone;
@@ -85,11 +92,12 @@ void sha(uint32_t const * const message, uint32_t const bitlength, uint32_t * co
     uint32_t h6    = Hsix;
     uint32_t h7    = Hseven;
 
-    uint32_t *mes = pad;
+
+    uint32_t  index = 0;
 
     for (uint32_t block = 0; block < nb_blocks; block++)//1; block++)//n
     {
-        init_message_schedule(mes, w);
+        init_message_schedule(mes, w, index);
         uint32_t a = h0;
         uint32_t b = h1;
         uint32_t c = h2;
@@ -100,8 +108,8 @@ void sha(uint32_t const * const message, uint32_t const bitlength, uint32_t * co
         uint32_t h = h7;
         for (uint32_t round = 0; round < 64; round ++)
         {
-            uint32_t temp1 = h       + SUM1(e)    +  CH(e,f,g) + K[round] + w[round];
-            uint32_t temp2 = SUM0(a) + MAJ(a,b,c);
+            uint32_t temp1 =  h    + SUM1(e)  +  CH(e,f,g)  + K[round] +  w[round];
+            uint32_t temp2 = SUM0(a) +  MAJ(a,b,c);
             h = g;
             g = f;
             f = e;
@@ -111,7 +119,7 @@ void sha(uint32_t const * const message, uint32_t const bitlength, uint32_t * co
             b =	a;
             a = temp1 + temp2;
         }
-        mes = mes + 16;
+        index = index + 16;
         h0 = a + h0;
         h1 = b + h1;
         h2 = c + h2;
@@ -129,6 +137,6 @@ void sha(uint32_t const * const message, uint32_t const bitlength, uint32_t * co
     res[5] =  h5;//w[5];//h5;
     res[6] =  h6;//w[6];//h6;
     res[7] =  h7;//w[7];//h7;
-    free(pad);
+    free(mes);
 }
 

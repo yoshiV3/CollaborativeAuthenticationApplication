@@ -56,6 +56,30 @@ void mod_n(uint32_t const * const a, uint32_t * const res)
 }
 
 
+void mod_n_size(uint32_t const * const a, uint32_t * const res, const uint32_t size)
+{
+    uint32_t substraction[2*SIZE  + 1]  = {0,0,0,0,0,0,0,0,0};
+    uint32_t substractionr[2*SIZE +2]  = {0,0,0,0,0,0,0,0,0,0};
+    mp_sub(a, N,substractionr,size);
+    for (uint8_t i =0; i < SIZE; i++)
+    {
+        res[i] = a[i];
+    }
+    while  (substractionr[size] == 0)
+    {
+        for (uint8_t i =0; i < SIZE; i++)
+        {
+            res[i] = substractionr[i];
+        }
+        for (uint8_t i =0; i < size + 1; i++)
+        {
+            substraction[i] = substractionr[i];
+        }
+        mp_sub(substraction, N,substractionr,size);
+    }
+}
+
+
 void add_mod_p(uint32_t const * const a, uint32_t const * const b, uint32_t * const res)
 {
     uint32_t tempADD[SIZE+1];
@@ -207,6 +231,26 @@ void multiply_mod_p_32(uint32_t const * const a, const uint32_t b, uint32_t * co
 }
 
 
+void multiply_mod_n_32(uint32_t const * const a, const uint32_t b, uint32_t * const res)
+{
+    uint32_t prod[2*SIZE] = {0};
+    uint64_t rest = 0;
+    for (uint8_t i =0; i < SIZE; i++)
+    {
+        uint64_t pr      = ((uint64_t) a[i])*((uint64_t) b);
+        uint32_t lower   = (uint32_t) pr;
+        uint32_t higher  = (uint32_t) (pr >> WORD_SIZE);
+        uint64_t sum     = ((uint64_t)lower) + ((uint64_t)prod[i]);
+        prod[i]          = (uint32_t) sum;
+        sum              = (sum >> WORD_SIZE) + ((uint64_t) higher) + rest;
+        prod[i+1]        = (uint32_t) sum;
+        rest             = sum >> WORD_SIZE;
+    }
+    // Reduction
+    barret_reduction_n(prod, res);
+}
+
+
 
 void sum_mod_p(uint32_t const ** const a, uint32_t * const res, const uint32_t n)
 {
@@ -280,4 +324,42 @@ void barret_reduction_preprocessing(uint32_t  * const signed_a, uint32_t * const
     }
 }
 
+void add_mod_n(uint32_t const * const a, uint32_t const * const b, uint32_t * const res){
+    uint32_t tempADD[SIZE+1];
+    uint32_t tempSUB[SIZE+2];
+    mp_add(a,b,tempADD,SIZE);
+    mp_sub(tempADD, N, tempSUB, SIZE+1);
+    if (tempSUB[SIZE+1] == 1)
+    {
+        for (uint8_t i=0; i < SIZE ; i++)
+        {
+            res[i] = tempADD[i];
+        }
+    }
+    else
+    {
+        for (uint8_t i=0; i < SIZE ; i++)
+        {
+            res[i] = tempSUB[i];
+        }
+    }
+}
 
+void sum_mod_n(uint32_t const ** const a, uint32_t * const res, const uint32_t n)
+{
+    uint32_t si[SIZE] = {0};
+    uint32_t sr[SIZE] = {0};
+    for (uint32_t i =0; i < n; i++)
+    {
+        uint32_t *current = (uint32_t *) a[i];
+        add_mod_n(si, current, sr);
+        for (uint8_t j=0; j < SIZE; j++)
+        {
+            si[j] = sr[j];
+        }
+    }
+    for (uint8_t j=0; j < SIZE ; j++)
+    {
+        res[j] = sr[j];
+    }
+}

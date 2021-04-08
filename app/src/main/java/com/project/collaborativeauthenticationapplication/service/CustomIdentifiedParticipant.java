@@ -17,7 +17,7 @@ public class CustomIdentifiedParticipant implements IdentifiedParticipant{
     @Override
     public int getIdentifier() {
         return identifier;
-    }
+    } //returns the first index
 
     @Override
     public String getName() {

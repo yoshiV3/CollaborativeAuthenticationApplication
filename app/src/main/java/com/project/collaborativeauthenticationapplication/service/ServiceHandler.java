@@ -2,7 +2,7 @@ package com.project.collaborativeauthenticationapplication.service;
 
 import android.content.Context;
 
-public interface Client {
+public interface ServiceHandler {
     int getState();
 
     void open(Context context);

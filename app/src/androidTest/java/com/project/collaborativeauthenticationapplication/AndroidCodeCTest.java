@@ -5,6 +5,8 @@ import com.project.collaborativeauthenticationapplication.service.crypto.CryptoK
 import com.project.collaborativeauthenticationapplication.service.crypto.CryptoKeyShareGenerator;
 import com.project.collaborativeauthenticationapplication.service.crypto.CryptoPartKeyRecovery;
 import com.project.collaborativeauthenticationapplication.service.crypto.CryptoProcessor;
+import com.project.collaborativeauthenticationapplication.service.crypto.CryptoThresholdSignatureProcessor;
+import com.project.collaborativeauthenticationapplication.service.crypto.CryptoVerificationProcessor;
 import com.project.collaborativeauthenticationapplication.service.crypto.Point;
 
 import org.junit.Assert;
@@ -12,6 +14,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class AndroidCodeCTest {
 
@@ -21,6 +24,8 @@ public class AndroidCodeCTest {
     private   CryptoKeyShareGenerator shareGenerator;
     private   CryptoProcessor processor;
     private   CryptoPartKeyRecovery recovery;
+    private   CryptoThresholdSignatureProcessor signatureProcessor;
+    private   CryptoVerificationProcessor verificationProcessor;
 
 
     @Before
@@ -29,6 +34,8 @@ public class AndroidCodeCTest {
             shareGenerator           = new CryptoKeyShareGenerator();
             processor                = new CryptoProcessor();
             recovery                 = new CryptoPartKeyRecovery();
+            signatureProcessor       = new CryptoThresholdSignatureProcessor();
+            verificationProcessor    = new CryptoVerificationProcessor();
     }
     @Test
     public void testPartGenerator(){
@@ -310,6 +317,155 @@ public class AndroidCodeCTest {
         int[] identifiers = {1,2,3};
         BigNumber result = recovery.createLocalSecretSharePartsFromSharesForTarget(shares, identifiers, 4);
         Assert.assertEquals(result.getPart(0)[0], 16);
+    }
+
+
+    @Test
+    public void testCommitmentToRandomness(){
+        ArrayList<BigNumber> e = new ArrayList<>();
+        ArrayList<BigNumber> d = new ArrayList<>();
+
+        byte[] one = new byte[32];
+        one[0] = 1;
+        for (int index = 1; index <32; index++)
+        {
+            one[index] = 0;
+        }
+        byte[] two = new byte[32];
+        two[0] = 2;
+        for (int index = 1; index <32; index++)
+        {
+            two[index] = 0;
+        }
+
+        e.add(new BigNumber(one));
+        e.add(new BigNumber(two));
+
+        d.add(new BigNumber(two));
+        d.add(new BigNumber(one));
+
+        signatureProcessor.receiveRandomness(e, d);
+
+        signatureProcessor.calculateCommitmentsToRandomness();
+
+        List<Point> E = signatureProcessor.publishCommitmentsE();
+        List<Point> D = signatureProcessor.publishCommitmentsD();
+
+        Assert.assertEquals(E.size(), 2);
+        Assert.assertEquals(D.size(), 2);
+
+        Assert.assertEquals(E.get(0).getX().getPart(0)[0], -104);
+        Assert.assertEquals(D.get(1).getX().getPart(0)[0], -104);
+
+        Assert.assertEquals(E.get(0).getX().getPart(0)[1], 23);
+        Assert.assertEquals(D.get(1).getX().getPart(0)[1], 23);
+
+
+        Assert.assertEquals(E.get(1).getX().getPart(0)[0], -27);
+        Assert.assertEquals(D.get(0).getX().getPart(0)[0], -27);
+    }
+
+
+
+    @Test
+    public void testSignatureProcedure(){
+        ArrayList<ArrayList<BigNumber>> polynomials = new ArrayList<>();
+        ArrayList<BigNumber> poly = new ArrayList<>();
+        int degree = 1;
+
+        int identifiers[] = {1, 2};
+
+        byte[] onePoly = new byte[32];
+        onePoly[0] = 1;
+        for (int index = 1; index <32; index++)
+        {
+            onePoly[index] = 0;
+        }
+        BigNumber oneBnN = new BigNumber(onePoly);
+
+        for (int exp =0; exp <degree; exp++)
+        {
+            poly.add(BigNumber.getZero());
+        }
+        poly.add(oneBnN);
+        polynomials.add(poly); // one polynomial of degree 4 so we need at least 5 shares to successfully sign
+
+        ArrayList<BigNumber> result_secrets = new ArrayList<>();
+        Point result_public = new Point(BigNumber.getZero(), BigNumber.getZero(), true);
+        processor.generateParts(degree+1, polynomials, result_secrets, result_public);
+
+        BigNumber message = new BigNumber(onePoly);
+
+        ArrayList<BigNumber> e = new ArrayList<>();
+        ArrayList<BigNumber> d = new ArrayList<>();
+
+        byte[] one = new byte[32];
+        one[0] = 1;
+        for (int index = 1; index <32; index++)
+        {
+            one[index] = 0;
+        }
+        byte[] two = new byte[32];
+        two[0] = 2;
+        for (int index = 1; index <32; index++)
+        {
+            two[index] = 0;
+        }
+
+
+        for (int i = 0; i < degree +1; i++){
+            e.add(new BigNumber(one));
+            d.add(new BigNumber(two));
+        }
+
+        Assert.assertEquals(result_secrets.size(), degree+1);
+
+        Assert.assertEquals(result_secrets.get(0).getPart(0)[0], 1);
+        Assert.assertEquals(result_secrets.get(0).getPart(0)[1], 0);
+        Assert.assertEquals(result_secrets.get(1).getPart(0)[0], 1);
+        Assert.assertEquals(result_secrets.get(1).getPart(0)[1], 0);
+
+
+
+        signatureProcessor.receiveRandomness(e, d);
+
+        signatureProcessor.calculateCommitmentsToRandomness();
+
+
+        List<Point> commE = signatureProcessor.publishCommitmentsE();
+        List<Point> commD = signatureProcessor.publishCommitmentsD();
+
+        Assert.assertEquals(commE.size(), degree+1);
+        Assert.assertEquals(commD.size(), degree+1);
+        Assert.assertEquals(commE.get(0).getX().getPart(0)[0], -104);
+        Assert.assertEquals(commE.get(1).getX().getPart(0)[0], -104);
+        Assert.assertEquals(commD.get(0).getX().getPart(0)[0], -27);
+        Assert.assertEquals(commD.get(1).getX().getPart(0)[0], -27);
+
+        for(int i = 0; i < degree+1; i++){
+                for (int j = 0;  j <32; j++) {
+                    Assert.assertEquals(commE.get(i).getX().getBigNumberAsByteArray()[j], commE.get(0).getX().getBigNumberAsByteArray()[j]);
+                }
+        }
+        signatureProcessor.receiveAllRandomness(commE, commD);
+
+        signatureProcessor.receiveShares(result_secrets);
+
+        signatureProcessor.produceSignatureShare(message, identifiers);
+
+
+        List<BigNumber> signatureShares = signatureProcessor.publishSignatureShare();
+
+        Assert.assertEquals(signatureShares.size(), 2);
+
+        //Assert.assertEquals(signatureShares.get(1).getBigNumberAsByteArray()[0], 20);
+        //Assert.assertEquals(signatureShares.get(1).getBigNumberAsByteArray()[1], 76);
+        Assert.assertNotEquals(signatureShares.get(1).getPart(0)[0], 0);
+
+
+        boolean result = verificationProcessor.verify( signatureShares, message, result_public);
+
+        Assert.assertTrue(result);
     }
 
 }

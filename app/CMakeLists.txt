@@ -17,15 +17,17 @@ add_library( # Specifies the name of the library.
              SHARED
 
              # Provides a relative path to your source file(s).
-        src/main/cpp/mp_arithmetic.c        src/main/cpp/mp_arithmetic.h
-        src/main/cpp/ecc_arithmetic.c       src/main/cpp/ecc_arithmetic.h
-                                            src/main/cpp/ecc_point.h
-        src/main/cpp/hash.c                 src/main/cpp/hash.h
-        src/main/cpp/schnorr.c              src/main/cpp/schnorr.h
-        src/main/cpp/mod_arithmetic.c       src/main/cpp/mod_arithmetic.h
-        src/main/cpp/signed_arithmetic.c    src/main/cpp/signed_arithmetic.h
-        src/main/cpp/secret_sharing.c       src/main/cpp/secret_sharing.h
-        src/main/cpp/inversion.c            src/main/cpp/inversion.h
-        src/main/cpp/interface.c            src/main/cpp/interface.h
+        src/main/cpp/mp_arithmetic.c               src/main/cpp/mp_arithmetic.h
+        src/main/cpp/ecc_arithmetic.c              src/main/cpp/ecc_arithmetic.h
+                                                   src/main/cpp/ecc_point.h
+        src/main/cpp/hash.c                        src/main/cpp/hash.h
+        src/main/cpp/schnorr.c                     src/main/cpp/schnorr.h
+        src/main/cpp/mod_arithmetic.c              src/main/cpp/mod_arithmetic.h
+        src/main/cpp/signed_arithmetic.c           src/main/cpp/signed_arithmetic.h
+        src/main/cpp/secret_sharing.c              src/main/cpp/secret_sharing.h
+        src/main/cpp/inversion.c                   src/main/cpp/inversion.h
+        src/main/cpp/interface.c                   src/main/cpp/interface.h
+        src/main/cpp/threshold_signature.c         src/main/cpp/threshold_signature.h
+        src/main/cpp/signatureThresholdInterface.c src/main/cpp/signatureThresholdInterface.h
         src/main/cpp/jni_c_wrapper_crypto.c
         )

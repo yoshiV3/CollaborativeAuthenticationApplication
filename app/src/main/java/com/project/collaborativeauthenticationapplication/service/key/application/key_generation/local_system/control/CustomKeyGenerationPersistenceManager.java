@@ -1,36 +1,26 @@
-package com.project.collaborativeauthenticationapplication.service.key.application.key_generation;
+package com.project.collaborativeauthenticationapplication.service.key.application.key_generation.local_system.control;
 
 import com.project.collaborativeauthenticationapplication.data.ApplicationLoginDao;
 import com.project.collaborativeauthenticationapplication.data.ApplicationLoginEntity;
 import com.project.collaborativeauthenticationapplication.data.AuthenticationDatabase;
 import com.project.collaborativeauthenticationapplication.data.SecretDao;
 import com.project.collaborativeauthenticationapplication.data.SecretEntity;
-import com.project.collaborativeauthenticationapplication.service.IllegalUseOfClosedTokenException;
+import com.project.collaborativeauthenticationapplication.service.IdentifiedParticipant;
 import com.project.collaborativeauthenticationapplication.service.crypto.AndroidSecretStorage;
 import com.project.collaborativeauthenticationapplication.service.crypto.BigNumber;
+import com.project.collaborativeauthenticationapplication.service.crypto.Point;
 import com.project.collaborativeauthenticationapplication.service.crypto.SecureStorageException;
-import com.project.collaborativeauthenticationapplication.service.key.KeyToken;
+
 import com.project.collaborativeauthenticationapplication.service.key.application.KeyPersistenceManager;
 
-import  java.util.ArrayList;
+
+import java.nio.charset.StandardCharsets;
 import  java.util.List;
 
 public class CustomKeyGenerationPersistenceManager extends KeyPersistenceManager {
 
-
-
-
-    private        KeyPartDistributionSession session;
-
-    private        ArrayList<BigNumber>       shares;
-
-    protected CustomKeyGenerationPersistenceManager() {
+    public CustomKeyGenerationPersistenceManager() {
         super();
-    }
-
-
-    public void receiveKeyDistributionSession(KeyPartDistributionSession session){
-        this.session = session;
     }
 
 
@@ -40,25 +30,22 @@ public class CustomKeyGenerationPersistenceManager extends KeyPersistenceManager
         return applicationLoginEntityList.size() > 0;
     }
 
-    public void persist(KeyToken token, AndroidSecretStorage storage) throws IllegalUseOfClosedTokenException, SecureStorageException {
-        int totalWeight = shares.size();
-        int[] identifiers = new int[totalWeight];
-        for (int i = 1; i <= totalWeight; i++){
-            identifiers[i-1] = i;
+
+    public void persist(AndroidSecretStorage storage, List<BigNumber> shares, Point publicKey, KeyGenerationSession session) throws SecureStorageException {
+        IdentifiedParticipant local = session.getLocalParticipant();
+        int firstIndex   = local.getIdentifier();
+        int weight       = local.getWeight();
+
+        int[] identifiers = new int[weight];
+        for (int i = 0; i < weight; i++){
+            identifiers[i] = firstIndex + i;
         }
-        persist(token, storage, identifiers);
-    }
 
-
-
-    public void persist(KeyToken token, AndroidSecretStorage storage, int[] identifiers) throws IllegalUseOfClosedTokenException, SecureStorageException {
-        consumeToken(token);
-        if (session == null){
-            throw new IllegalStateException("Insufficient amount of information to properly persist the data");
-        }
-        ApplicationLoginEntity application             = new ApplicationLoginEntity(session.getApplicationName(), session.getLogin(), session.getThreshold());
+        String publicKeyX = new String(publicKey.getX().getBigNumberAsByteArray(), StandardCharsets.ISO_8859_1);
+        String publicKeyY = new String(publicKey.getY().getBigNumberAsByteArray(), StandardCharsets.ISO_8859_1);
+        ApplicationLoginEntity application             = new ApplicationLoginEntity(session.getApplicationName(), session.getLogin(), session.getThreshold(), publicKeyX, publicKeyY, publicKey.isZero());
         ApplicationLoginDao    applicationLoginDao     = getDb().getApplicationLoginDao();
-        SecretDao secretDao = getDb().getSecretDao();
+        SecretDao               secretDao              = getDb().getSecretDao();
         try {
             applicationLoginDao.insert(application);
         }
@@ -89,10 +76,4 @@ public class CustomKeyGenerationPersistenceManager extends KeyPersistenceManager
         }
 
     }
-
-    public void receiveShares(ArrayList<BigNumber> shares){
-        this.shares = shares;
-    }
-
-
 }

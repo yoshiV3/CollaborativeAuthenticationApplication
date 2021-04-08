@@ -24,7 +24,7 @@ public class CustomKeyManagementPersistenceManager extends KeyPersistenceManager
 
     public int [] getSharesAndIdentifiersForRecovery(KeyToken token, String applicationName, String login,
                                                    AndroidSecretStorage storage, ArrayList<BigNumber> shares) throws IllegalUseOfClosedTokenException, SecureStorageException {
-        consumeToken(token);
+
         int threshold  = getThreshold(applicationName, login);
         int[] identifiers = new int[threshold];
         int localKeys  = getNumberOfLocalKeys(applicationName, login);
@@ -56,7 +56,6 @@ public class CustomKeyManagementPersistenceManager extends KeyPersistenceManager
 
     public void persist(KeyToken token, String applicationName, String login, BigNumber share, int identifier, AndroidSecretStorage storage)
             throws IllegalUseOfClosedTokenException, SecureStorageException {
-        consumeToken(token);
         SecretDao secretDao                         = getDb().getSecretDao();
         ApplicationLoginDao applicationLoginDao     = getDb().getApplicationLoginDao();
         storage.storeSecret(share, identifier, applicationName, login);

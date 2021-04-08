@@ -1,18 +1,18 @@
 package com.project.collaborativeauthenticationapplication.service.crypto;
 
-import com.project.collaborativeauthenticationapplication.service.IllegalUseOfClosedTokenException;
-import com.project.collaborativeauthenticationapplication.service.Token;
-import com.project.collaborativeauthenticationapplication.service.key.KeyToken;
-import com.project.collaborativeauthenticationapplication.service.key.application.CustomTokenConsumer;
 
+
+import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 
-public class PolynomialGenerator  {
+public class RandomnessGenerator {
 
 
     public static final int INTEGER_BYTE_SIZE   = 4;
     public static final int NUMBER_INTEGER_SIZE = 8; // is fixed if adapt: many consequences (c code, algorithm)
+
+    public static final BigInteger N = new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141", 16);
 
     private ArrayList<BigNumber> polynomial;
 
@@ -28,7 +28,16 @@ public class PolynomialGenerator  {
     private BigNumber getNewNumberAsBigNumber()
     {
         byte[] numberAsBytes = getNewNumberAsBytes();
-        return new BigNumber(numberAsBytes);
+        BigNumber current = new BigNumber(numberAsBytes);
+        while (BigNumber.getN().compareTo(current) < 1 ){
+            numberAsBytes = getNewNumberAsBytes();
+            current       = new BigNumber(numberAsBytes);
+        }
+        return current;
+    }
+
+    public BigNumber generateRandomness(){
+        return getNewNumberAsBigNumber(); 
     }
 
     public ArrayList<BigNumber>  generatePoly(int degree) {
