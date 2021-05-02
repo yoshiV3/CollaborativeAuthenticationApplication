@@ -4,7 +4,7 @@ package com.project.collaborativeauthenticationapplication;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 
-import com.project.collaborativeauthenticationapplication.service.Navigator;
+import com.project.collaborativeauthenticationapplication.service.general.Navigator;
 
 public abstract class NavigationEnabledAuthenticationControllerActivity extends  CustomAuthenticationControllerActivity{
 

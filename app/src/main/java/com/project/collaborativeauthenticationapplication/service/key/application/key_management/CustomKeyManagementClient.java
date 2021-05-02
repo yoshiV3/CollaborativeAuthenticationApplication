@@ -3,11 +3,11 @@ package com.project.collaborativeauthenticationapplication.service.key.applicati
 import android.content.Context;
 
 import com.project.collaborativeauthenticationapplication.logger.AndroidLogger;
-import com.project.collaborativeauthenticationapplication.service.IllegalNumberOfTokensException;
-import com.project.collaborativeauthenticationapplication.service.IllegalUseOfClosedTokenException;
-import com.project.collaborativeauthenticationapplication.service.ServiceStateException;
-import com.project.collaborativeauthenticationapplication.service.Task;
-import com.project.collaborativeauthenticationapplication.service.controller.CustomAuthenticationServicePool;
+import com.project.collaborativeauthenticationapplication.service.general.IllegalNumberOfTokensException;
+import com.project.collaborativeauthenticationapplication.service.general.IllegalUseOfClosedTokenException;
+import com.project.collaborativeauthenticationapplication.service.general.ServiceStateException;
+import com.project.collaborativeauthenticationapplication.service.general.Task;
+import com.project.collaborativeauthenticationapplication.service.controller.CustomAuthenticationServiceController;
 import com.project.collaborativeauthenticationapplication.service.controller.CustomServiceMonitor;
 import com.project.collaborativeauthenticationapplication.service.crypto.AndroidSecretStorage;
 import com.project.collaborativeauthenticationapplication.service.crypto.BigNumber;
@@ -58,7 +58,7 @@ public class CustomKeyManagementClient implements KeyManagementClient{
         }
         if (CustomServiceMonitor.getInstance().isServiceEnabled()) {
             try {
-                token = CustomAuthenticationServicePool.getInstance().getNewKeyToken();
+                token = CustomAuthenticationServiceController.getInstance().getNewKeyToken();
                 state = STATE_START;
                 this.storage =  new AndroidSecretStorage(context);
 

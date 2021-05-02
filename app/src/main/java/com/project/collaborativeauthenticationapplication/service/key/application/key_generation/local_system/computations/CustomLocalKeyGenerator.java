@@ -7,7 +7,7 @@ import com.project.collaborativeauthenticationapplication.service.crypto.CryptoK
 import com.project.collaborativeauthenticationapplication.service.crypto.CryptoProcessor;
 import com.project.collaborativeauthenticationapplication.service.crypto.Point;
 import com.project.collaborativeauthenticationapplication.service.crypto.RandomnessGenerator;
-import com.project.collaborativeauthenticationapplication.service.key.application.key_generation.local_system.control.KeyGenerationSession;
+import com.project.collaborativeauthenticationapplication.service.key.application.key_generation.local_system.control.protocol.KeyGenerationSession;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,12 +47,10 @@ public class CustomLocalKeyGenerator {
         ArrayList<BigNumber> keyParts               = new ArrayList<>();
         ArrayList<ArrayList<BigNumber>> polynomials = new ArrayList<>();
 
-        for (int virtualParticipant = 1; virtualParticipant <= localWeight; virtualParticipant++)
-        {
-            ArrayList<BigNumber> poly = randomnessGenerator.generatePoly(threshold - 1);
-            polynomials.add(poly); // only polynomials for the local participants
-            logger.logEvent(COMPONENT_NAME, "New polynomial", "low", String.valueOf(poly.size()));
-        }
+        ArrayList<BigNumber> poly = randomnessGenerator.generatePoly(threshold - 1);
+        polynomials.add(poly); // only polynomials for the local participants
+        logger.logEvent(COMPONENT_NAME, "New polynomial", "low", String.valueOf(poly.size()));
+
         keyPartGenerator.generateParts(totalWeight, polynomials, keyParts, publicKey ); // calculate the parts of all the other participants and a part of the public key
         logger.logEvent(COMPONENT_NAME, EVENT_DONE_GENERATE_LOCAL_PARTS+ " we have so many parts", "low", String.valueOf(keyParts.size()) );
         parts.addAll(keyParts);
@@ -67,7 +65,8 @@ public class CustomLocalKeyGenerator {
         shares.addAll(shareGenerator.generate(partsArr));
     }
 
-
-
+    public Point calculatePublicKey(ArrayList<Point> parts){
+        return shareGenerator.generatePublicKey(parts);
+    }
 
 }

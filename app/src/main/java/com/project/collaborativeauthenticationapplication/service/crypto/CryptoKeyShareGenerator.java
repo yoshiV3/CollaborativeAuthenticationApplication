@@ -30,7 +30,15 @@ public class CryptoKeyShareGenerator {
         return shares;
     }
 
+    public Point generatePublicKey(ArrayList<Point> parts){
+        Point result = new Point(BigNumber.getZero(), BigNumber.getZero(), true);
+        generateFinalPublicKey(parts, result);
+        return result;
+    }
+
 
     private native void generateShares(ArrayList<BigNumber> shares, ArrayList<ArrayList<BigNumber>> keyParts);
+
+    private native void generateFinalPublicKey(ArrayList<Point> parts, Point publicKey);
 
 }

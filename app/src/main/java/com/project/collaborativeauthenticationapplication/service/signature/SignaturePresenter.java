@@ -1,8 +1,8 @@
 package com.project.collaborativeauthenticationapplication.service.signature;
 
-import com.project.collaborativeauthenticationapplication.service.FeedbackRequester;
-import com.project.collaborativeauthenticationapplication.service.Requester;
-import com.project.collaborativeauthenticationapplication.service.SecretOverviewAdapterPresenter;
+import com.project.collaborativeauthenticationapplication.service.general.FeedbackRequester;
+import com.project.collaborativeauthenticationapplication.service.general.Requester;
+import com.project.collaborativeauthenticationapplication.service.general.SecretOverviewAdapterPresenter;
 
 public interface SignaturePresenter extends SecretOverviewAdapterPresenter {
 

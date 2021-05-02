@@ -12,7 +12,7 @@ public class RandomnessGenerator {
     public static final int INTEGER_BYTE_SIZE   = 4;
     public static final int NUMBER_INTEGER_SIZE = 8; // is fixed if adapt: many consequences (c code, algorithm)
 
-    public static final BigInteger N = new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141", 16);
+    //public static final BigInteger N = new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141", 16);
 
     private ArrayList<BigNumber> polynomial;
 

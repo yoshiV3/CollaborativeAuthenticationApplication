@@ -129,7 +129,13 @@ public class CryptoThresholdSignatureProcessor {
         return signatureShare;
     }
 
+
     public void produceSignatureShare(BigNumber message, int[] identifiers){
+        produceSignatureShare(message, identifiers, 0);
+    }
+
+
+    public void produceSignatureShare(BigNumber message, int[] identifiers, int firstLocalIndex){
         if (message == null){
             throw new IllegalArgumentException("cannot calculate a signature on an null message");
         }
@@ -153,13 +159,19 @@ public class CryptoThresholdSignatureProcessor {
         }
         totalWeight = E.size();
         signatureShare = new ArrayList<>();
-        calculateSignatureShare(message, identifiers);
+        calculateSignatureShare(message, identifiers, firstLocalIndex);
+    }
+
+    public BigNumber calculateFinalSignature(ArrayList<BigNumber> parts){
+        return calculateFinalSignatureNative(parts);
     }
 
 
+    private native BigNumber calculateFinalSignatureNative(ArrayList<BigNumber> parts);
+
     private native void calculateCommitmentsToRandomnessNative();
 
-    private native void calculateSignatureShare(BigNumber message, int[] identifiers);
+    private native void calculateSignatureShare(BigNumber message, int[] identifiers, int fistIndex);
 
 
 

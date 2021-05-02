@@ -473,7 +473,7 @@ public class AndroidCodeCTest {
 
     @Test
     public void testSignatureProcedureWithRandomness(){
-        for (int number = 0; number <20; number++) {
+        for (int number = 0; number <2; number++) {
             ArrayList<ArrayList<BigNumber>> polynomials = new ArrayList<>();
 
             int degree = 4;
@@ -524,6 +524,19 @@ public class AndroidCodeCTest {
 
             Assert.assertTrue(result);
         }
+    }
+
+
+    @Test
+    public void testSumOfPoints(){
+        final int NUMBER = 4;
+        ArrayList<Point> points = new ArrayList<>();
+        for (int i = 0; i <NUMBER; i++){
+            points.add(new Point(BigNumber.getZero(), BigNumber.getZero(), true));
+        }
+        Assert.assertEquals(points.size(), 4);
+        Point result = shareGenerator.generatePublicKey(points);
+        Assert.assertTrue(result.isZero());
     }
 
 

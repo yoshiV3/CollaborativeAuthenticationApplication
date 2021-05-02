@@ -5,8 +5,8 @@ import com.project.collaborativeauthenticationapplication.data.ApplicationLoginD
 import com.project.collaborativeauthenticationapplication.data.ApplicationLoginEntity;
 import com.project.collaborativeauthenticationapplication.data.SecretDao;
 import com.project.collaborativeauthenticationapplication.data.LocalSecretEntity;
-import com.project.collaborativeauthenticationapplication.service.CustomKeyViewManager;
-import com.project.collaborativeauthenticationapplication.service.IllegalUseOfClosedTokenException;
+import com.project.collaborativeauthenticationapplication.service.general.CustomKeyViewManager;
+import com.project.collaborativeauthenticationapplication.service.general.IllegalUseOfClosedTokenException;
 import com.project.collaborativeauthenticationapplication.service.crypto.AndroidSecretStorage;
 import com.project.collaborativeauthenticationapplication.service.crypto.BigNumber;
 import com.project.collaborativeauthenticationapplication.service.crypto.SecureStorageException;

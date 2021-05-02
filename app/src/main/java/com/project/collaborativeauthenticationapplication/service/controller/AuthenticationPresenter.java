@@ -1,5 +1,7 @@
 package com.project.collaborativeauthenticationapplication.service.controller;
 
+import android.content.Context;
+
 public interface AuthenticationPresenter {
 
     void onStartCommand();
@@ -8,5 +10,9 @@ public interface AuthenticationPresenter {
 
     void statusActive();
     void statusInactive();
+
+    Context getServiceContext();
+
+    void onReceivedNewInvitation();
 
 }

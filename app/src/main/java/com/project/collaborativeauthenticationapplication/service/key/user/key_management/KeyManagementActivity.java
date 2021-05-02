@@ -9,8 +9,7 @@ import android.os.Bundle;
 import com.project.collaborativeauthenticationapplication.NavigationEnabledAuthenticationControllerActivity;
 import com.project.collaborativeauthenticationapplication.R;
 import com.project.collaborativeauthenticationapplication.data.ApplicationLoginEntity;
-import com.project.collaborativeauthenticationapplication.service.AdapterManager;
-import com.project.collaborativeauthenticationapplication.service.CustomOverviewSecretsAdapter;
+import com.project.collaborativeauthenticationapplication.service.general.CustomOverviewSecretsAdapter;
 import com.project.collaborativeauthenticationapplication.service.key.CustomKeyManagementPresenter;
 import com.project.collaborativeauthenticationapplication.service.key.KeyManagementPresenter;
 

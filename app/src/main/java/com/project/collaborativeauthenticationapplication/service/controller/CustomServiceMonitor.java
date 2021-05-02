@@ -37,12 +37,12 @@ public class CustomServiceMonitor implements ServiceMonitor{
 
     @Override
     public boolean isServiceEnabled() {
-        return CustomAuthenticationServicePool.getInstance().isEnabled();
+        return CustomAuthenticationServiceController.getInstance().isEnabled();
     }
 
     @Override
     public boolean isServiceActive() {
-        return CustomAuthenticationServicePool.getInstance().isActive();
+        return CustomAuthenticationServiceController.getInstance().isActive();
     }
 
     @Override

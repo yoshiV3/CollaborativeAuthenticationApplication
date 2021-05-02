@@ -95,7 +95,7 @@ void isZeroFromJavaPoint(const JNIEnv *env, jobject java_point, uint8_t *isZero)
 void javaPointToPointC(const JNIEnv *env, jobject java_point, Point * c_point){
     getXFromJavaPoint(env, java_point, c_point->x);
     getYFromJavaPoint(env, java_point, c_point->y);
-    isZeroFromJavaPoint(env, java_point, &c_point->isZero);
+    isZeroFromJavaPoint(env, java_point, &(c_point->isZero));
 }
 
 
@@ -184,7 +184,13 @@ void fillPointWithData(JNIEnv *env, Point * c_point, jobject java_point){
     jmethodID setYMethodId = (*env)->GetMethodID(env,pointClass,"setY", "(Lcom/project/collaborativeauthenticationapplication/service/crypto/BigNumber;)V");
     (*env)->CallVoidMethod(env, java_point, setYMethodId, y_java);
 
-    jboolean  zero = c_point->isZero;
+    jboolean  zero;
+
+    if (c_point->isZero == TRUE){
+        zero = JNI_TRUE;
+    } else {
+        zero = JNI_FALSE;
+    }
     jmethodID setZMethodId = (*env)->GetMethodID(env,pointClass,"setZero", "(Z)V");
     (*env)->CallVoidMethod(env, java_point, setZMethodId, zero);
 }

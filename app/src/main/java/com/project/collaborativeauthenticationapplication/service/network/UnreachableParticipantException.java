@@ -1,6 +1,6 @@
 package com.project.collaborativeauthenticationapplication.service.network;
 
-import com.project.collaborativeauthenticationapplication.service.Participant;
+import com.project.collaborativeauthenticationapplication.service.general.Participant;
 
 public class UnreachableParticipantException extends Exception{
 

@@ -17,7 +17,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.project.collaborativeauthenticationapplication.R;
-import com.project.collaborativeauthenticationapplication.service.Participant;
+import com.project.collaborativeauthenticationapplication.service.general.Participant;
 import com.project.collaborativeauthenticationapplication.service.key.CustomKeyGenerationPresenter;
 import com.project.collaborativeauthenticationapplication.service.key.KeyGenerationPresenter;
 

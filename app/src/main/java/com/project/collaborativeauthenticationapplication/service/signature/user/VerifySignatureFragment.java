@@ -12,7 +12,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.project.collaborativeauthenticationapplication.R;
-import com.project.collaborativeauthenticationapplication.service.FeedbackRequester;
+import com.project.collaborativeauthenticationapplication.service.general.FeedbackRequester;
 import com.project.collaborativeauthenticationapplication.service.signature.CustomSignaturePresenter;
 import com.project.collaborativeauthenticationapplication.service.signature.SignaturePresenter;
 

@@ -1,7 +1,7 @@
 package com.project.collaborativeauthenticationapplication.service.key;
 
-import com.project.collaborativeauthenticationapplication.service.SecretOverviewAdapterPresenter;
-import com.project.collaborativeauthenticationapplication.service.Requester;
+import com.project.collaborativeauthenticationapplication.service.general.SecretOverviewAdapterPresenter;
+import com.project.collaborativeauthenticationapplication.service.general.Requester;
 
 public interface KeyManagementPresenter extends KeyPresenter, SecretOverviewAdapterPresenter {
 

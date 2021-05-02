@@ -211,7 +211,7 @@ Java_com_project_collaborativeauthenticationapplication_service_crypto_CryptoThr
 
 JNIEXPORT void JNICALL
 Java_com_project_collaborativeauthenticationapplication_service_crypto_CryptoThresholdSignatureProcessor_calculateSignatureShare(
-        JNIEnv *env, jobject thiz, jobject message, jintArray identifiers) {
+        JNIEnv *env, jobject thiz, jobject message, jintArray identifiers, jint firstLocalIndex) {
     // get all the inputs to c
     uint32_t messageC[SIZE];
     bigNumberToArrayC(env, message, messageC);
@@ -241,7 +241,7 @@ Java_com_project_collaborativeauthenticationapplication_service_crypto_CryptoThr
     signature[1] = signature_e;
 
     uint32_t * identifiers_indexes;
-    createIdentifiersIndexes(identifiers_indexes, localWeight);
+    createIdentifiersIndexes(identifiers_indexes, localWeight, firstLocalIndex);
 
     uint32_t ** sharesC;
     sharesC = malloc(localWeight*sizeof(uint32_t));
@@ -291,4 +291,35 @@ Java_com_project_collaborativeauthenticationapplication_service_crypto_CryptoVer
         return JNI_TRUE;
     }
     return JNI_FALSE;
+}
+
+JNIEXPORT void JNICALL
+Java_com_project_collaborativeauthenticationapplication_service_crypto_CryptoKeyShareGenerator_generateFinalPublicKey(
+        JNIEnv *env, jobject thiz, jobject parts, jobject public_key) {
+    int numberOfParts = getArrayListSize(env, parts);
+    Point * points = (Point *) malloc(numberOfParts*sizeof(Point));
+    for (size_t i = 0; i < numberOfParts; i++){
+        jobject javaPoint = getObjectFromArrayList(env, parts, i);
+        javaPointToPointC(env, javaPoint, &points[i]);
+    }
+    Point res;
+    sum_points(points, numberOfParts, &res);
+    fillPointWithData(env, &res, public_key);
+    free(points);
+}
+
+JNIEXPORT jobject JNICALL
+Java_com_project_collaborativeauthenticationapplication_service_crypto_CryptoThresholdSignatureProcessor_calculateFinalSignatureNative(
+        JNIEnv *env, jobject thiz, jobject parts) {
+
+    int size = getArrayListSize(env, parts);
+
+    uint32_t ** partsC = malloc(size*sizeof(uint32_t *));
+    transformArrayListBigNumbersToCArray(env, parts, partsC, size);
+
+    uint32_t result[SIZE];
+
+    sum_mod_n(partsC, result, size);
+
+    return getNewBigNumberObject(env, result);
 }

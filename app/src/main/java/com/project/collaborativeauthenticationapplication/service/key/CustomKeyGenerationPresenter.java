@@ -5,9 +5,9 @@ package com.project.collaborativeauthenticationapplication.service.key;
 import com.project.collaborativeauthenticationapplication.R;
 import com.project.collaborativeauthenticationapplication.logger.AndroidLogger;
 import com.project.collaborativeauthenticationapplication.logger.Logger;
-import com.project.collaborativeauthenticationapplication.service.Participant;
+import com.project.collaborativeauthenticationapplication.service.general.Participant;
 import com.project.collaborativeauthenticationapplication.service.key.application.key_generation.distributed_system.KeyGenerationCoordinator;
-import com.project.collaborativeauthenticationapplication.service.key.application.key_generation.distributed_system.CustomLocalKeyGenerationCoordinator;
+import com.project.collaborativeauthenticationapplication.service.key.application.key_generation.distributed_system.LocalKeyGenerationCoordinator;
 import com.project.collaborativeauthenticationapplication.service.key.user.key_generation.DistributedKeyGenerationActivity;
 import com.project.collaborativeauthenticationapplication.service.key.user.key_generation.KeyGenerationView;
 import com.project.collaborativeauthenticationapplication.service.key.user.key_generation.ProgressNotifier;
@@ -93,7 +93,7 @@ public class CustomKeyGenerationPresenter implements KeyGenerationPresenter, Pro
         if (coordinator != null){
             throw new IllegalStateException();
         }
-        coordinator = new CustomLocalKeyGenerationCoordinator(this);
+        coordinator = new LocalKeyGenerationCoordinator(this);
         coordinator.open(view.getContext());
     }
 
@@ -150,7 +150,7 @@ public class CustomKeyGenerationPresenter implements KeyGenerationPresenter, Pro
 
     @Override
     public boolean isCurrentlyActive() {
-        return coordinator != null && coordinator.getState() != CustomLocalKeyGenerationCoordinator.STATE_FINISHED && coordinator.getState() != CustomLocalKeyGenerationCoordinator.STATE_CLOSED;
+        return coordinator != null && coordinator.getState() != LocalKeyGenerationCoordinator.STATE_FINISHED && coordinator.getState() != LocalKeyGenerationCoordinator.STATE_CLOSED;
     }
 
     @Override
@@ -168,46 +168,42 @@ public class CustomKeyGenerationPresenter implements KeyGenerationPresenter, Pro
     public void SignalCoordinatorInNewState(int clientState, int oldState) {
         switch (clientState)
         {
-            case CustomLocalKeyGenerationCoordinator.STATE_START:
+            case LocalKeyGenerationCoordinator.STATE_START:
                 logger.logEvent(COMPONENT_NAME, EVENT_RECEIVED_TOKEN, "low");
                 break;
-            case CustomLocalKeyGenerationCoordinator.STATE_DETAILS:
+            case LocalKeyGenerationCoordinator.STATE_DETAILS:
                 view.navigate(R.id.select);
                 logger.logEvent(COMPONENT_NAME, EVENT_DETAILS_SUBMITTED, "low");
                 view.showMetaData(getMessage(DistributedKeyGenerationActivity.KEY_LOGIN), getMessage(DistributedKeyGenerationActivity.KEY_APPLICATION_NAME));
                 break;
-            case CustomLocalKeyGenerationCoordinator.STATE_SELECT:
+            case LocalKeyGenerationCoordinator.STATE_SELECT:
                 logger.logEvent(COMPONENT_NAME, EVENT_PARTICIPANTS_SUBMITTED, "low");
                 view.navigate(R.id.run);
                 break;
-            case CustomLocalKeyGenerationCoordinator.STATE_BAD_INP_SEL:
+            case LocalKeyGenerationCoordinator.STATE_BAD_INP_SEL:
                 view.showTemporally("Incorrect input");
                 break;
-            case CustomLocalKeyGenerationCoordinator.STATE_SESSION:
+            case LocalKeyGenerationCoordinator.STATE_SESSION:
                 notifySubscribers(MESSAGE_STATE_SESSION);
                 break;
-            case CustomLocalKeyGenerationCoordinator.STATE_INVITATION:
+            case LocalKeyGenerationCoordinator.STATE_INVITATION:
                 notifySubscribers(MESSAGE_STATE_INVITATIONS);
                 break;
-            case CustomLocalKeyGenerationCoordinator.STATE_KEYPART:
-                logger.logEvent(COMPONENT_NAME, EVENT_KEY_PARTS_LOCALLY_AVAILABLE, "low");
-                notifySubscribers(MESSAGE_STATE_KEYPART);
-                break;
-            case CustomLocalKeyGenerationCoordinator.STATE_DISTRIBUTED:
+            case LocalKeyGenerationCoordinator.STATE_DISTRIBUTED:
                 notifySubscribers(MESSAGE_STATE_DISTRIBUTED);
                 break;
-            case CustomLocalKeyGenerationCoordinator.STATE_SHARES:
+            case LocalKeyGenerationCoordinator.STATE_SHARES:
                 notifySubscribers(MESSAGE_STATE_SHARES);
                 break;
-            case CustomLocalKeyGenerationCoordinator.STATE_PERSIST:
+            case LocalKeyGenerationCoordinator.STATE_PERSIST:
                 notifySubscribers(MESSAGE_STATE_PERSISTED);
                 break;
-            case CustomLocalKeyGenerationCoordinator.STATE_ERROR:
+            case LocalKeyGenerationCoordinator.STATE_ERROR:
                 handleClientErrors(oldState);
                 break;
-            case CustomLocalKeyGenerationCoordinator.STATE_CLOSED:
+            case LocalKeyGenerationCoordinator.STATE_CLOSED:
                 break;
-            case CustomLocalKeyGenerationCoordinator.STATE_FINISHED:
+            case LocalKeyGenerationCoordinator.STATE_FINISHED:
                 logger.logEvent(COMPONENT_NAME, EVENT_KEY_DONE, "low");
                 coordinator.close();
                 view.navigate(R.id.success);
@@ -225,37 +221,36 @@ public class CustomKeyGenerationPresenter implements KeyGenerationPresenter, Pro
         }
         switch (oldState)
         {
-            case CustomLocalKeyGenerationCoordinator.STATE_INIT:
+            case LocalKeyGenerationCoordinator.STATE_INIT:
                 logger.logEvent(COMPONENT_NAME, EVENT_NOT_RECEIVED_TOKEN, "low");
                 view.navigate(R.id.error_home);
                 break;
-            case CustomLocalKeyGenerationCoordinator.STATE_START:
+            case LocalKeyGenerationCoordinator.STATE_START:
                 logger.logEvent(COMPONENT_NAME, EVENT_DETAILS_NOT_SUBMITTED, "low");
                 setMessage(DistributedKeyGenerationActivity.KEY_ERROR_MESSAGES, "Token revocation");
                 view.navigate(R.id.error_home);
                 break;
-            case CustomLocalKeyGenerationCoordinator.STATE_DETAILS:
+            case LocalKeyGenerationCoordinator.STATE_DETAILS:
                 logger.logEvent(COMPONENT_NAME, EVENT_PARTICIPANTS_NOT_SUBMITTED, "high");
                 setMessage(DistributedKeyGenerationActivity.KEY_ERROR_MESSAGES, "Token revocation");
                 view.navigate(R.id.error_select);
                 break;
-            case CustomLocalKeyGenerationCoordinator.STATE_BAD_INP_SEL:
+            case LocalKeyGenerationCoordinator.STATE_BAD_INP_SEL:
                 logger.logEvent(COMPONENT_NAME, EVENT_SESSION_FAILED, "high");
                 setMessage(DistributedKeyGenerationActivity.KEY_ERROR_MESSAGES, "Token revocation");
                 view.navigate(R.id.error_select);
                 break;
-            case CustomLocalKeyGenerationCoordinator.STATE_SELECT:
-            case CustomLocalKeyGenerationCoordinator.STATE_SESSION:
-            case CustomLocalKeyGenerationCoordinator.STATE_INVITATION:
-            case CustomLocalKeyGenerationCoordinator.STATE_KEYPART:
-            case CustomLocalKeyGenerationCoordinator.STATE_DISTRIBUTED:
-            case CustomLocalKeyGenerationCoordinator.STATE_SHARES:
-            case CustomLocalKeyGenerationCoordinator.STATE_PERSIST:
+            case LocalKeyGenerationCoordinator.STATE_SELECT:
+            case LocalKeyGenerationCoordinator.STATE_SESSION:
+            case LocalKeyGenerationCoordinator.STATE_INVITATION:
+            case LocalKeyGenerationCoordinator.STATE_DISTRIBUTED:
+            case LocalKeyGenerationCoordinator.STATE_SHARES:
+            case LocalKeyGenerationCoordinator.STATE_PERSIST:
                 logger.logEvent(COMPONENT_NAME, EVENT_RUN_FAILED, "high", String.valueOf(oldState));
                 setMessage(DistributedKeyGenerationActivity.KEY_ERROR_MESSAGES, "Session failed");
                 view.navigate(R.id.error_generation);
                 break;
-            case CustomLocalKeyGenerationCoordinator.STATE_TOKEN_REVOKED:
+            case LocalKeyGenerationCoordinator.STATE_TOKEN_REVOKED:
                 logger.logEvent(COMPONENT_NAME, EVENT_RUN_FAILED, "high", "Token revoked");
                 break;
             default:

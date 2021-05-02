@@ -21,11 +21,11 @@
     void getShares(JNIEnv *env, jobject  processor, uint32_t ** shares, int number);
     void writeSignatureShareToJava(JNIEnv *env, jobject  processor, uint32_t ** shares);
 
-    #define createIdentifiersIndexes(arr, localWeight) \
+    #define createIdentifiersIndexes(arr, localWeight, firstIndex) \
                                         {\
                                             (arr) = malloc(localWeight*sizeof(uint32_t));\
                                             for(uint32_t i =0; i < localWeight; i++){\
-                                                (arr)[i] = i;\
+                                                (arr)[i] = firstIndex + i;\
                                             }\
                                         }
 #endif //COLLABORATIVEAUTHENTICATIONAPPLICATION_SIGNATURETHRESHOLDINTERFACE_H

@@ -1,7 +1,10 @@
 package com.project.collaborativeauthenticationapplication.service.controller;
 
+import android.content.Context;
+
 import com.project.collaborativeauthenticationapplication.service.network.AndroidBluetoothMonitor;
 import com.project.collaborativeauthenticationapplication.service.network.BluetoothMonitor;
+import com.project.collaborativeauthenticationapplication.service.network.CustomCommunication;
 
 public class CustomAuthenticationPresenter implements AuthenticationPresenter{
 
@@ -11,7 +14,7 @@ public class CustomAuthenticationPresenter implements AuthenticationPresenter{
 
 
 
-    private BluetoothMonitor bluetoothMonitor = new AndroidBluetoothMonitor();
+    private final BluetoothMonitor bluetoothMonitor = new AndroidBluetoothMonitor();
 
     public static CustomAuthenticationPresenter getInstance()
     {
@@ -19,24 +22,25 @@ public class CustomAuthenticationPresenter implements AuthenticationPresenter{
     }
 
 
-    private CustomAuthenticationPresenter(){}
+    private CustomAuthenticationPresenter(){
+    }
 
     @Override
     public void onStartCommand() {
         if (bluetoothMonitor.isBluetoothEnabled())
         {
-            CustomAuthenticationServicePool.getInstance().start();
+            CustomAuthenticationServiceController.getInstance().start();
         }
         else
         {
             AuthenticationForegroundService.getInstance().serviceSleeps();
-            CustomAuthenticationServicePool.getInstance().sleep();
+            CustomAuthenticationServiceController.getInstance().sleep();
         }
     }
 
     @Override
     public void onStopCommand() {
-        CustomAuthenticationServicePool.getInstance().stop();
+        CustomAuthenticationServiceController.getInstance().stop();
         AuthenticationForegroundService.getInstance().serviceDisabled();
     }
 
@@ -48,5 +52,15 @@ public class CustomAuthenticationPresenter implements AuthenticationPresenter{
     @Override
     public void statusInactive() {
         AuthenticationForegroundService.getInstance().serviceSleeps();
+    }
+
+    @Override
+    public Context getServiceContext() {
+        return AuthenticationForegroundService.getInstance().getContext();
+    }
+
+    @Override
+    public void onReceivedNewInvitation() {
+        AuthenticationForegroundService.getInstance().notify("New key generation activity started");
     }
 }

@@ -151,9 +151,9 @@ void  add_points(Point const * const p, Point  const * const q, Point * const re
 
 
 void sum_points(Point const * const P, uint32_t number, Point * const res){
-    COPY_POINT(*res, *P);
+    COPY_POINT(*res, P[0]);
     for(uint32_t point = 1; point < number; point++){
-        add_points(res, P+point, res);
+        add_points(res, &P[point], res);
     }
 }
 

@@ -1,103 +1,42 @@
 package com.project.collaborativeauthenticationapplication.service.signature.application;
 
-import android.content.Context;
+import com.project.collaborativeauthenticationapplication.service.concurrency.ThreadPoolSupplier;
+import com.project.collaborativeauthenticationapplication.service.signature.application.local.RandomnessRequester;
+import com.project.collaborativeauthenticationapplication.service.signature.application.local.SignatureTask;
 
-import com.project.collaborativeauthenticationapplication.service.signature.SignaturePresenter;
 
-public class ThreadedSignatureClient implements SignatureClient{
+public class ThreadedSignatureClient implements SignatureClient {
 
-    SignatureClient client;
-    SignatureCoordinator coordinator;
+    private SignatureClient client;
 
-    public ThreadedSignatureClient(SignatureCoordinator coordinator){
-        this.coordinator = coordinator;
+    public ThreadedSignatureClient(SignatureClient client){
+        this.client = client;
     }
 
+
+    @Override
+    public String getAddress() {
+        return client.getAddress();
+    }
 
     @Override
     public void sign(SignatureTask task) {
-        if (client == null){
-            throw new  IllegalStateException();
-        }
-        synchronized (client){
-            Thread thread  = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    client.sign(task);
-                }
-            });
-            thread.start();
-        }
-    }
+        ThreadPoolSupplier.getSupplier().execute(new Runnable() {
+            @Override
+            public void run() {
+                client.sign(task);
+            }
+        });
 
-    @Override
-    public void checkInformationAboutCredential(String applicationLoginName, String login, DatabaseInformationRequester requester) {
-        if (client == null){
-            throw new  IllegalStateException();
-        }
-        synchronized (client){
-            Thread thread  = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    client.checkInformationAboutCredential(applicationLoginName, login, requester);
-                }
-            });
-            thread.start();
-        }
     }
 
     @Override
     public void generateRandomnessAndCalculateCommitments(RandomnessRequester requester) {
-        if (client == null){
-            throw new  IllegalStateException();
-        }
-        synchronized (client){
-            Thread thread  = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    client.generateRandomnessAndCalculateCommitments(requester);
-                }
-            });
-            thread.start();
-        }
-    }
-
-
-    @Override
-    public int getState() {
-        return client.getState();
-    }
-
-    @Override
-    public void open(Context context) {
-        if (client != null){
-            throw new IllegalStateException();
-        }
-        client = new CustomSignatureClient(coordinator);
-        synchronized (client){
-            Thread thread  = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    client.open(context);
-                }
-            });
-            thread.start();
-        }
-    }
-
-    @Override
-    public void close() {
-        synchronized (client){
-            if (client != null){
-                Thread thread  = new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        client.close();
-                        client = null;
-                    }
-                });
-                thread.start();
+        ThreadPoolSupplier.getSupplier().execute(new Runnable() {
+            @Override
+            public void run() {
+                client.generateRandomnessAndCalculateCommitments(requester);
             }
-        }
+        });
     }
 }

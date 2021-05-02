@@ -3,16 +3,16 @@ package com.project.collaborativeauthenticationapplication.service.key;
 import com.project.collaborativeauthenticationapplication.data.ApplicationLoginEntity;
 import com.project.collaborativeauthenticationapplication.logger.AndroidLogger;
 import com.project.collaborativeauthenticationapplication.logger.Logger;
-import com.project.collaborativeauthenticationapplication.service.CustomKeyViewManager;
+import com.project.collaborativeauthenticationapplication.service.general.CustomKeyViewManager;
 
 import com.project.collaborativeauthenticationapplication.service.key.application.key_management.FeedbackTask;
 import com.project.collaborativeauthenticationapplication.service.key.application.key_management.KeyManagementClient;
 import com.project.collaborativeauthenticationapplication.service.key.application.key_management.ThreadedKeyManagementClient;
 
-import com.project.collaborativeauthenticationapplication.service.Task;
+import com.project.collaborativeauthenticationapplication.service.general.Task;
 import com.project.collaborativeauthenticationapplication.service.key.user.key_management.KeyManagementView;
 import com.project.collaborativeauthenticationapplication.R;
-import com.project.collaborativeauthenticationapplication.service.Requester;
+import com.project.collaborativeauthenticationapplication.service.general.Requester;
 import com.project.collaborativeauthenticationapplication.service.key.user.key_management.RequesterOfFeedbackTask;
 
 import java.util.HashMap;

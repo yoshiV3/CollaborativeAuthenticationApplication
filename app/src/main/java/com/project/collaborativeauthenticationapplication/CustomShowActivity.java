@@ -14,8 +14,7 @@ public abstract class  CustomShowActivity extends AppCompatActivity {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                Toast toast = new Toast(context );
-                toast.setText(text);
+                Toast toast = Toast.makeText(context, text, Toast.LENGTH_SHORT);
                 toast.show();
             }
         });

@@ -16,7 +16,7 @@ import android.widget.TextView;
 import com.project.collaborativeauthenticationapplication.R;
 import com.project.collaborativeauthenticationapplication.logger.AndroidLogger;
 import com.project.collaborativeauthenticationapplication.logger.Logger;
-import com.project.collaborativeauthenticationapplication.service.Requester;
+import com.project.collaborativeauthenticationapplication.service.general.Requester;
 import com.project.collaborativeauthenticationapplication.service.key.CustomKeyManagementPresenter;
 import com.project.collaborativeauthenticationapplication.service.key.KeyManagementPresenter;
 

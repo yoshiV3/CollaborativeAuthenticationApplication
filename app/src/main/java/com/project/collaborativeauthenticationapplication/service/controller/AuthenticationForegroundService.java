@@ -6,6 +6,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.IBinder;
@@ -19,24 +20,10 @@ import com.project.collaborativeauthenticationapplication.main.MainActivity;
 
 public class AuthenticationForegroundService extends Service implements ServiceView{
 
-    private static ServiceView  empty = new ServiceView() {
-        @Override
-        public void serviceActive() {
 
-        }
 
-        @Override
-        public void serviceDisabled() {
 
-        }
-
-        @Override
-        public void serviceSleeps() {
-
-        }
-    };
-
-    private static ServiceView serviceView = empty;
+    private static ServiceView serviceView;
 
 
     public static ServiceView getInstance()
@@ -78,7 +65,7 @@ public class AuthenticationForegroundService extends Service implements ServiceV
 
     @Override
     public void onDestroy() {
-        serviceView = empty;
+        serviceView = null;
         unregisterReceiver();
         super.onDestroy();
     }
@@ -127,7 +114,7 @@ public class AuthenticationForegroundService extends Service implements ServiceV
 
     private void stop()
     {
-        serviceView = empty;
+        serviceView = null;
         stopForeground(true);
         stopSelf();
     }
@@ -154,10 +141,17 @@ public class AuthenticationForegroundService extends Service implements ServiceV
         manager.notify(R.integer.serviceStatusNotification,notification);
     }
 
+    @Override
+    public Context getContext() {
+        return getApplicationContext();
+    }
 
-
-
-
+    @Override
+    public void notify(String text) {
+        createNotificationChannel();
+        Notification notification = getNotificationAutoCloseNoActivity(text);
+        manager.notify(R.integer.serviceStatusNotification, notification);
+    }
 
 
     private void createNotificationChannel() {
@@ -189,15 +183,17 @@ public class AuthenticationForegroundService extends Service implements ServiceV
 
 
 
+    private Notification getNotificationAutoCloseNoActivity(int notificationText){
+        return getNotificationAutoCloseNoActivity(getString(notificationText));
+    }
 
 
-
-    private Notification getNotificationAutoCloseNoActivity(int notificationText)
+    private Notification getNotificationAutoCloseNoActivity(String notificationText)
     {
         createNotificationChannel();
         Notification resultNotification = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle(getString(R.string.app_name))
-                .setContentText(getString(notificationText))
+                .setContentText(notificationText)
                 .setSmallIcon(R.drawable.ic_service_status_not)
                 .setAutoCancel(true)
                 .build();

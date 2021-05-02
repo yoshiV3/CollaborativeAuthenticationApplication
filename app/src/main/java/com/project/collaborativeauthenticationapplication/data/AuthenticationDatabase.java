@@ -11,7 +11,7 @@ import com.project.collaborativeauthenticationapplication.logger.Logger;
 
 
 @Database(entities = { ApplicationLoginEntity.class, ApplicationLoginParticipantJoin.class, ParticipantEntity.class, LocalSecretEntity.class, RemoteSecretEntity.class },
-        version = 2)
+        version = 3)
 public abstract class AuthenticationDatabase extends RoomDatabase {
 
     private static final String COMPONENT = "DATABASE";
@@ -45,5 +45,6 @@ public abstract class AuthenticationDatabase extends RoomDatabase {
     public abstract ParticipantDao                 getParticipantDao();
     public abstract SecretDao                      getSecretDao();
     public abstract RemoteDao                      getRemoteDao();
+    public abstract StoreCredentialDao             getStoreDao();
 
 }

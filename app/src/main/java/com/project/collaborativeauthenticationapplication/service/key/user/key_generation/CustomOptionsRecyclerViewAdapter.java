@@ -12,7 +12,7 @@ import com.project.collaborativeauthenticationapplication.PopListAdapter;
 
 
 import com.project.collaborativeauthenticationapplication.R;
-import com.project.collaborativeauthenticationapplication.service.Participant;
+import com.project.collaborativeauthenticationapplication.service.general.Participant;
 
 import java.util.ArrayList;
 

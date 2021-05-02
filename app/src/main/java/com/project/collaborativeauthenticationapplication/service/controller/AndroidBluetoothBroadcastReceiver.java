@@ -20,13 +20,13 @@ public class AndroidBluetoothBroadcastReceiver extends BroadcastReceiver {
                 if(intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, -1)
                         == BluetoothAdapter.STATE_OFF)
                 {
-                    CustomAuthenticationServicePool.getInstance().sleep();
+                    CustomAuthenticationServiceController.getInstance().sleep();
                     CustomAuthenticationPresenter.getInstance().statusInactive();
                 }
                 else if (intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, -1)
                         == BluetoothAdapter.STATE_ON)
                 {
-                    CustomAuthenticationServicePool.getInstance().start();
+                    CustomAuthenticationServiceController.getInstance().start();
                     CustomAuthenticationPresenter.getInstance().statusActive();
                 }
             }

@@ -15,7 +15,7 @@ import com.project.collaborativeauthenticationapplication.R;
 import com.project.collaborativeauthenticationapplication.data.ApplicationLoginEntity;
 import com.project.collaborativeauthenticationapplication.logger.AndroidLogger;
 import com.project.collaborativeauthenticationapplication.logger.Logger;
-import com.project.collaborativeauthenticationapplication.service.SecretOverviewFragment;
+import com.project.collaborativeauthenticationapplication.service.general.SecretOverviewFragment;
 import com.project.collaborativeauthenticationapplication.service.signature.CustomSignaturePresenter;
 
 

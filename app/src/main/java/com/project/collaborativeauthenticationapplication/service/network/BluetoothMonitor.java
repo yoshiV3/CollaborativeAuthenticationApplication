@@ -7,5 +7,6 @@ public interface BluetoothMonitor {
     boolean isBluetoothAvailable();
     boolean isBluetoothEnabled();
 
+
     ArrayList<Device> getPairedDevices();
 }

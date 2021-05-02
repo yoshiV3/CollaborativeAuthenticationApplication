@@ -22,6 +22,8 @@ public class AndroidBluetoothMonitor implements BluetoothMonitor {
         return bluetoothAdapter.isEnabled();
     }
 
+
+
     @Override
     public ArrayList<Device> getPairedDevices() {
         ArrayList<Device> devices = new ArrayList<>();

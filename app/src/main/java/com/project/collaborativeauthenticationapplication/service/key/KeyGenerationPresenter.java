@@ -1,8 +1,7 @@
 package com.project.collaborativeauthenticationapplication.service.key;
 
-import com.project.collaborativeauthenticationapplication.service.Participant;
+import com.project.collaborativeauthenticationapplication.service.general.Participant;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public interface KeyGenerationPresenter extends KeyPresenter {

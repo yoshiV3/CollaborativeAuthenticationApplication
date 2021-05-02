@@ -5,6 +5,7 @@ import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.Query;
+import androidx.room.Update;
 
 import java.util.List;
 
@@ -18,6 +19,9 @@ public interface ApplicationLoginParticipantDao {
 
 
 
+
+
+
     @Query(
             "SELECT * FROM ApplicationLoginEntity INNER JOIN ApplicationLoginParticipantJoin ON ApplicationLoginEntity.applicationLoginId = ApplicationLoginParticipantJoin.applicationLoginId WHERE ApplicationLoginEntity.applicationName = :applicationName AND ApplicationLoginEntity.login = :login "
     )
@@ -25,4 +29,7 @@ public interface ApplicationLoginParticipantDao {
 
     @Delete
     void delete(ApplicationLoginParticipantJoin applicationLoginParticipantJoin);
+
+    @Update
+    void updateJoin(ApplicationLoginParticipantJoin join);
 }

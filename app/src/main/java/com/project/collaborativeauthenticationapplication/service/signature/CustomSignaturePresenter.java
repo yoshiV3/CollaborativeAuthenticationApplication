@@ -6,15 +6,16 @@ import com.project.collaborativeauthenticationapplication.R;
 import com.project.collaborativeauthenticationapplication.data.ApplicationLoginEntity;
 import com.project.collaborativeauthenticationapplication.logger.AndroidLogger;
 import com.project.collaborativeauthenticationapplication.logger.Logger;
-import com.project.collaborativeauthenticationapplication.service.CustomKeyViewManager;
-import com.project.collaborativeauthenticationapplication.service.FeedbackRequester;
-import com.project.collaborativeauthenticationapplication.service.Requester;
-import com.project.collaborativeauthenticationapplication.service.Task;
+import com.project.collaborativeauthenticationapplication.service.general.CustomKeyViewManager;
+import com.project.collaborativeauthenticationapplication.service.general.FeedbackRequester;
+import com.project.collaborativeauthenticationapplication.service.general.Requester;
+import com.project.collaborativeauthenticationapplication.service.general.Task;
 import com.project.collaborativeauthenticationapplication.service.crypto.BigNumber;
-import com.project.collaborativeauthenticationapplication.service.signature.application.CustomSignatureCoordinator;
-import com.project.collaborativeauthenticationapplication.service.signature.application.SignatureCoordinator;
-import com.project.collaborativeauthenticationapplication.service.signature.application.ThreadedVerificationClient;
-import com.project.collaborativeauthenticationapplication.service.signature.application.VerificationClient;
+import com.project.collaborativeauthenticationapplication.service.signature.application.distributed.LocalSignatureCoordinator;
+import com.project.collaborativeauthenticationapplication.service.signature.application.distributed.SignatureCoordinator;
+import com.project.collaborativeauthenticationapplication.service.signature.application.old.CustomSignatureCoordinator;
+import com.project.collaborativeauthenticationapplication.service.signature.application.local.ThreadedVerificationClient;
+import com.project.collaborativeauthenticationapplication.service.signature.application.local.VerificationClient;
 import com.project.collaborativeauthenticationapplication.service.signature.user.SignatureView;
 
 import java.util.List;
@@ -120,7 +121,7 @@ public class CustomSignaturePresenter implements SignaturePresenter{
         this.applicationName = applicationName;
         this.login           = login;
         view.navigate(R.id.action_secretOverviewSignatureFragment_to_signatureFragment);
-        coordinator = new CustomSignatureCoordinator(this);
+        coordinator = new LocalSignatureCoordinator(this);
         coordinator.open(view.getContext());
     }
 
