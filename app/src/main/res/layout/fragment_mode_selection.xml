@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".alternative.key.user.ModeSelectionFragment" >
+
+    <Button
+        android:id="@+id/button_leader_mode"
+        android:layout_width="272dp"
+        android:layout_height="97dp"
+        android:layout_marginStart="68dp"
+        android:layout_marginTop="84dp"
+        android:text="@string/leader"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/button_follower_mode"
+        android:layout_width="277dp"
+        android:layout_height="92dp"
+        android:layout_marginStart="68dp"
+        android:layout_marginTop="52dp"
+        android:text="@string/follwer"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/button_leader_mode" />
+</androidx.constraintlayout.widget.ConstraintLayout>

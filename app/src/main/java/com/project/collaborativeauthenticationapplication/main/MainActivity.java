@@ -16,7 +16,7 @@ import com.project.collaborativeauthenticationapplication.data.AuthenticationDat
 import com.project.collaborativeauthenticationapplication.logger.AndroidLogger;
 import com.project.collaborativeauthenticationapplication.logger.Logger;
 import com.project.collaborativeauthenticationapplication.service.controller.AuthenticationForegroundService;
-import com.project.collaborativeauthenticationapplication.service.key.user.key_generation.DistributedKeyGenerationActivity;
+import com.project.collaborativeauthenticationapplication.alternative.key.user.DistributedKeyGenerationActivity;
 import com.project.collaborativeauthenticationapplication.service.key.user.key_management.KeyManagementActivity;
 import com.project.collaborativeauthenticationapplication.service.signature.user.SignatureActivity;
 

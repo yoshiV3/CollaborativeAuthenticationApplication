@@ -1,4 +1,4 @@
-package com.project.collaborativeauthenticationapplication.service.key;
+package com.project.collaborativeauthenticationapplication.alternative.key;
 
 public interface KeyPresenter {
 

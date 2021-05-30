@@ -2,24 +2,21 @@ package com.project.collaborativeauthenticationapplication.service.key.applicati
 
 import android.content.Context;
 
+import com.project.collaborativeauthenticationapplication.alternative.key.KeyGenerationPresenter;
+import com.project.collaborativeauthenticationapplication.alternative.key.application.GuardLeader;
+import com.project.collaborativeauthenticationapplication.alternative.network.Network;
 import com.project.collaborativeauthenticationapplication.logger.AndroidLogger;
 import com.project.collaborativeauthenticationapplication.logger.Logger;
-import com.project.collaborativeauthenticationapplication.service.controller.AuthenticationPresenter;
-import com.project.collaborativeauthenticationapplication.service.controller.CustomServiceMonitor;
 import com.project.collaborativeauthenticationapplication.service.crypto.BigNumber;
 import com.project.collaborativeauthenticationapplication.service.crypto.Point;
 import com.project.collaborativeauthenticationapplication.service.general.FeedbackRequester;
 import com.project.collaborativeauthenticationapplication.service.general.IdentifiedParticipant;
-import com.project.collaborativeauthenticationapplication.service.general.IllegalNumberOfTokensException;
 import com.project.collaborativeauthenticationapplication.service.general.IllegalUseOfClosedTokenException;
 import com.project.collaborativeauthenticationapplication.service.general.Participant;
-import com.project.collaborativeauthenticationapplication.service.general.ServiceStateException;
 
 import com.project.collaborativeauthenticationapplication.service.key.application.key_generation.KeyGenerationClient;
-import com.project.collaborativeauthenticationapplication.service.key.application.key_generation.local_system.control.protocol.LocalLogicalKeyGenerationClient;
 
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,12 +32,12 @@ public class RemoteKeyGenerationCoordinator extends LocalKeyGenerationCoordinato
     private static Logger logger = new AndroidLogger();
 
 
-    private AuthenticationPresenter presenter;
 
 
-    public RemoteKeyGenerationCoordinator(AuthenticationPresenter presenter) {
-        super(null);
-        this.presenter = presenter;
+    private GuardLeader guardLeader;
+
+    public RemoteKeyGenerationCoordinator(KeyGenerationPresenter presenter) {
+        super(presenter);
     }
 
 
@@ -49,13 +46,8 @@ public class RemoteKeyGenerationCoordinator extends LocalKeyGenerationCoordinato
     }
 
     public void addCoordinatorStub(String stub){
-        try {
             logger.logEvent(COMPONENT, "added a remote coordinator stub", "normal");
             this.stub = new RemoteCoordinatorStub(stub, this);
-        } catch (IOException e) {
-            abort();
-            e.printStackTrace();
-        }
     }
 
     @Override
@@ -66,13 +58,17 @@ public class RemoteKeyGenerationCoordinator extends LocalKeyGenerationCoordinato
 
     @Override
     public synchronized void persisted() {
-        basisPeristed();
+        basisPersisted();
         stub.voteYes();
     }
 
     @Override
     public void open(Context context) {
-        logger.logEvent(COMPONENT, "new open request", "low");
+        super.open(context);
+        logger.logEvent(COMPONENT, "new open request: create listener", "low");
+        guardLeader = new GuardLeader(this);
+        guardLeader.start();
+        /**
         if (getState() != STATE_INIT)
         {
             throw  new IllegalStateException();
@@ -94,6 +90,9 @@ public class RemoteKeyGenerationCoordinator extends LocalKeyGenerationCoordinato
                 handleTokenError();
             }
         }
+         **/
+
+
     }
 
     @Override
@@ -108,6 +107,7 @@ public class RemoteKeyGenerationCoordinator extends LocalKeyGenerationCoordinato
 
     @Override
     public void close() {
+        //Network.getInstance().closeAllConnections();
         closeResourcesEarly();
     }
 
@@ -118,19 +118,25 @@ public class RemoteKeyGenerationCoordinator extends LocalKeyGenerationCoordinato
     }
 
     @Override
-    public void submitLoginDetails(String login, String application) {
+    public void submitLoginDetails( String application) {
         logger.logEvent(COMPONENT, "new details submitted", "low");
         if (getState() == STATE_START && getToken() != null && !getToken().isClosed())
         {
-            setLogin(login);
             setApplicationName(application);
             setState(STATE_DETAILS);
+            getPresenter().foundLeader();
         }
         else
         {
             setState(STATE_TOKEN_REVOKED);
             logger.logEvent(COMPONENT, "Problem has occurred before the submission of the credential details", "low");
+            error();
         }
+    }
+
+    private void error() {
+        getPresenter().error();
+        Network.getInstance().closeAllConnections();
     }
 
 
@@ -141,22 +147,27 @@ public class RemoteKeyGenerationCoordinator extends LocalKeyGenerationCoordinato
 
     @Override
     public void submitSelection(List<Participant> selection) {
+        logger.logEvent(COMPONENT, "received new participants", "low", String.valueOf(selection.size()));
         if (getState() == STATE_DETAILS && getToken() != null && !getToken().isClosed())
         {
             if (isWellFormedInput(selection))
             {
                commitToSelection(selection);
                setState(STATE_SELECT);
+               getPresenter().runAsRemote();
             }
             else
             {
                 setState(STATE_ERROR);
+                error();
             }
         }
         else
         {
             setState(STATE_TOKEN_REVOKED);
             logger.logEvent(COMPONENT, "Problem has occurred before the submission of the selection", "low");
+            error();
+
         }
     }
 
@@ -165,7 +176,7 @@ public class RemoteKeyGenerationCoordinator extends LocalKeyGenerationCoordinato
     public void run() {
         logger.logEvent(COMPONENT, "run called during state", "low", String.valueOf(getState()));
         if (getState() == STATE_SELECT){
-            presenter.onReceivedNewInvitation();
+            //presenter.onReceivedNewInvitation();
             FeedbackRequester requester = new FeedbackRequester() {
                 private boolean result;
                 @Override
@@ -182,15 +193,15 @@ public class RemoteKeyGenerationCoordinator extends LocalKeyGenerationCoordinato
                             generateSession();; // generate session
                             connectWithOtherClients();
                         } catch (IllegalUseOfClosedTokenException e){
-                            abort();
+                            error();
                         }
                     } else {
                         logger.logEvent(COMPONENT, "participant aborted the computation", "low");
-                        abort();
+                        error();
                     }
                 }
             };
-            getPersistenceClient().checkCredentials(requester, getApplicationName(), getLogin());
+            getPersistenceClient().checkCredentials(requester, getApplicationName());
         } else {
             abort();
         }

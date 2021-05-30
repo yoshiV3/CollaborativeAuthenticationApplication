@@ -25,7 +25,7 @@
                 android:value="main.MainActivity" />
         </activity>
         <activity
-            android:name=".service.key.user.key_generation.DistributedKeyGenerationActivity"
+            android:name=".alternative.key.user.DistributedKeyGenerationActivity"
             android:label="@string/title_activity_distributed_key_generation"
             android:parentActivityName=".main.MainActivity">
             <meta-data

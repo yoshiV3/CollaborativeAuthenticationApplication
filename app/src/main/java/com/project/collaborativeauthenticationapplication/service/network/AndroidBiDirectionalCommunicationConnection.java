@@ -14,7 +14,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
-public class AndroidCommunicationConnection {
+public class AndroidBiDirectionalCommunicationConnection {
 
 
     private static final String COMPONENT_NAME    = "Android connection";
@@ -39,12 +39,12 @@ public class AndroidCommunicationConnection {
 
     private BluetoothSocket connection;
 
-    public AndroidCommunicationConnection(String address) {
+    public AndroidBiDirectionalCommunicationConnection(String address) {
         this.address = address;
     }
 
 
-    public AndroidCommunicationConnection(BluetoothSocket connection){
+    public AndroidBiDirectionalCommunicationConnection(BluetoothSocket connection){
         this.address    = connection.getRemoteDevice().getAddress();
         this.connection = connection;
         state           = STATE_CONNECTED;

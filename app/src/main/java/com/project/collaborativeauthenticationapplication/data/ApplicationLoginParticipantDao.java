@@ -27,6 +27,13 @@ public interface ApplicationLoginParticipantDao {
     )
     List<ApplicationLoginParticipantJoin> getAllInformation(String applicationName, String login);
 
+
+    @Query(
+            "SELECT * FROM ApplicationLoginEntity INNER JOIN ApplicationLoginParticipantJoin ON ApplicationLoginEntity.applicationLoginId = ApplicationLoginParticipantJoin.applicationLoginId WHERE ApplicationLoginEntity.applicationName = :applicationName "
+    )
+    List<ApplicationLoginParticipantJoin> getAllInformation(String applicationName);
+
+
     @Delete
     void delete(ApplicationLoginParticipantJoin applicationLoginParticipantJoin);
 

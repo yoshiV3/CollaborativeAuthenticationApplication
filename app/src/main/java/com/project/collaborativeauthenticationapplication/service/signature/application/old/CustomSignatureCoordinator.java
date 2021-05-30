@@ -170,7 +170,7 @@ public class CustomSignatureCoordinator implements SignatureCoordinator {
                 generateRandomness(task, innerTask, requester);
             }
         };
-        client.checkInformationAboutCredential(task.getApplicationName(), task.getLogin(), databaseInformationRequester);
+        client.checkInformationAboutCredential(task.getApplicationName(), databaseInformationRequester);
     }
 
     @Override

@@ -1,11 +1,11 @@
-package com.project.collaborativeauthenticationapplication.service.key.user.key_generation;
+package com.project.collaborativeauthenticationapplication.alternative.key.user;
 
 import com.project.collaborativeauthenticationapplication.NavigationEnabledAuthenticationControllerActivity;
 import com.project.collaborativeauthenticationapplication.R;
 import com.project.collaborativeauthenticationapplication.logger.AndroidLogger;
 import com.project.collaborativeauthenticationapplication.logger.Logger;
-import com.project.collaborativeauthenticationapplication.service.key.CustomKeyGenerationPresenter;
-import com.project.collaborativeauthenticationapplication.service.key.KeyGenerationPresenter;
+import com.project.collaborativeauthenticationapplication.alternative.key.CustomKeyGenerationPresenter;
+import com.project.collaborativeauthenticationapplication.alternative.key.KeyGenerationPresenter;
 
 
 import android.content.Context;
@@ -75,9 +75,9 @@ public class DistributedKeyGenerationActivity extends NavigationEnabledAuthentic
         keyGenerationPresenter.onBackPressed();
     }
 
-
     @Override
     protected void onPause() {
+
         keyGenerationPresenter.onPause();
         super.onPause();
     }

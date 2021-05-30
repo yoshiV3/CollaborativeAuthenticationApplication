@@ -5,5 +5,5 @@ import com.project.collaborativeauthenticationapplication.service.crypto.BigNumb
 
 public interface VerificationClient {
 
-    void verify(BigNumber signature, BigNumber hash, BigNumber message, String applicationName, String login, FeedbackRequester requester);
+    void verify(BigNumber signature, BigNumber hash, BigNumber message, String applicationName, FeedbackRequester requester);
 }

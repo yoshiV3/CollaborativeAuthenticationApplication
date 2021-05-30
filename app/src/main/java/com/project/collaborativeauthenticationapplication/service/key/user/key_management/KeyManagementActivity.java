@@ -10,8 +10,8 @@ import com.project.collaborativeauthenticationapplication.NavigationEnabledAuthe
 import com.project.collaborativeauthenticationapplication.R;
 import com.project.collaborativeauthenticationapplication.data.ApplicationLoginEntity;
 import com.project.collaborativeauthenticationapplication.service.general.CustomOverviewSecretsAdapter;
-import com.project.collaborativeauthenticationapplication.service.key.CustomKeyManagementPresenter;
-import com.project.collaborativeauthenticationapplication.service.key.KeyManagementPresenter;
+import com.project.collaborativeauthenticationapplication.alternative.key.CustomKeyManagementPresenter;
+import com.project.collaborativeauthenticationapplication.alternative.key.KeyManagementPresenter;
 
 import java.util.List;
 

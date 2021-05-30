@@ -45,7 +45,6 @@ public class VerifySignatureFragment extends Fragment {
         button.setVisibility(View.GONE);
         SignaturePresenter presenter = CustomSignaturePresenter.getInstance();
         ((TextView)view.findViewById(R.id.textView_applicationName_verify)).setText(presenter.getApplicationName());
-        ((TextView)view.findViewById(R.id.textView_login_verify)).setText(presenter.getLogin());
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.project.collaborativeauthenticationapplication.service.signature.application.distributed;
 
+import com.project.collaborativeauthenticationapplication.alternative.network.Network;
 import com.project.collaborativeauthenticationapplication.logger.AndroidLogger;
 import com.project.collaborativeauthenticationapplication.service.controller.CustomAuthenticationServiceController;
 import com.project.collaborativeauthenticationapplication.service.crypto.BigNumber;
@@ -185,7 +186,7 @@ public abstract class AbstractSignatureCoordinator implements SignatureCoordinat
             client.close();
             client = null;
         }
-        CustomCommunication.getInstance().closeAllConnections();
+        Network.getInstance().closeAllConnections();
         setState(STATE_CLOSED);
     }
 

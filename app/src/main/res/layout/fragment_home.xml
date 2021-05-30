@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".service.key.user.key_generation.HomeFragment" >
+    tools:context=".alternative.key.user.HomeFragment" >
 
     <EditText
         android:id="@+id/edit_application_name"
@@ -18,25 +18,13 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <EditText
-        android:id="@+id/edit_login"
-        android:layout_width="350dp"
-        android:layout_height="45dp"
-        android:layout_marginStart="60dp"
-        android:layout_marginTop="24dp"
-        android:ems="10"
-        android:inputType="textPersonName"
-        android:text="@string/default_name"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/edit_application_name" />
-
     <Button
         android:id="@+id/button_submit_login_details"
         android:layout_width="60dp"
         android:layout_height="60dp"
-        android:layout_marginStart="72dp"
-        android:layout_marginTop="76dp"
+        android:layout_marginStart="80dp"
+        android:layout_marginTop="108dp"
         android:text="@string/button_home_frag"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/edit_login" />
+        app:layout_constraintTop_toBottomOf="@+id/edit_application_name" />
 </androidx.constraintlayout.widget.ConstraintLayout>

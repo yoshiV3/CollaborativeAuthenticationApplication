@@ -20,11 +20,11 @@ public interface Communication extends BluetoothMonitor {
 
     void closeServiceServer();
 
-    AndroidCommunicationConnection getConnectionWith(String address) throws IOException;
+    AndroidBiDirectionalCommunicationConnection getConnectionWith(String address) throws IOException;
 
-    void handleBrokenConnection(AndroidCommunicationConnection connection);
+    void handleBrokenConnection(AndroidBiDirectionalCommunicationConnection connection);
 
-    void closeConnection(AndroidCommunicationConnection connection);
+    void closeConnection(AndroidBiDirectionalCommunicationConnection connection);
 
     void closeAllConnections();
 

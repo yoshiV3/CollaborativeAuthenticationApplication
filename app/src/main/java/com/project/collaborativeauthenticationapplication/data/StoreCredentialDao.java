@@ -45,11 +45,11 @@ public abstract class StoreCredentialDao {
 
 
     @Transaction
-    public void storeCredentialData(int[] identifiers , Point publicKey, KeyGenerationSession session){
+    public void storeCredentialData(int[] identifiers , Point publicKey, KeyGenerationSession session, String login){
         success = false;
         String publicKeyX = new String(publicKey.getX().getBigNumberAsByteArray(), StandardCharsets.ISO_8859_1);
         String publicKeyY = new String(publicKey.getY().getBigNumberAsByteArray(), StandardCharsets.ISO_8859_1);
-        ApplicationLoginEntity application             = new ApplicationLoginEntity(session.getApplicationName(), session.getLogin(), session.getThreshold(),
+        ApplicationLoginEntity application             = new ApplicationLoginEntity(session.getApplicationName(), login, session.getThreshold(),
                 publicKeyX, publicKeyY, publicKey.isZero());
 
         long applicationId = insert(application);

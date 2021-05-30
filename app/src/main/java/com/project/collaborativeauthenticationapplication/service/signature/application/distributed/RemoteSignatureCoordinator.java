@@ -1,9 +1,10 @@
 package com.project.collaborativeauthenticationapplication.service.signature.application.distributed;
 
 import android.content.Context;
-import android.text.format.Time;
 
 
+import com.project.collaborativeauthenticationapplication.alternative.network.AndroidConnection;
+import com.project.collaborativeauthenticationapplication.alternative.network.Network;
 import com.project.collaborativeauthenticationapplication.logger.AndroidLogger;
 import com.project.collaborativeauthenticationapplication.service.controller.CustomServiceMonitor;
 import com.project.collaborativeauthenticationapplication.service.crypto.BigNumber;
@@ -13,13 +14,13 @@ import com.project.collaborativeauthenticationapplication.service.general.Illega
 import com.project.collaborativeauthenticationapplication.service.general.Requester;
 import com.project.collaborativeauthenticationapplication.service.general.ServiceStateException;
 import com.project.collaborativeauthenticationapplication.service.general.Task;
-import com.project.collaborativeauthenticationapplication.service.network.AndroidCommunicationConnection;
+import com.project.collaborativeauthenticationapplication.service.network.AndroidBiDirectionalCommunicationConnection;
 import com.project.collaborativeauthenticationapplication.service.network.CustomCommunication;
+import com.project.collaborativeauthenticationapplication.service.network.messages.AbortMessage;
 import com.project.collaborativeauthenticationapplication.service.network.messages.AbstractMessage;
 import com.project.collaborativeauthenticationapplication.service.network.messages.MessageEncoder;
 import com.project.collaborativeauthenticationapplication.service.network.messages.MessageParser;
 import com.project.collaborativeauthenticationapplication.service.network.messages.SignPublishMessage;
-import com.project.collaborativeauthenticationapplication.service.network.messages.SignatureMessage;
 import com.project.collaborativeauthenticationapplication.service.signature.application.SignatureClient;
 import com.project.collaborativeauthenticationapplication.service.signature.application.local.InformationSignatureClient;
 import com.project.collaborativeauthenticationapplication.service.signature.application.local.LocalInformationSignatureClient;
@@ -53,7 +54,7 @@ public class RemoteSignatureCoordinator extends AbstractSignatureCoordinator {
         setOriginalTask(task);
         logger.logEvent(COMPONENT, "start signature", "normal");
 
-        getClient().checkIfEnoughLocalShares(numberToRequest, task.getApplicationName(), task.getLogin(), new FeedbackRequester() {
+        getClient().checkIfEnoughLocalShares(numberToRequest, task.getApplicationName(), new FeedbackRequester() {
             boolean result;
             @Override
             public void setResult(boolean result) {
@@ -63,12 +64,12 @@ public class RemoteSignatureCoordinator extends AbstractSignatureCoordinator {
             @Override
             public void signalJobDone() {
                 if (result) {
-                    logger.logEvent(COMPONENT, "enough local shares", "low");
+                    logger.logEvent(COMPONENT, "enough local shares", "low", String.valueOf(numberToRequest));
                     requestSharesFromClient(getClient());
                 } else {
                     abort();
                     task.done();
-                    logger.logError(COMPONENT, "not enough local shares", "high");
+                    logger.logError(COMPONENT, "not enough local shares", "high", String.valueOf(numberToRequest));
                 }
 
             }
@@ -79,19 +80,11 @@ public class RemoteSignatureCoordinator extends AbstractSignatureCoordinator {
     public void addSignaturePart(BigNumber signaturePart) {
         logger.logEvent(COMPONENT, " sending signature part", "low");
         byte[] mes = encoder.makeSignatureMessage(signaturePart);
-        try {
-            AndroidCommunicationConnection connection = CustomCommunication.getInstance().getConnectionWith(addressLeader);
-            connection.createIOtStreams();
-            connection.writeToConnection(mes);
-            String extra = String.valueOf(mes[0]);
-            logger.logEvent(COMPONENT, " done signature ", "low", extra);
-
-
-        } catch (IOException ioException) {
-            ioException.printStackTrace();
-            abort();
-            getOriginalTask().done();
-        }
+        AndroidConnection connection = Network.getInstance().getConnectionWith(addressLeader);
+        connection.writeToConnection(mes);
+        connection.pushForFinal();
+        String extra = String.valueOf(mes[0]);
+        logger.logEvent(COMPONENT, " done signature ", "low", extra);
     }
 
 
@@ -102,7 +95,7 @@ public class RemoteSignatureCoordinator extends AbstractSignatureCoordinator {
     @Override
     public void abort() {
         if (getState() != STATE_ERROR){
-            CustomCommunication.getInstance().closeAllConnections();
+            Network.getInstance().closeAllConnections();
             setState(STATE_ERROR);
         }
     }
@@ -157,21 +150,14 @@ public class RemoteSignatureCoordinator extends AbstractSignatureCoordinator {
     protected void randomnessGenerationDone() {
         logger.logEvent(COMPONENT, " sending commitments", "low");
         byte[] mes = encoder.build();
-        try {
-            AndroidCommunicationConnection connection = CustomCommunication.getInstance().getConnectionWith(addressLeader);
-            connection.createIOtStreams();
-            connection.writeToConnection(mes);
-            String extra = String.valueOf(mes[0]);
-            logger.logEvent(COMPONENT, " done sending commitments", "low", extra);
-            listenForResponse(connection);
-        } catch (IOException ioException) {
-            ioException.printStackTrace();
-            abort();
-            getOriginalTask().done();
-        }
+        AndroidConnection connection = Network.getInstance().getConnectionWith(addressLeader);
+        connection.writeToConnection(mes);
+        String extra = String.valueOf(mes[0]);
+        logger.logEvent(COMPONENT, " done sending commitments", "low", extra);
+        listenForResponse(connection);
     }
 
-    private void listenForResponse(AndroidCommunicationConnection connection) {
+    private void listenForResponse(AndroidConnection connection) {
         logger.logEvent(COMPONENT, "started listening for a response", "normal");
         try {
             byte[] response = connection.readFromConnection();
@@ -195,8 +181,6 @@ public class RemoteSignatureCoordinator extends AbstractSignatureCoordinator {
                             e.printStackTrace();
                         }
 
-                        CustomCommunication.getInstance().closeAllConnections();
-
                         addressLeader = null;
 
                         setState(STATE_INIT);
@@ -207,7 +191,7 @@ public class RemoteSignatureCoordinator extends AbstractSignatureCoordinator {
                         getOriginalTask().done();
                     }
                 };
-                SignatureTask task = new SignatureTask(originalTask.getApplicationName(), originalTask.getLogin(), requester,
+                SignatureTask task = new SignatureTask(originalTask.getApplicationName(), null, requester,
                         signPublishMessage.getCommitmentsE(), signPublishMessage.getCommitmentsD(), signPublishMessage.getMessage());
                 getClient().sign(task);
             }

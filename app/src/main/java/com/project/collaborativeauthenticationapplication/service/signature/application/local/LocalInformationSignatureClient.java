@@ -2,6 +2,7 @@ package com.project.collaborativeauthenticationapplication.service.signature.app
 
 import android.content.Context;
 
+import com.project.collaborativeauthenticationapplication.alternative.network.Network;
 import com.project.collaborativeauthenticationapplication.logger.AndroidLogger;
 import com.project.collaborativeauthenticationapplication.service.crypto.AndroidSecretStorage;
 import com.project.collaborativeauthenticationapplication.service.crypto.BigNumber;
@@ -51,23 +52,23 @@ public class LocalInformationSignatureClient implements InformationSignatureClie
     }
 
     @Override
-    public void checkInformationAboutCredential(String applicationName, String login, DatabaseInformationRequester requester) {
+    public void checkInformationAboutCredential(String applicationName, DatabaseInformationRequester requester) {
         if (state == STATE_CLOSED){
             throw new IllegalStateException();
         }
-        List<String> participants = keyViewManager.getAllRemoteParticipantsFor(applicationName, login);
+        List<String> participants = keyViewManager.getAllRemoteParticipantsFor(applicationName);
         for(String participant: participants){
-            int number = keyViewManager.getNumberOfRemoteSecretsFor(participant, applicationName, login);
+            int number = keyViewManager.getNumberOfRemoteSecretsFor(participant, applicationName);
             requester.setNumberOfRemoteKeysForRemoteParticipant(participant, number);
         }
-        requester.setNumberOfLocalKeys(keyViewManager.getNumberOfLocalKeys(applicationName, login));
-        requester.setThreshold(keyViewManager.getThreshold(applicationName, login));
+        requester.setNumberOfLocalKeys(keyViewManager.getNumberOfLocalKeys(applicationName));
+        requester.setThreshold(keyViewManager.getThreshold(applicationName));
         requester.signalJobDone();
     }
 
     @Override
-    public void checkIfEnoughLocalShares(int numberOfShares, String applicationName, String login, FeedbackRequester requester) {
-        boolean result =  keyViewManager.getNumberOfLocalKeys(applicationName, login) >= numberOfShares;
+    public void checkIfEnoughLocalShares(int numberOfShares, String applicationName, FeedbackRequester requester) {
+        boolean result =  keyViewManager.getNumberOfLocalKeys(applicationName) >= numberOfShares;
         requester.setResult(result);
         requester.signalJobDone();
     }
@@ -108,15 +109,14 @@ public class LocalInformationSignatureClient implements InformationSignatureClie
 
     @Override
     public void sign(SignatureTask task) {
-        String localAddress = CustomCommunication.getInstance().getLocalAddress();
+        String localAddress = Network.getInstance().getLocalAddress();
         ArrayList<SortableParticipant> list = new ArrayList<>();
         HashMap<String, ArrayList<Point>>  eCommitment = task.getCommitmentsE();
         HashMap<String, ArrayList<Point>>  dCommitment = task.getCommitmentsD();
         String applicationName = task.getApplicationName();
-        String login = task.getLogin();
-        String extra = applicationName + "," + login;
+        String extra = applicationName ;
         logger.logEvent("Local client", "looking for identifiers of ", "normal",  extra);
-        int localNumber = keyViewManager.getNumberOfLocalKeys(applicationName, login);
+        int localNumber = keyViewManager.getNumberOfLocalKeys(applicationName);
         logger.logEvent("Local client", "has a number of local keys ", "normal", String.valueOf(localNumber));
         for (String address : dCommitment.keySet()){
             boolean isLocal;
@@ -124,10 +124,10 @@ public class LocalInformationSignatureClient implements InformationSignatureClie
             logger.logEvent("Local client", "looking for identifiers of ", "normal", address);
             if (address.equals(localAddress) || address.equals("here")){
                 isLocal = true;
-                identifiers = keyViewManager.getAllLocalIdentifiers(applicationName, login);
+                identifiers = keyViewManager.getAllLocalIdentifiers(applicationName);
             } else {
                 isLocal = false;
-                identifiers = keyViewManager.getAllRemoteIdentifiers(applicationName, login, address);
+                identifiers = keyViewManager.getAllRemoteIdentifiers(applicationName, address);
             }
              extra = address + "," + identifiers.length;
             logger.logEvent("Local client", "found a number of identifiers", "normal",  extra);
@@ -138,7 +138,7 @@ public class LocalInformationSignatureClient implements InformationSignatureClie
         ArrayList<Point> E =  new ArrayList<>();
         ArrayList<Point> D =  new ArrayList<>();
 
-        int[] identifiers = new int[keyViewManager.getThreshold(applicationName, login)];
+        int[] identifiers = new int[keyViewManager.getThreshold(applicationName)];
 
         int firstLocalIndex = 0;
         int localWeight     = 0;
@@ -165,7 +165,7 @@ public class LocalInformationSignatureClient implements InformationSignatureClie
         try{
             signatureProcessor.receiveAllRandomness(E, D);
             for (int identifier: localParticipant.getSubsetOfIdentifiers(localWeight)){
-                BigNumber secret = storage.getSecrets(applicationName, login, identifier);
+                BigNumber secret = storage.getSecrets(applicationName, identifier);
                 shares.add(secret);
             }
             signatureProcessor.receiveShares(shares);

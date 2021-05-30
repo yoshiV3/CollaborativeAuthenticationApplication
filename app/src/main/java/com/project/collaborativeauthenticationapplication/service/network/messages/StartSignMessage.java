@@ -2,13 +2,11 @@ package com.project.collaborativeauthenticationapplication.service.network.messa
 
 public class StartSignMessage extends AbstractMessage{
     private final String name;
-    private final String login;
     private final int number;
 
     private final String localAddress;
-    public StartSignMessage(String name, String login, int number, String localAddress){
+    public StartSignMessage(String name, int number, String localAddress){
         this.name = name;
-        this.login = login;
         this.number = number;
         this.localAddress = localAddress;
     }
@@ -17,9 +15,6 @@ public class StartSignMessage extends AbstractMessage{
         return localAddress;
     }
 
-    public String getLogin() {
-        return login;
-    }
 
     public String getName() {
         return name;

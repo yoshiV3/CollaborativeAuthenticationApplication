@@ -15,7 +15,7 @@ public interface KeyGenerationCoordinator extends ServiceHandler {
 
     void submitGeneratedParts(ArrayList<BigNumber> parts, Point publicKey);
 
-    void submitLoginDetails(String login, String application);
+    void submitLoginDetails(String application);
 
     void submitSelection(List<Participant> selection);
 

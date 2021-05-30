@@ -9,12 +9,12 @@ public interface SignaturePresenter extends SecretOverviewAdapterPresenter {
     void onErrorSignature(String message);
 
     String  getApplicationName();
-    String  getLogin();
+
 
     void onFinishSignature();
     void onFinishVerification();
 
-    void onCredentialSelectedForSignature(String applicationName, String login);
+    void onCredentialSelectedForSignature(String applicationName);
 
     void onComputeSignature(Requester requester);
 

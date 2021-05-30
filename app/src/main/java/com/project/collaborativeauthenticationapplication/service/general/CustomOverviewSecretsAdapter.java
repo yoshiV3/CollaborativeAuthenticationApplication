@@ -61,19 +61,16 @@ public class CustomOverviewSecretsAdapter extends ItemListAdapter<CustomOverview
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         ApplicationLoginEntity entity = getItemsInternalCopy().get(position);
         holder.getTextViewApplicationName().setText(entity.applicationName);
-        holder.getTextViewLogin().setText(entity.login);
 
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder
     {
         private  final TextView textViewApplicationName;
-        private  final TextView textViewLogin;
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
 
             this.textViewApplicationName = (TextView) itemView.findViewById(R.id.application_name_credential);
-            this.textViewLogin = (TextView) itemView.findViewById(R.id.login_credential);
         }
 
         public TextView getTextViewApplicationName()
@@ -81,9 +78,6 @@ public class CustomOverviewSecretsAdapter extends ItemListAdapter<CustomOverview
             return this.textViewApplicationName;
         }
 
-        public TextView getTextViewLogin() {
-            return textViewLogin;
-        }
 
     }
 }

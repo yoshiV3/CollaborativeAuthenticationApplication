@@ -17,7 +17,10 @@ public class MessageEncoder {
 
 
 
-    private Logger logger = new AndroidLogger();
+
+
+    private static final String COMPONENT_NAME    = "encoder";
+    private static final Logger logger            = new AndroidLogger();
 
 
     public static final byte MAIN_STRING_TYPE  = 1;
@@ -27,6 +30,10 @@ public class MessageEncoder {
     public static final byte POINT_TYPE        = 5;
     public static final byte COMMITMENTS       = 6;
     public static final byte NAMED_COMMITMENTS = 6;
+
+    public static final byte PREAMBLE_BEGIN        = 1;
+
+    public static final byte PREAMBLE_CON          = 2;
 
 
 
@@ -115,13 +122,18 @@ public class MessageEncoder {
         }
         byte[] message = new byte[2]; //four bytes for integer, one for type
         message[0]     = INT_PARAM_TYPE;
+        byte identifierB = getByteFromInt(identifier);
+        message[1] = identifierB;
+        table.put(new Integer(totalLength), message);
+        totalLength += 1;
+    }
+
+    private byte getByteFromInt(int identifier) {
         int identifierB    = identifier -1;
         if (identifierB > 127){
             identifierB = identifierB - 256;
         }
-        message[1] = (byte) identifierB;
-        table.put(new Integer(totalLength), message);
-        totalLength += 1;
+        return (byte) identifierB;
     }
 
     public byte[] build(){
@@ -129,13 +141,45 @@ public class MessageEncoder {
         for(byte[] arr : table.values()){
             length += arr.length;
         }
-        byte[] message = new byte[length];
-        int index = 0;
+        logger.logEvent(COMPONENT_NAME, "encode bytes (length)", "low", String.valueOf(length));
+        logger.logEvent(COMPONENT_NAME, "encode parts (total length)", "low", String.valueOf(totalLength));
+        int numberOfParts = (int) Math.ceil(((double)length)/(256.0)) ;
+        logger.logEvent(COMPONENT_NAME, "encode pieces", "low", String.valueOf(numberOfParts));
+        byte[] message = new byte[length+2*numberOfParts];
+        message[0] = PREAMBLE_BEGIN;
+        int index = 2;
+        int currentSizeIndex = 1;
+        int doneLength = 0;
         for(int i= 0; i < totalLength; i++){
             byte[] part = table.getOrDefault(new Integer(i), null);
             int l = part.length;
-            System.arraycopy(part,   0, message, index, l);
-            index += l;
+            logger.logEvent(COMPONENT_NAME, "encode part length", "low", String.valueOf(l));
+            logger.logEvent(COMPONENT_NAME, "encode part index", "low", String.valueOf(index));
+            logger.logEvent(COMPONENT_NAME, "done before", "low", String.valueOf(doneLength));
+            int doneLengthNew = doneLength + l;
+            logger.logEvent(COMPONENT_NAME, "new done length", "low", String.valueOf(doneLengthNew));
+            int internal = 0;
+            while (doneLengthNew > 256){
+                logger.logEvent(COMPONENT_NAME, "loop: higher than 256", "low", String.valueOf(l));
+                message[currentSizeIndex] = getByteFromInt(256);
+                System.arraycopy(part,   internal, message, index, 256-doneLength);
+                int basis = index + 256 - doneLength;
+                internal = 256-doneLength;
+                logger.logEvent(COMPONENT_NAME, "internal", "low", String.valueOf(internal));
+                index = basis +2;
+                message[basis] = PREAMBLE_CON;
+                currentSizeIndex = basis+1;
+                doneLengthNew = doneLengthNew - 256;
+                doneLength    = 0;
+            }
+            int size = doneLengthNew-doneLength;
+            logger.logEvent(COMPONENT_NAME, "size", "low", String.valueOf(size));
+            message[currentSizeIndex] = getByteFromInt(doneLengthNew);
+            logger.logEvent(COMPONENT_NAME, "current size index", "low", String.valueOf(currentSizeIndex));
+            System.arraycopy(part,   internal, message, index, size);
+            logger.logEvent(COMPONENT_NAME, "internal", "low", String.valueOf(internal));
+            index += size;
+            doneLength = doneLengthNew;
         }
         table.clear();
         totalLength = 0;
@@ -161,7 +205,6 @@ public class MessageEncoder {
     public byte[] makeInvitationMessage(KeyGenerationSession session, int recipientIdentifier){
         addHeaderField(MessageParser.INVITATION_MESSAGE_CODE);
         addString(session.getApplicationName());
-        addString(session.getLogin());
         addNonZeroByteParameter(session.getThreshold());
         addNonZeroByteParameter(session.getTotalWeight());
         List<IdentifiedParticipant> participants = session.getRemoteParticipantList();
@@ -194,11 +237,10 @@ public class MessageEncoder {
         return build();
     }
 
-    public byte[] makeStartSignMessage(String applicationName, String login, int numberToRequest, String localAddress){
+    public byte[] makeStartSignMessage(String applicationName,  int numberToRequest, String localAddress){
         addHeaderField(MessageParser.START_SIGN_CODE);
         addString(localAddress);
         addString(applicationName);
-        addString(login);
         addNonZeroByteParameter(numberToRequest);
         return build();
     }

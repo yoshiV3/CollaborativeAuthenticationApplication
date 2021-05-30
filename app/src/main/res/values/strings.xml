@@ -62,4 +62,6 @@
     <string name="text_signature">Sign</string>
     <string name="some_error_occurred">Some error occurred</string>
     <string name="finish">Finish</string>
+    <string name="leader">Leader</string>
+    <string name="follwer">Follwer</string>
 </resources>

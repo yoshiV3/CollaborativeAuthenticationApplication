@@ -1,6 +1,8 @@
 package com.project.collaborativeauthenticationapplication.service.signature.application.distributed;
 import android.content.Context;
 
+import com.project.collaborativeauthenticationapplication.alternative.network.AndroidConnection;
+import com.project.collaborativeauthenticationapplication.alternative.network.Network;
 import com.project.collaborativeauthenticationapplication.logger.AndroidLogger;
 import com.project.collaborativeauthenticationapplication.service.controller.CustomServiceMonitor;
 import com.project.collaborativeauthenticationapplication.service.crypto.BigNumber;
@@ -10,9 +12,9 @@ import com.project.collaborativeauthenticationapplication.service.general.Illega
 import com.project.collaborativeauthenticationapplication.service.general.Requester;
 import com.project.collaborativeauthenticationapplication.service.general.ServiceStateException;
 import com.project.collaborativeauthenticationapplication.service.general.Task;
-import com.project.collaborativeauthenticationapplication.service.network.Communication;
 import com.project.collaborativeauthenticationapplication.service.network.ConnectionRequester;
 import com.project.collaborativeauthenticationapplication.service.network.CustomCommunication;
+import com.project.collaborativeauthenticationapplication.service.network.messages.MessageEncoder;
 import com.project.collaborativeauthenticationapplication.service.signature.SignaturePresenter;
 import com.project.collaborativeauthenticationapplication.service.signature.application.SignatureClient;
 import com.project.collaborativeauthenticationapplication.service.signature.application.ThreadedSignatureClient;
@@ -37,6 +39,8 @@ public class LocalSignatureCoordinator extends AbstractSignatureCoordinator {
         void setCode(Runnable code);
     }
 
+
+    private final MessageEncoder encoder = new MessageEncoder();
 
     HashMap<String, Integer> remotes = new HashMap<>();
 
@@ -166,7 +170,7 @@ public class LocalSignatureCoordinator extends AbstractSignatureCoordinator {
             }
         };
         setOriginalTask(task);
-        getClient().checkInformationAboutCredential(task.getApplicationName(), task.getLogin(), databaseInformationRequester);
+        getClient().checkInformationAboutCredential(task.getApplicationName(), databaseInformationRequester);
 
     }
 
@@ -192,7 +196,7 @@ public class LocalSignatureCoordinator extends AbstractSignatureCoordinator {
 
             availableRemotes.clear();
 
-            Communication communication = CustomCommunication.getInstance();
+            Network communication = Network.getInstance();
 
             SignatureCoordinator coordinator = this;
 
@@ -209,22 +213,35 @@ public class LocalSignatureCoordinator extends AbstractSignatureCoordinator {
                     int stillNeeded = numberToRequestRemote;
                     try {
                         for (String address : availableRemotes){
-                            Integer number = remotes.getOrDefault(address, 0);
-                            SignatureClient client;
-                            if (number >=  stillNeeded){
-                                client = new RemoteSignatureClient( coordinator, address);
-                                requestedNumberOfShares.put(address, new Integer(stillNeeded));
-                                stillNeeded = 0;
+                            if (stillNeeded != 0) {
+                                Integer number = remotes.getOrDefault(address, 0);
+                                SignatureClient client;
+                                if (number >= stillNeeded) {
+                                    client = new RemoteSignatureClient(coordinator, address);
+                                    requestedNumberOfShares.put(address, Integer.valueOf(stillNeeded));
+                                    stillNeeded = 0;
 
+                                } else {
+                                    stillNeeded = stillNeeded - number;
+                                    client = new RemoteSignatureClient(coordinator, address);
+                                    requestedNumberOfShares.put(address, Integer.valueOf(number));
+                                }
+                                clients.add(new ThreadedSignatureClient(client));
                             } else {
-                                stillNeeded = stillNeeded - number;
-                                client = new RemoteSignatureClient( coordinator, address);
-                                requestedNumberOfShares.put(address, new Integer(number));
+                               AndroidConnection con = Network.getInstance().getConnectionWith(address);
+                               byte[] mes =  encoder.makeAbortMessage("computation does not need you", address);
+                               con.writeToConnection(mes);
+                               con.pushForFinal();
                             }
-                            clients.add(new ThreadedSignatureClient(client));
                         }
                         if (stillNeeded != 0){
-                            communication.closeAllConnections();
+                            logger.logError(COMPONENT, "not enough shares", "low");
+                            for (String address : availableRemotes){
+                                AndroidConnection con = Network.getInstance().getConnectionWith(address);
+                                byte[] mes =  encoder.makeAbortMessage("computation does not need you", address);
+                                con.writeToConnection(mes);
+                                con.pushForFinal();
+                            }
                             presenter.onErrorSignature("Not enough shares available");
                         } else {
                             logger.logEvent(COMPONENT, "enough shares: proceeding", "normal");
@@ -235,7 +252,7 @@ public class LocalSignatureCoordinator extends AbstractSignatureCoordinator {
                     }
                 }
             };
-            communication.establishConnectionsWith(remotes.keySet(), requester);
+            communication.establishConnectionsWithInTopologyOne(remotes.keySet(), requester);
         }
     }
 
@@ -246,7 +263,7 @@ public class LocalSignatureCoordinator extends AbstractSignatureCoordinator {
         logger.logEvent(COMPONENT, "abort", "high");
         if (getState() != STATE_ERROR){
             presenter.onErrorSignature("One of the devices aborted the computation");
-            CustomCommunication.getInstance().closeAllConnections();
+            Network.getInstance().closeAllConnections();
             setState(STATE_ERROR);
         }
     }

@@ -1,4 +1,4 @@
-package com.project.collaborativeauthenticationapplication.service.key;
+package com.project.collaborativeauthenticationapplication.alternative.key;
 
 import com.project.collaborativeauthenticationapplication.service.general.Token;
 

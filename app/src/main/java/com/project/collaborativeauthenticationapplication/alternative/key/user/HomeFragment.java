@@ -1,4 +1,4 @@
-package com.project.collaborativeauthenticationapplication.service.key.user.key_generation;
+package com.project.collaborativeauthenticationapplication.alternative.key.user;
 
 import android.os.Bundle;
 
@@ -13,8 +13,8 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import com.project.collaborativeauthenticationapplication.R;
-import com.project.collaborativeauthenticationapplication.service.key.CustomKeyGenerationPresenter;
-import com.project.collaborativeauthenticationapplication.service.key.KeyGenerationPresenter;
+import com.project.collaborativeauthenticationapplication.alternative.key.CustomKeyGenerationPresenter;
+import com.project.collaborativeauthenticationapplication.alternative.key.KeyGenerationPresenter;
 
 
 public class HomeFragment extends Fragment {
@@ -40,7 +40,6 @@ public class HomeFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        EditText loginEditor   = view.findViewById(R.id.edit_login);
         EditText appEditor     = view.findViewById(R.id.edit_application_name);
 
         Button submit = view.findViewById(R.id.button_submit_login_details);
@@ -49,8 +48,6 @@ public class HomeFragment extends Fragment {
             public void onClick(View v) {
                 String newApplication = ((EditText) appEditor ).getText().toString();
                 CustomKeyGenerationPresenter.getInstance().setMessage(DistributedKeyGenerationActivity.KEY_APPLICATION_NAME, newApplication);
-                String newLogin = ((EditText) loginEditor).getText().toString();
-                CustomKeyGenerationPresenter.getInstance().setMessage(DistributedKeyGenerationActivity.KEY_LOGIN, newLogin);
                 CustomKeyGenerationPresenter.getInstance().submitLoginDetails();
             }
         });
@@ -63,14 +60,13 @@ public class HomeFragment extends Fragment {
     @Override
     public void onStart() {
         KeyGenerationPresenter presenter = CustomKeyGenerationPresenter.getInstance();
-        String login           = presenter.getMessage(DistributedKeyGenerationActivity.KEY_LOGIN);
         String application     = presenter.getMessage(DistributedKeyGenerationActivity.KEY_APPLICATION_NAME);
 
-        EditText loginEditor   = getView().findViewById(R.id.edit_login);
         EditText appEditor     = getView().findViewById(R.id.edit_application_name);
 
-        loginEditor.setText(login);
         appEditor.setText(application);
+
+        presenter.openCoordinator();
 
 
         super.onStart();

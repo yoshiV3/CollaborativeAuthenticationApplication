@@ -10,7 +10,7 @@ import com.project.collaborativeauthenticationapplication.service.general.Illega
 import com.project.collaborativeauthenticationapplication.service.crypto.AndroidSecretStorage;
 import com.project.collaborativeauthenticationapplication.service.crypto.BigNumber;
 import com.project.collaborativeauthenticationapplication.service.crypto.SecureStorageException;
-import com.project.collaborativeauthenticationapplication.service.key.KeyToken;
+import com.project.collaborativeauthenticationapplication.alternative.key.KeyToken;
 import com.project.collaborativeauthenticationapplication.service.key.application.KeyPersistenceManager;
 
 

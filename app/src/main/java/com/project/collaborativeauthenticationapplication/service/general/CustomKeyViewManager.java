@@ -50,6 +50,19 @@ public class CustomKeyViewManager {
         return allRemoteParticipants;
     }
 
+    public List<String> getAllRemoteParticipantsFor(String applicationName){
+        ApplicationLoginParticipantDao   applicationLoginParticipantDao     = db.getApplicationLoginParticipantDao();
+        List<ApplicationLoginParticipantJoin> entities = applicationLoginParticipantDao.getAllInformation(applicationName);
+
+        ArrayList<String>  allRemoteParticipants = new ArrayList<>();
+        for(ApplicationLoginParticipantJoin join : entities){
+            allRemoteParticipants.add(join.participantId);
+        }
+        return allRemoteParticipants;
+    }
+
+
+
     public Point getPublicKeyForCredential(String application, String login){
         ApplicationLoginDao applicationLoginDao     = db.getApplicationLoginDao();
         List<ApplicationLoginEntity> applicationLoginEntities = applicationLoginDao.getApplicationWithNameAndLogin(application, login);
@@ -61,6 +74,36 @@ public class CustomKeyViewManager {
         return publicKey;
 
     }
+
+
+
+    public Point getPublicKeyForCredential(String application){
+        ApplicationLoginDao applicationLoginDao     = db.getApplicationLoginDao();
+        List<ApplicationLoginEntity> applicationLoginEntities = applicationLoginDao.getApplicationsWithApplication(application);
+        ApplicationLoginEntity entity = applicationLoginEntities.get(0);
+        String publicKeyX = entity.publicKeyX;
+        String publicKeyY = entity.publicKeyY;
+        Point publicKey = new Point(new BigNumber(publicKeyX.getBytes(StandardCharsets.ISO_8859_1)),
+                new BigNumber(publicKeyY.getBytes(StandardCharsets.ISO_8859_1)), entity.publicKeyIsZero);
+        return publicKey;
+
+    }
+
+    public int getNumberOfLocalKeys(String applicationName){
+        SecretDao           secretDao               = db.getSecretDao();
+        ApplicationLoginDao applicationLoginDao     = db.getApplicationLoginDao();
+
+
+        List<ApplicationLoginEntity> applicationLoginEntities = applicationLoginDao.getApplicationsWithApplication(applicationName);
+        if (applicationLoginEntities.size()==0){
+            return 0;
+        }
+        long applicationLoginId = applicationLoginEntities.get(0).applicationLoginId;
+        List<LocalSecretEntity> secretEntities = secretDao.getAllSecretsForApplicationLogin(applicationLoginId);
+        return secretEntities.size();
+    }
+
+
 
     public int getNumberOfLocalKeys(String applicationName, String login){
         SecretDao           secretDao               = db.getSecretDao();
@@ -76,7 +119,6 @@ public class CustomKeyViewManager {
         return secretEntities.size();
     }
 
-
     public int[] getAllRemoteIdentifiers(String applicationName, String login, String address){
         ApplicationLoginDao applicationLoginDao     = db.getApplicationLoginDao();
         RemoteDao           remoteDao               = db.getRemoteDao();
@@ -91,10 +133,42 @@ public class CustomKeyViewManager {
     }
 
 
+    public int[] getAllRemoteIdentifiers(String applicationName, String address){
+        ApplicationLoginDao applicationLoginDao     = db.getApplicationLoginDao();
+        RemoteDao           remoteDao               = db.getRemoteDao();
+        List<ApplicationLoginEntity> applicationLoginEntities = applicationLoginDao.getApplicationsWithApplication(applicationName);
+        List<RemoteSecretEntity>  secrets           =  remoteDao.getRemoteSecretsFor(applicationLoginEntities.get(0).applicationLoginId, address);
+        int size = secrets.size();
+        int[] result =new int[size];
+        for (int i = 0; i < size; i++){
+            result[i] = secrets.get(i).identifier;
+        }
+        return result;
+    }
+
+
     public int[] getAllLocalIdentifiers(String applicationName, String login){
         SecretDao           secretDao               = db.getSecretDao();
         ApplicationLoginDao applicationLoginDao     = db.getApplicationLoginDao();
         List<ApplicationLoginEntity> applicationLoginEntities = applicationLoginDao.getApplicationWithNameAndLogin(applicationName, login);
+        if (applicationLoginEntities.size()==0){
+            throw new IllegalArgumentException();
+        }
+        long applicationLoginId = applicationLoginEntities.get(0).applicationLoginId;
+        List<LocalSecretEntity> secretEntities = secretDao.getAllSecretsForApplicationLogin(applicationLoginId);
+        int s = secretEntities.size();
+        int[] result = new int[s];
+        for (int i = 0; i < s; i++){
+            result[i] = secretEntities.get(i).identifier;
+        }
+        return result;
+    }
+
+
+    public int[] getAllLocalIdentifiers(String applicationName){
+        SecretDao           secretDao               = db.getSecretDao();
+        ApplicationLoginDao applicationLoginDao     = db.getApplicationLoginDao();
+        List<ApplicationLoginEntity> applicationLoginEntities = applicationLoginDao.getApplicationsWithApplication(applicationName);
         if (applicationLoginEntities.size()==0){
             throw new IllegalArgumentException();
         }
@@ -124,6 +198,24 @@ public class CustomKeyViewManager {
         return identifiers;
     }
 
+    public int[] getLocalIdentifiers(String applicationName, int numberOfShares){
+        int[] identifiers = new int[numberOfShares];
+        SecretDao           secretDao               = db.getSecretDao();
+        ApplicationLoginDao applicationLoginDao     = db.getApplicationLoginDao();
+        List<ApplicationLoginEntity> applicationLoginEntities = applicationLoginDao.getApplicationsWithApplication(applicationName);
+        if (applicationLoginEntities.size()==0){
+            throw new IllegalArgumentException();
+        }
+        long applicationLoginId = applicationLoginEntities.get(0).applicationLoginId;
+        List<LocalSecretEntity> secretEntities = secretDao.getAllSecretsForApplicationLogin(applicationLoginId);
+        for (int i = 0; i < numberOfShares; i++){
+            identifiers[i] = secretEntities.get(i).identifier;
+        }
+        return identifiers;
+    }
+
+
+
     public int getNumberOfRemoteSecretsFor(String participant, String applicationName, String login){
         ApplicationLoginDao applicationLoginDao     = db.getApplicationLoginDao();
         RemoteDao           remoteDao               = db.getRemoteDao();
@@ -144,6 +236,43 @@ public class CustomKeyViewManager {
 
 
         List<ApplicationLoginParticipantJoin> entities = applicationLoginParticipantDao.getAllInformation(applicationName, login);
+        int total = 0;
+        for (ApplicationLoginParticipantJoin join : entities){
+            List<RemoteSecretEntity>  secrets =  remoteDao.getRemoteSecretsFor(join.applicationLoginId, join.participantId);
+            total += secrets.size();
+        }
+        return total;
+    }
+
+
+    public int getNumberOfRemoteParticipants(String applicationName){
+        ApplicationLoginParticipantDao   applicationLoginParticipantDao     = db.getApplicationLoginParticipantDao();
+        List<ApplicationLoginParticipantJoin> entities = applicationLoginParticipantDao.getAllInformation(applicationName);
+        return entities.size();
+    }
+
+
+
+    public int getNumberOfRemoteSecretsFor(String participant, String applicationName){
+        ApplicationLoginDao applicationLoginDao     = db.getApplicationLoginDao();
+        RemoteDao           remoteDao               = db.getRemoteDao();
+        List<ApplicationLoginEntity> applicationLoginEntities = applicationLoginDao.getApplicationsWithApplication(applicationName);
+        List<RemoteSecretEntity>  secrets           =  remoteDao.getRemoteSecretsFor(applicationLoginEntities.get(0).applicationLoginId, participant);
+        return secrets.size();
+    }
+
+    public int getThreshold(String applicationName){
+        ApplicationLoginDao applicationLoginDao     = db.getApplicationLoginDao();
+        List<ApplicationLoginEntity> applicationLoginEntities = applicationLoginDao.getApplicationsWithApplication(applicationName);
+        return applicationLoginEntities.get(0).threshold;
+    }
+
+    public int getNumberOfRemoteKeys(String applicationName){
+        ApplicationLoginParticipantDao   applicationLoginParticipantDao     = db.getApplicationLoginParticipantDao();
+        RemoteDao                        remoteDao                          = db.getRemoteDao();
+
+
+        List<ApplicationLoginParticipantJoin> entities = applicationLoginParticipantDao.getAllInformation(applicationName);
         int total = 0;
         for (ApplicationLoginParticipantJoin join : entities){
             List<RemoteSecretEntity>  secrets =  remoteDao.getRemoteSecretsFor(join.applicationLoginId, join.participantId);

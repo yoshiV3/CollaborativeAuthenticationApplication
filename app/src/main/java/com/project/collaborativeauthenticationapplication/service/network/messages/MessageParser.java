@@ -1,5 +1,7 @@
 package com.project.collaborativeauthenticationapplication.service.network.messages;
 
+import com.project.collaborativeauthenticationapplication.logger.AndroidLogger;
+import com.project.collaborativeauthenticationapplication.logger.Logger;
 import com.project.collaborativeauthenticationapplication.service.crypto.BigNumber;
 import com.project.collaborativeauthenticationapplication.service.crypto.Point;
 import com.project.collaborativeauthenticationapplication.service.general.IdentifiedParticipant;
@@ -17,6 +19,10 @@ public class MessageParser {
     private int index = 0;
 
 
+    private static final String COMPONENT_NAME    = "Parser";
+    private static final Logger logger            = new AndroidLogger();
+
+
     public static final byte INVITATION_MESSAGE_CODE = 1;
     public static final byte ABORT_MESSAGE_CODE      = 2;
     public static final byte CONN_MESSAGE_CODE       = 3;
@@ -29,7 +35,8 @@ public class MessageParser {
 
 
     public AbstractMessage parse(byte[] message){
-        byte type = message[0];
+        logger.logEvent(COMPONENT_NAME, "received message", "low", String.valueOf(message.length));
+        byte type = message[1];
         switch (type){
             case INVITATION_MESSAGE_CODE:
                 return parseInvitationMessage(message);
@@ -55,13 +62,15 @@ public class MessageParser {
     }
 
     private AbstractMessage parseSignatureMessage(byte[] message) {
-        index = 1;
+        index = 2;
         BigNumber sig = parseBigNumber(message);
+        logger.logEvent(COMPONENT_NAME, "received message", "low", String.valueOf(index));
+        index = 0;
         return new SignatureMessage(sig);
     }
 
     private AbstractMessage parseSignPublishMessage(byte[] message) {
-        index = 1;
+        index = 2;
         HashMap<String, ArrayList<Point>> commitmentsE = new HashMap<>();
         HashMap<String, ArrayList<Point>> commitmentsD = new HashMap<>();
         BigNumber mes = parseBigNumber(message);
@@ -69,6 +78,8 @@ public class MessageParser {
         for (int i = 0; i < length; i++){
             parseNamedCommitment(message, commitmentsE, commitmentsD);
         }
+        logger.logEvent(COMPONENT_NAME, "received message", "low", String.valueOf(index));
+        index = 0;
         return new SignPublishMessage(commitmentsE, commitmentsD, mes);
     }
 
@@ -83,24 +94,27 @@ public class MessageParser {
     }
 
     private AbstractMessage parseSignCommitMessage(byte[] message) {
-        index = 1;
+        index = 2;
         String address = parseString(message);
         ArrayList<Point> e = parseCommitments(message);
         ArrayList<Point> d = parseCommitments(message);
+        logger.logEvent(COMPONENT_NAME, "received message", "low", String.valueOf(index));
+        index = 0;
         return new SignCommitmentMessage(e, d, address);
     }
 
     private AbstractMessage parseStartSignMessage(byte[] message) {
-        index = 1;
+        index = 2;
         String address = parseString(message);
         String name   = parseString(message);
-        String login  = parseString(message);
         int   number  = parseNonZeroIntegerParameter(message);
-        return new StartSignMessage(name, login, number, address);
+        logger.logEvent(COMPONENT_NAME, "received message", "low", String.valueOf(index));
+        index = 0;
+        return new StartSignMessage(name, number, address);
     }
 
     private AbstractMessage parseCommitMessage(byte[] message) {
-        index  = 1;
+        index = 2;
         if(parseBoolean(message)){
             return new YesMessage();
         } else {
@@ -110,41 +124,44 @@ public class MessageParser {
     }
 
     private AbstractMessage parsePartsMessage(byte[] message) {
-        index       = 1;
+        index = 2;
         int  weight = parseNonZeroIntegerParameter(message);
         ArrayList<BigNumber> parts = parseBigNumberList(message, weight);
         Point publicKey  = parsePoint(message);
+        logger.logEvent(COMPONENT_NAME, "received message", "low", String.valueOf(index));
         index = 0;
         return new PartsMessage(parts, publicKey);
     }
 
     private AbstractMessage parseConnectMessage(byte[] message) {
-        index = 1;
+        index = 2;
         String applicationName = parseString(message);
         String login           = parseString(message);
+        logger.logEvent(COMPONENT_NAME, "received message", "low", String.valueOf(index));
         index = 0;
-        return new AbortMessage(applicationName, login);
+        return new ConnectMessage(applicationName, login);
     }
 
     private AbstractMessage parseAbortMessage(byte[] message) {
-        index = 1;
+        index = 2;
         String applicationName = parseString(message);
         String login           = parseString(message);
+        logger.logEvent(COMPONENT_NAME, "received message", "low", String.valueOf(index));
         index = 0;
-        return new ConnectMessage(applicationName, login);
+        return new AbortMessage(applicationName, login);
 
     }
 
     private AbstractMessage parseInvitationMessage(byte[] message) {
-        index = 1;
+        index = 2;
         String applicationName = parseString(message);
-        String login           = parseString(message);
         int    threshold       = parseNonZeroIntegerParameter(message);
         int    totalWeight     = parseNonZeroIntegerParameter(message);
         int    numberOfParticipants = parseNonZeroIntegerParameter(message);
         ArrayList<IdentifiedParticipant> participants = parseParticipants(totalWeight, numberOfParticipants, message);
+        logger.logEvent(COMPONENT_NAME, "received message", "low", String.valueOf(index));
         index = 0;
-        return new InvitationMessage(applicationName, login, threshold, totalWeight, numberOfParticipants, participants);
+        return new InvitationMessage(applicationName, threshold, totalWeight, numberOfParticipants, participants);
     }
 
     private int byteToInt(byte b){

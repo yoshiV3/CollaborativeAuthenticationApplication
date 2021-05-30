@@ -51,12 +51,7 @@ public class ThreadedKeyGenerationClient implements KeyGenerationClient {
 
     @Override
     public void close(boolean success) {
-        ThreadPoolSupplier.getSupplier().execute(new Runnable() {
-            @Override
-            public void run() {
-                client.close(success);
-            }
-        });
+        client.close(success);
     }
 
     @Override

@@ -18,8 +18,8 @@ public class CustomVerificationClient implements VerificationClient {
     CustomKeyViewManager keyViewManager = new CustomKeyViewManager();
     CryptoVerificationProcessor verificationProcessor =new CryptoVerificationProcessor();
     @Override
-    public void verify(BigNumber signature, BigNumber hash, BigNumber message, String applicationName, String login, FeedbackRequester requester) {
-        Point publicKey = keyViewManager.getPublicKeyForCredential(applicationName, login);
+    public void verify(BigNumber signature, BigNumber hash, BigNumber message, String applicationName,  FeedbackRequester requester) {
+        Point publicKey = keyViewManager.getPublicKeyForCredential(applicationName);
         ArrayList<BigNumber> signatureArr = new ArrayList<BigNumber>();
         signatureArr.add(signature);
         signatureArr.add(hash);

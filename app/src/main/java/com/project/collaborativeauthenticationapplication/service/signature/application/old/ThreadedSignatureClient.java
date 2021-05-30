@@ -32,7 +32,7 @@ public class ThreadedSignatureClient implements SignatureClient{
     }
 
     @Override
-    public void checkInformationAboutCredential(String applicationLoginName, String login, DatabaseInformationRequester requester) {
+    public void checkInformationAboutCredential(String applicationLoginName, DatabaseInformationRequester requester) {
         if (client == null){
             throw new  IllegalStateException();
         }
@@ -40,7 +40,7 @@ public class ThreadedSignatureClient implements SignatureClient{
             Thread thread  = new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    client.checkInformationAboutCredential(applicationLoginName, login, requester);
+                    client.checkInformationAboutCredential(applicationLoginName, requester);
                 }
             });
             thread.start();

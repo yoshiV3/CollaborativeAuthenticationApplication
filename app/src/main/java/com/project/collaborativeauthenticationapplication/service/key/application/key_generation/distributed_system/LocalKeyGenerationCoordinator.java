@@ -2,8 +2,10 @@ package com.project.collaborativeauthenticationapplication.service.key.applicati
 
 import android.content.Context;
 
+import com.project.collaborativeauthenticationapplication.alternative.network.Network;
 import com.project.collaborativeauthenticationapplication.logger.AndroidLogger;
 import com.project.collaborativeauthenticationapplication.logger.Logger;
+import com.project.collaborativeauthenticationapplication.service.concurrency.ThreadPoolSupplier;
 import com.project.collaborativeauthenticationapplication.service.controller.CustomAuthenticationServiceController;
 import com.project.collaborativeauthenticationapplication.service.controller.CustomServiceMonitor;
 import com.project.collaborativeauthenticationapplication.service.crypto.BigNumber;
@@ -14,8 +16,8 @@ import com.project.collaborativeauthenticationapplication.service.general.Illega
 import com.project.collaborativeauthenticationapplication.service.general.IllegalUseOfClosedTokenException;
 import com.project.collaborativeauthenticationapplication.service.general.Participant;
 import com.project.collaborativeauthenticationapplication.service.general.ServiceStateException;
-import com.project.collaborativeauthenticationapplication.service.key.KeyGenerationPresenter;
-import com.project.collaborativeauthenticationapplication.service.key.KeyToken;
+import com.project.collaborativeauthenticationapplication.alternative.key.KeyGenerationPresenter;
+import com.project.collaborativeauthenticationapplication.alternative.key.KeyToken;
 import com.project.collaborativeauthenticationapplication.service.key.application.CustomTokenConsumer;
 import com.project.collaborativeauthenticationapplication.service.key.application.key_generation.KeyGenerationClient;
 import com.project.collaborativeauthenticationapplication.service.key.application.key_generation.ThreadedKeyGenerationClient;
@@ -25,12 +27,12 @@ import com.project.collaborativeauthenticationapplication.service.key.applicatio
 import com.project.collaborativeauthenticationapplication.service.key.application.key_generation.local_system.control.persistance.ThreadedKeyGenerationPersistenceClient;
 import com.project.collaborativeauthenticationapplication.service.key.application.key_generation.local_system.control.protocol.KeyGenerationSessionGenerator;
 import com.project.collaborativeauthenticationapplication.service.key.application.key_generation.local_system.control.protocol.LocalLogicalKeyGenerationClient;
-import com.project.collaborativeauthenticationapplication.service.key.user.key_generation.DistributedKeyGenerationActivity;
-import com.project.collaborativeauthenticationapplication.service.network.CustomCommunication;
+import com.project.collaborativeauthenticationapplication.alternative.key.user.DistributedKeyGenerationActivity;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class LocalKeyGenerationCoordinator extends CustomTokenConsumer implements KeyGenerationCoordinator {
 
@@ -106,6 +108,9 @@ public class LocalKeyGenerationCoordinator extends CustomTokenConsumer implement
     }
 
 
+    protected KeyGenerationPresenter getPresenter() {
+        return presenter;
+    }
 
     protected KeyGenerationPersistenceClient getPersistenceClient() {
         return persistenceClient;
@@ -130,7 +135,7 @@ public class LocalKeyGenerationCoordinator extends CustomTokenConsumer implement
 
     @Override
     public void open(Context context) {
-        CustomCommunication.getInstance().closeServiceServer(); // close server socket during key generation as coordinator
+
 
         logger.logEvent(COMPONENT, "new open request", "low");
         if (state != STATE_INIT)
@@ -152,18 +157,16 @@ public class LocalKeyGenerationCoordinator extends CustomTokenConsumer implement
                 handleServiceError();
             } catch (IllegalNumberOfTokensException e){
                 handleTokenError();
-            }finally {
-                presenter.SignalCoordinatorInNewState(state, STATE_INIT);
             }
         }
         else
         {
-            presenter.setMessage(DistributedKeyGenerationActivity.KEY_ERROR_MESSAGES, "Disabled");
+            throw new IllegalStateException();
         }
     }
 
     protected void handleTokenError() {
-        state = STATE_TOKEN_REVOKED;
+        state = STATE_ERROR;
         persistenceClient = null;
     }
 
@@ -192,7 +195,6 @@ public class LocalKeyGenerationCoordinator extends CustomTokenConsumer implement
     public void close() {
         int previousState = state;
         closeResourcesAtEnd();
-        presenter.SignalCoordinatorInNewState(state, previousState);
     }
 
     protected void closeResourcesAtEnd(){
@@ -202,6 +204,7 @@ public class LocalKeyGenerationCoordinator extends CustomTokenConsumer implement
         }
         clients           = null;
         persistenceClient = null;
+        //Network.getInstance().closeAllConnections();
         closeToken();
     }
 
@@ -226,19 +229,20 @@ public class LocalKeyGenerationCoordinator extends CustomTokenConsumer implement
         }
     }
 
+
+
     @Override
     public void abort() {
         basisAbort();
-        changeState(STATE_ERROR, state);
     }
 
     protected void basisAbort() {
         logger.logEvent(COMPONENT, "aborting key generation", "medium high");
-        for(KeyGenerationClient client: clients.values()){
-            client.abort();
-        }
+        Network.getInstance().closeAllConnections();
+        closeToken();
         if (state >= STATE_PERSIST){
             persistenceClient.rollback();
+            presenter.error();
             changeState(STATE_ERROR, state);
         }
     }
@@ -260,7 +264,7 @@ public class LocalKeyGenerationCoordinator extends CustomTokenConsumer implement
 
 
     @Override
-    public void submitLoginDetails(String login, String application) {
+    public void submitLoginDetails(String application) {
         logger.logEvent("Coordinator", "new details submitted", "low");
         if (state != STATE_START)
         {
@@ -268,7 +272,6 @@ public class LocalKeyGenerationCoordinator extends CustomTokenConsumer implement
         }
         if (token != null && !token.isClosed())
         {
-            setLogin(login);
             setApplicationName(application);
             FeedbackRequester requester = new FeedbackRequester() {
                 private boolean result;
@@ -282,18 +285,19 @@ public class LocalKeyGenerationCoordinator extends CustomTokenConsumer implement
                     logger.logEvent("Coordinator", "received results for credential check", "low", String.valueOf(result));
                     if (result){
                         state = STATE_DETAILS;
-                        presenter.SignalCoordinatorInNewState(state, STATE_START);
+                        presenter.successfulSubmission();
                     } else {
                         presenter.submitLoginDetailsUnsuccessful();
                     }
                 }
             };
-            persistenceClient.checkCredentials(requester, application, login);
+            logger.logEvent(COMPONENT, "checking credentials", "low");
+            persistenceClient.checkCredentials(requester, application);
         }
         else
         {
             state = STATE_TOKEN_REVOKED;
-            presenter.SignalCoordinatorInNewState(state, STATE_START);
+            presenter.error();
             logger.logEvent("Coordinator", "No active token", "low");
         }
     }
@@ -302,13 +306,10 @@ public class LocalKeyGenerationCoordinator extends CustomTokenConsumer implement
         details[INDEX_APPLICATION_NAME] = application;
     }
 
-    protected void setLogin(String login) {
-        details[INDEX_LOGIN]            = login;
-    }
 
     @Override
     public List<Participant> getOptions() {
-        return CustomCommunication.getInstance().getReachableParticipants();
+        return Network.getInstance().getReachableParticipants();
     }
 
     @Override
@@ -323,17 +324,19 @@ public class LocalKeyGenerationCoordinator extends CustomTokenConsumer implement
             {
                 commitToSelection(selection);
                 state = STATE_SELECT;
+                presenter.successfulSubmissionOfParameters();
             }
             else
             {
+                presenter.error();
                 state = STATE_BAD_INP_SEL;
             }
         }
         else
         {
+            presenter.error();
             state = STATE_TOKEN_REVOKED;
         }
-        presenter.SignalCoordinatorInNewState(state, STATE_DETAILS);
     }
 
     protected void commitToSelection(List<Participant> selection) {
@@ -374,7 +377,7 @@ public class LocalKeyGenerationCoordinator extends CustomTokenConsumer implement
 
     @Override
     public synchronized  void persisted() {
-        basisPeristed();
+        basisPersisted();
         numberOfVotes += 1;
             if(result && numberOfVotes == requiredNumberOfVotes){
                 done();
@@ -383,7 +386,7 @@ public class LocalKeyGenerationCoordinator extends CustomTokenConsumer implement
             }
     }
 
-    protected void basisPeristed() {
+    protected void basisPersisted() {
         changeState(STATE_PERSIST, state);
         logger.logEvent(COMPONENT, "temporally persisted the data at a participant", "low");
     }
@@ -402,6 +405,7 @@ public class LocalKeyGenerationCoordinator extends CustomTokenConsumer implement
     protected void generateSession() {
         session  = sessionGenerator.generateSession(selection, threshold, details[INDEX_APPLICATION_NAME], details[INDEX_LOGIN]); // generate session
         requiredNumberOfVotes = 1 + session.getRemoteParticipantList().size();
+        logger.logEvent("coordinator", "identifier:"+String.valueOf(session.getLocalParticipant().getIdentifier()), "low");
     }
 
 
@@ -432,25 +436,24 @@ public class LocalKeyGenerationCoordinator extends CustomTokenConsumer implement
     @Override
     public void done() {
         basisClose();
-        CustomCommunication.getInstance().openServiceServer(new FeedbackRequester() {
-            @Override
-            public void setResult(boolean result) {
-            }
 
-            @Override
-            public void signalJobDone() {
-            }
-        });
     }
 
     protected void basisClose() {
-        for (KeyGenerationClient client: clients.values()){
-            client.close(true);
-        }
-        logger.logEvent(COMPONENT, "event confirm success of key generation", "normal");
-        persistenceClient.confirm();
-        changeState(STATE_FINISHED, state);
-        CustomCommunication.getInstance().closeAllConnections();
+        ThreadPoolSupplier.getSupplier().execute(new Runnable() {
+            @Override
+            public void run() {
+                logger.logEvent(COMPONENT, "closing", "normal");
+                for (KeyGenerationClient client: clients.values()){
+                    client.close(true);
+                }
+                //Network.getInstance().closeAllConnections();
+                logger.logEvent(COMPONENT, "event confirm success of key generation", "normal");
+                persistenceClient.confirm();
+                changeState(STATE_FINISHED, state);
+                presenter.ok();
+            }
+        });
     }
 
     @Override
@@ -459,9 +462,11 @@ public class LocalKeyGenerationCoordinator extends CustomTokenConsumer implement
             client.close(true);
         }
         persistenceClient.rollback();
+        presenter.error();
     }
 
     private void inviteAllParticipants(){
+        Network.getInstance().establishConnectionsWithInTopologyTwo();
         buildAllClients();
         changeState(STATE_INVITATION, state);
     }
@@ -520,6 +525,7 @@ public class LocalKeyGenerationCoordinator extends CustomTokenConsumer implement
         for (Participant participant : selection)
         {
             totalWeight = totalWeight + participant.getWeight();
+            logger.logEvent(COMPONENT, "participant added", "low", participant.getAddress());
         }
 
         inputCorrect = inputCorrect && (totalWeight>=2);
@@ -529,6 +535,5 @@ public class LocalKeyGenerationCoordinator extends CustomTokenConsumer implement
     protected void changeState(int newState, int previousState)
     {
         state  = newState;
-        presenter.SignalCoordinatorInNewState(state, previousState);
     }
 }

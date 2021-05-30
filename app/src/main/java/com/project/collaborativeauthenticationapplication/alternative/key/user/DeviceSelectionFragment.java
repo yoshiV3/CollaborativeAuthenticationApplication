@@ -1,4 +1,4 @@
-package com.project.collaborativeauthenticationapplication.service.key.user.key_generation;
+package com.project.collaborativeauthenticationapplication.alternative.key.user;
 
 import android.os.Bundle;
 
@@ -18,8 +18,8 @@ import android.widget.TextView;
 
 import com.project.collaborativeauthenticationapplication.R;
 import com.project.collaborativeauthenticationapplication.service.general.Participant;
-import com.project.collaborativeauthenticationapplication.service.key.CustomKeyGenerationPresenter;
-import com.project.collaborativeauthenticationapplication.service.key.KeyGenerationPresenter;
+import com.project.collaborativeauthenticationapplication.alternative.key.CustomKeyGenerationPresenter;
+import com.project.collaborativeauthenticationapplication.alternative.key.KeyGenerationPresenter;
 
 import java.util.ArrayList;
 
@@ -136,8 +136,8 @@ public class DeviceSelectionFragment extends Fragment {
         view.findViewById(R.id.button_submit_devices).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                CustomKeyGenerationPresenter.getInstance().submitSelectedParticipants(selAdapter.getItems());
                 CustomKeyGenerationPresenter.getInstance().submitThreshold(currentThreshold);
+                CustomKeyGenerationPresenter.getInstance().submitSelectedParticipants(selAdapter.getItems());
             }
         });
         super.onViewCreated(view, savedInstanceState);

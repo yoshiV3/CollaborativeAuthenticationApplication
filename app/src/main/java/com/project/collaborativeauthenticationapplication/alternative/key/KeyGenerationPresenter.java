@@ -1,4 +1,4 @@
-package com.project.collaborativeauthenticationapplication.service.key;
+package com.project.collaborativeauthenticationapplication.alternative.key;
 
 import com.project.collaborativeauthenticationapplication.service.general.Participant;
 
@@ -13,13 +13,23 @@ public interface KeyGenerationPresenter extends KeyPresenter {
 
     void onRun();
 
+    void setMode(int mode);
+
+    void switchToModel();
+
+
+    void openCoordinator();
+
 
     boolean isCurrentlyActive();
 
     void setMessage(String key, String message );
     String getMessage(String key);
 
-    void SignalCoordinatorInNewState(int clientState, int oldState);
+
+    void signalOpened();
+
+    void error();
 
     List<Participant> getInitialOptions();
 
@@ -31,4 +41,13 @@ public interface KeyGenerationPresenter extends KeyPresenter {
     void submitThreshold(int threshold);
 
 
+    void successfulSubmission();
+
+    void successfulSubmissionOfParameters();
+
+    void foundLeader();
+
+    void runAsRemote();
+
+    void ok();
 }

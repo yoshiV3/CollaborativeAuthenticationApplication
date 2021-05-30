@@ -3,7 +3,7 @@ package com.project.collaborativeauthenticationapplication.service.key.applicati
 import com.project.collaborativeauthenticationapplication.service.general.CustomIdentifiedParticipant;
 import com.project.collaborativeauthenticationapplication.service.general.IdentifiedParticipant;
 import com.project.collaborativeauthenticationapplication.service.general.Participant;
-import com.project.collaborativeauthenticationapplication.service.key.KeyToken;
+import com.project.collaborativeauthenticationapplication.alternative.key.KeyToken;
 import com.project.collaborativeauthenticationapplication.service.key.application.CustomTokenConsumer;
 
 import java.util.ArrayList;

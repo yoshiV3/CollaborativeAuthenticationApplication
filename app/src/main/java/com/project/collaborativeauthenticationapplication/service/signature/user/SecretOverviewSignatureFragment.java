@@ -56,7 +56,7 @@ public class SecretOverviewSignatureFragment extends SecretOverviewFragment {
                 int position = getOverview().getChildLayoutPosition(v);
                 logger.logEvent(COMPONENT_NAME, "request for signature", "low");
                 ApplicationLoginEntity item  = getAdapterManager().getAdapter().getItemAt(position);
-                CustomSignaturePresenter.getInstance().onCredentialSelectedForSignature( item.applicationName, item.login);
+                CustomSignaturePresenter.getInstance().onCredentialSelectedForSignature( item.applicationName);
             }
         };
     }

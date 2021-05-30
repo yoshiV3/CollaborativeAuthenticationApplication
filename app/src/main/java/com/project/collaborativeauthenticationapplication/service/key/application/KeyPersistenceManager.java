@@ -33,15 +33,15 @@ public abstract class KeyPersistenceManager {
         return db;
     }
 
-    public void removeCredentials(String applicationName, String login, AndroidSecretStorage storage){
+    public void removeCredentials(String applicationName, AndroidSecretStorage storage){
         ApplicationLoginDao applicationLoginDao = db.getApplicationLoginDao();
-        List<ApplicationLoginEntity> entities = applicationLoginDao.getApplicationWithNameAndLogin(applicationName, login);
+        List<ApplicationLoginEntity> entities = applicationLoginDao.getApplicationsWithApplication(applicationName);
         SecretDao secretDao = db.getSecretDao();
         for (ApplicationLoginEntity entity : entities){
             List<LocalSecretEntity> secrets = secretDao.getAllSecretsForApplicationLogin(entity.applicationLoginId);
             for (LocalSecretEntity localSecretEntity : secrets){
                 try {
-                    storage.removeSecret(applicationName, login, localSecretEntity.identifier);
+                    storage.removeSecret(applicationName, localSecretEntity.identifier);
                 } catch (SecureStorageException e) {
                     logger.logError(COMPONENT, ERROR_REMOVE, "Critical", e.toString());
                 }

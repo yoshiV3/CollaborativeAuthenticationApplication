@@ -1,24 +1,26 @@
-package com.project.collaborativeauthenticationapplication.service.key;
+package com.project.collaborativeauthenticationapplication.alternative.key;
 
 
 
 import com.project.collaborativeauthenticationapplication.R;
+import com.project.collaborativeauthenticationapplication.alternative.network.Network;
 import com.project.collaborativeauthenticationapplication.logger.AndroidLogger;
 import com.project.collaborativeauthenticationapplication.logger.Logger;
 import com.project.collaborativeauthenticationapplication.service.general.Participant;
 import com.project.collaborativeauthenticationapplication.service.key.application.key_generation.distributed_system.KeyGenerationCoordinator;
 import com.project.collaborativeauthenticationapplication.service.key.application.key_generation.distributed_system.LocalKeyGenerationCoordinator;
-import com.project.collaborativeauthenticationapplication.service.key.user.key_generation.DistributedKeyGenerationActivity;
-import com.project.collaborativeauthenticationapplication.service.key.user.key_generation.KeyGenerationView;
-import com.project.collaborativeauthenticationapplication.service.key.user.key_generation.ProgressNotifier;
-import com.project.collaborativeauthenticationapplication.service.key.user.key_generation.ProgressView;
+import com.project.collaborativeauthenticationapplication.alternative.key.user.DistributedKeyGenerationActivity;
+import com.project.collaborativeauthenticationapplication.alternative.key.user.KeyGenerationView;
+import com.project.collaborativeauthenticationapplication.alternative.key.user.ProgressNotifier;
+import com.project.collaborativeauthenticationapplication.alternative.key.user.ProgressView;
+import com.project.collaborativeauthenticationapplication.service.key.application.key_generation.distributed_system.RemoteKeyGenerationCoordinator;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
 
-public class CustomKeyGenerationPresenter implements KeyGenerationPresenter, ProgressNotifier {
+public class CustomKeyGenerationPresenter implements KeyGenerationPresenter {
 
     private static final String COMPONENT_NAME         = "Key Presenter";
 
@@ -53,12 +55,21 @@ public class CustomKeyGenerationPresenter implements KeyGenerationPresenter, Pro
     private static final String EVENT_RUN_FAILED                    =  "Something went wrong during the generation process";
 
 
+    public static final int MODE_LEADER   = 0;
+
+    public static final int MODE_FOLLOWER = 1;
+
+
+
     private Logger logger = new AndroidLogger();
 
     private static KeyGenerationPresenter instance;
 
 
     private HashSet<ProgressView> subscribers = new HashSet<>();
+
+
+    private int mode = 0;
 
 
     public static KeyGenerationPresenter getInstance()
@@ -75,7 +86,8 @@ public class CustomKeyGenerationPresenter implements KeyGenerationPresenter, Pro
     private final KeyGenerationView view;
 
 
-    private KeyGenerationCoordinator coordinator;
+    private KeyGenerationCoordinator localCoordinator;
+    private KeyGenerationCoordinator remoteCoordinator;
 
     private HashMap<String, String> messages = new HashMap<>();
 
@@ -90,19 +102,20 @@ public class CustomKeyGenerationPresenter implements KeyGenerationPresenter, Pro
     @Override
     public void onStart() {
         logger.logEvent(COMPONENT_NAME, EVENT_START, "low");
-        if (coordinator != null){
+        if (localCoordinator != null){
             throw new IllegalStateException();
         }
-        coordinator = new LocalKeyGenerationCoordinator(this);
-        coordinator.open(view.getContext());
+        localCoordinator  = new LocalKeyGenerationCoordinator(this);
+        remoteCoordinator = new RemoteKeyGenerationCoordinator(this);
+        //localCoordinator.open(view.getContext());
     }
 
     @Override
     public void close() {
-        if (coordinator != null)
+        if (localCoordinator != null)
         {
-            coordinator.close();
-            coordinator = null;
+            localCoordinator.close();
+            localCoordinator = null;
         }
     }
 
@@ -145,12 +158,54 @@ public class CustomKeyGenerationPresenter implements KeyGenerationPresenter, Pro
 
     @Override
     public void onRun() {
-        coordinator.run();
+        if (mode == MODE_LEADER){
+            localCoordinator.run();
+        } else {
+            remoteCoordinator.run();
+        }
+
+    }
+
+    @Override
+    public void setMode(int mode) {
+        this.mode = mode;
+    }
+
+    @Override
+    public void switchToModel() {
+        switch (mode){
+            case MODE_LEADER:
+                view.navigate(R.id.action_modeSelection_to_homeFragment);
+                break;
+            case MODE_FOLLOWER:
+                view.navigate(R.id.action_modeSelection_to_waitingForLeaderFragment);
+                break;
+            default:
+                throw new IllegalStateException("wrong mode (switch to mode)");
+        }
+    }
+
+    @Override
+    public void openCoordinator() {
+        switch (mode){
+            case MODE_LEADER:
+                logger.logEvent(COMPONENT_NAME, "opening new coordinator", "high");
+                Network.getInstance().close();
+                localCoordinator.open(view.getContext());
+                break;
+            case MODE_FOLLOWER:
+                logger.logEvent(COMPONENT_NAME, "opening new coordinator", "high");
+                remoteCoordinator.open(view.getContext());
+                break;
+            default:
+                throw new IllegalStateException("wrong mode (open coordinator)");
+        }
+
     }
 
     @Override
     public boolean isCurrentlyActive() {
-        return coordinator != null && coordinator.getState() != LocalKeyGenerationCoordinator.STATE_FINISHED && coordinator.getState() != LocalKeyGenerationCoordinator.STATE_CLOSED;
+        return localCoordinator != null && localCoordinator.getState() != LocalKeyGenerationCoordinator.STATE_FINISHED && localCoordinator.getState() != LocalKeyGenerationCoordinator.STATE_CLOSED;
     }
 
     @Override
@@ -165,6 +220,42 @@ public class CustomKeyGenerationPresenter implements KeyGenerationPresenter, Pro
     }
 
     @Override
+    public void signalOpened() {
+        logger.logEvent(COMPONENT_NAME, "opened coordinator", "low");
+
+    }
+
+    private Object errorLock = new Object();
+
+    @Override
+    public void error() {
+        logger.logEvent(COMPONENT_NAME, "error registered", "high");
+        synchronized (errorLock){
+            int location = view.locate();
+            switch (location){
+                case R.id.homeFragment:
+                    view.navigate(R.id.error_home);
+                    break;
+                case R.id.deviceSelectionFragment:
+                    view.navigate(R.id.error_select);
+                    break;
+                case R.id.generationFragment:
+                    view.navigate(R.id.error_generation);
+                    break;
+                case R.id.waitingForLeaderFragment:
+                    view.navigate(R.id.action_waitingForLeaderFragment_to_errorFragment);
+                    break;
+                case R.id.leaderFoundFragment:
+                    view.navigate(R.id.action_leaderFoundFragment_to_errorFragment);
+                    break;
+                default:
+                    logger.logEvent(COMPONENT_NAME, "error registered, but no change", "high");
+            }
+        }
+        Network.getInstance().closeAllConnections();
+    }
+
+
     public void SignalCoordinatorInNewState(int clientState, int oldState) {
         switch (clientState)
         {
@@ -184,19 +275,19 @@ public class CustomKeyGenerationPresenter implements KeyGenerationPresenter, Pro
                 view.showTemporally("Incorrect input");
                 break;
             case LocalKeyGenerationCoordinator.STATE_SESSION:
-                notifySubscribers(MESSAGE_STATE_SESSION);
+                //notifySubscribers(MESSAGE_STATE_SESSION);
                 break;
             case LocalKeyGenerationCoordinator.STATE_INVITATION:
-                notifySubscribers(MESSAGE_STATE_INVITATIONS);
+               // notifySubscribers(MESSAGE_STATE_INVITATIONS);
                 break;
             case LocalKeyGenerationCoordinator.STATE_DISTRIBUTED:
-                notifySubscribers(MESSAGE_STATE_DISTRIBUTED);
+               // notifySubscribers(MESSAGE_STATE_DISTRIBUTED);
                 break;
             case LocalKeyGenerationCoordinator.STATE_SHARES:
-                notifySubscribers(MESSAGE_STATE_SHARES);
+               // notifySubscribers(MESSAGE_STATE_SHARES);
                 break;
             case LocalKeyGenerationCoordinator.STATE_PERSIST:
-                notifySubscribers(MESSAGE_STATE_PERSISTED);
+               // notifySubscribers(MESSAGE_STATE_PERSISTED);
                 break;
             case LocalKeyGenerationCoordinator.STATE_ERROR:
                 handleClientErrors(oldState);
@@ -205,7 +296,7 @@ public class CustomKeyGenerationPresenter implements KeyGenerationPresenter, Pro
                 break;
             case LocalKeyGenerationCoordinator.STATE_FINISHED:
                 logger.logEvent(COMPONENT_NAME, EVENT_KEY_DONE, "low");
-                coordinator.close();
+                localCoordinator.close();
                 view.navigate(R.id.success);
                 break;
             default:
@@ -216,8 +307,8 @@ public class CustomKeyGenerationPresenter implements KeyGenerationPresenter, Pro
     }
 
     private void handleClientErrors(int oldState) {
-        if (coordinator != null){
-            coordinator.close();
+        if (localCoordinator != null){
+            localCoordinator.close();
         }
         switch (oldState)
         {
@@ -261,13 +352,13 @@ public class CustomKeyGenerationPresenter implements KeyGenerationPresenter, Pro
 
     @Override
     public List<Participant> getInitialOptions() {
-        return coordinator.getOptions();
+        return localCoordinator.getOptions();
     }
 
 
     @Override
     public void submitLoginDetails() {
-            coordinator.submitLoginDetails(getMessage(DistributedKeyGenerationActivity.KEY_LOGIN), getMessage(DistributedKeyGenerationActivity.KEY_APPLICATION_NAME));
+            localCoordinator.submitLoginDetails(getMessage(DistributedKeyGenerationActivity.KEY_APPLICATION_NAME));
     }
 
     @Override
@@ -278,48 +369,49 @@ public class CustomKeyGenerationPresenter implements KeyGenerationPresenter, Pro
 
     @Override
     public void submitSelectedParticipants(List<Participant> participants) {
-        coordinator.submitSelection(participants);
+        localCoordinator.submitSelection(participants);
     }
 
     @Override
     public void submitThreshold(int threshold) {
-        coordinator.submitThreshold(threshold);
+        localCoordinator.submitThreshold(threshold);
         logger.logEvent(COMPONENT_NAME, EVENT_THRESHOLD_SUBMITTED, "low", String.valueOf(threshold));
     }
 
-
     @Override
-    public void subscribe(ProgressView view) {
-        boolean added = subscribers.add(view);
-        if (added)
-        {
-            logger.logEvent(COMPONENT_NAME, EVENT_NEW_SUBSCRIBER, "low");
-        }
-        else
-        {
-            logger.logEvent(COMPONENT_NAME, EVENT_OLD_SUBSCRIBER, "low");
-        }
+    public void successfulSubmission() {
+        logger.logEvent(COMPONENT_NAME, "authentication name registered", "low");
+        view.navigate(R.id.select);
     }
 
     @Override
-    public void unSubScribe(ProgressView view) {
-        boolean removed = subscribers.remove(view);
-        if (removed)
-        {
-            logger.logEvent(COMPONENT_NAME, EVENT_REMOVED_SUBSCRIBER, "low");
-        }
-        else
-        {
-            logger.logEvent(COMPONENT_NAME, EVENT_NEW_REMOVED_SUBSCRIBER, "low");
+    public void successfulSubmissionOfParameters() {
+        logger.logEvent(COMPONENT_NAME, "parameters registered", "low");
+        view.navigate(R.id.run);
+    }
+
+    private Object leaderLock = new Object();
+
+    @Override
+    public void foundLeader() {
+        synchronized (leaderLock){
+            logger.logEvent(COMPONENT_NAME, "found leader", "low");
+            view.navigate(R.id.action_waitingForLeaderFragment_to_leaderFoundFragment);
         }
     }
 
-    private void notifySubscribers(String text)
-    {
-        logger.logEvent(COMPONENT_NAME, EVENT_NOTIFY_SUBSCRIBER, "low", text);
-        for (ProgressView subscriber: subscribers)
-        {
-            subscriber.pushNewMessage(text);
+    @Override
+    public void runAsRemote() {
+        synchronized (leaderLock){
+            logger.logEvent(COMPONENT_NAME, "parameters registered", "low");
+            view.navigate(R.id.action_leaderFoundFragment_to_generationFragment);
         }
     }
+
+    @Override
+    public void ok() {
+        view.navigate(R.id.success);
+       // Network.getInstance().closeAllConnections();
+    }
+
 }

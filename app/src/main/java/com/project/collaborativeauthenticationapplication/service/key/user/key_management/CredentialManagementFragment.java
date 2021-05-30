@@ -14,8 +14,8 @@ import android.widget.TextView;
 
 import com.project.collaborativeauthenticationapplication.R;
 import com.project.collaborativeauthenticationapplication.service.general.Requester;
-import com.project.collaborativeauthenticationapplication.service.key.CustomKeyManagementPresenter;
-import com.project.collaborativeauthenticationapplication.service.key.KeyManagementPresenter;
+import com.project.collaborativeauthenticationapplication.alternative.key.CustomKeyManagementPresenter;
+import com.project.collaborativeauthenticationapplication.alternative.key.KeyManagementPresenter;
 
 
 public class CredentialManagementFragment extends Fragment {

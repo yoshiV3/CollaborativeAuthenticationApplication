@@ -16,16 +16,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <TextView
-        android:id="@+id/textView_login_verify"
-        android:layout_width="match_parent"
-        android:layout_height="40dp"
-        android:layout_marginTop="15dp"
-        android:textAlignment="center"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView_applicationName_verify" />
-
     <Button
         android:id="@+id/button_finish_verify"
         android:layout_width="100dp"
@@ -44,6 +34,6 @@
         android:layout_marginTop="80dp"
         android:textAlignment="center"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView_login_verify" />
+        app:layout_constraintTop_toBottomOf="@+id/textView_applicationName_verify" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

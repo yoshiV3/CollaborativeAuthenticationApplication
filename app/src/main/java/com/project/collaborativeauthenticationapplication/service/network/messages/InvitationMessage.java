@@ -7,7 +7,7 @@ import java.util.ArrayList;
 public class InvitationMessage extends AbstractMessage{
 
     private final String  applicationName;
-    private final String login;
+
 
     private final int threshold;
     private final int totalWeight;
@@ -16,9 +16,8 @@ public class InvitationMessage extends AbstractMessage{
 
     private final ArrayList<IdentifiedParticipant> participants;
 
-    public InvitationMessage(String applicationName, String login, int threshold, int totalWeight, int numberOfParticipants, ArrayList<IdentifiedParticipant> participants) {
+    public InvitationMessage(String applicationName, int threshold, int totalWeight, int numberOfParticipants, ArrayList<IdentifiedParticipant> participants) {
         this.applicationName = applicationName;
-        this.login = login;
         this.threshold = threshold;
         this.totalWeight = totalWeight;
         this.numberOfParticipants = numberOfParticipants;
@@ -30,9 +29,6 @@ public class InvitationMessage extends AbstractMessage{
         return applicationName;
     }
 
-    public String getLogin() {
-        return login;
-    }
 
     public ArrayList<IdentifiedParticipant> getParticipants() {
         return participants;

@@ -12,7 +12,7 @@ import android.view.ViewGroup;
 import com.project.collaborativeauthenticationapplication.R;
 import com.project.collaborativeauthenticationapplication.data.ApplicationLoginEntity;
 import com.project.collaborativeauthenticationapplication.service.general.SecretOverviewFragment;
-import com.project.collaborativeauthenticationapplication.service.key.CustomKeyManagementPresenter;
+import com.project.collaborativeauthenticationapplication.alternative.key.CustomKeyManagementPresenter;
 
 
 public class SecretOverviewKeyManagementFragment extends SecretOverviewFragment {

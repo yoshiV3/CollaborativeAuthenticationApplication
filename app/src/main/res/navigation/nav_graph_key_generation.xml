@@ -3,11 +3,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/homeFragment">
+    app:startDestination="@id/modeSelection">
 
     <fragment
         android:id="@+id/homeFragment"
-        android:name="com.project.collaborativeauthenticationapplication.service.key.user.key_generation.HomeFragment"
+        android:name="com.project.collaborativeauthenticationapplication.alternative.key.user.HomeFragment"
         android:label="fragment_home"
         tools:layout="@layout/fragment_home" >
         <action
@@ -19,7 +19,7 @@
     </fragment>
     <fragment
         android:id="@+id/deviceSelectionFragment"
-        android:name="com.project.collaborativeauthenticationapplication.service.key.user.key_generation.DeviceSelectionFragment"
+        android:name="com.project.collaborativeauthenticationapplication.alternative.key.user.DeviceSelectionFragment"
         android:label="fragment_device_selection"
         tools:layout="@layout/fragment_device_selection" >
         <action
@@ -34,7 +34,7 @@
     </fragment>
     <fragment
         android:id="@+id/generationFragment"
-        android:name="com.project.collaborativeauthenticationapplication.service.key.user.key_generation.GenerationFragment"
+        android:name="com.project.collaborativeauthenticationapplication.alternative.key.user.GenerationFragment"
         android:label="fragment_generation"
         tools:layout="@layout/fragment_generation" >
         <action
@@ -49,12 +49,51 @@
     </fragment>
     <fragment
         android:id="@+id/errorFragment"
-        android:name="com.project.collaborativeauthenticationapplication.service.key.user.key_generation.ErrorFragment"
+        android:name="com.project.collaborativeauthenticationapplication.alternative.key.user.ErrorFragment"
         android:label="fragment_error"
         tools:layout="@layout/fragment_error" />
     <fragment
         android:id="@+id/finishedFragment"
-        android:name="com.project.collaborativeauthenticationapplication.service.key.user.key_generation.FinishedFragment"
+        android:name="com.project.collaborativeauthenticationapplication.alternative.key.user.FinishedFragment"
         android:label="fragment_finished"
         tools:layout="@layout/fragment_finished" />
+    <fragment
+        android:id="@+id/modeSelection"
+        android:name="com.project.collaborativeauthenticationapplication.alternative.key.user.ModeSelectionFragment"
+        android:label="fragment_mode_selection"
+        tools:layout="@layout/fragment_mode_selection" >
+        <action
+            android:id="@+id/action_modeSelection_to_homeFragment"
+            app:destination="@id/homeFragment" />
+        <action
+            android:id="@+id/action_modeSelection_to_waitingForLeaderFragment"
+            app:destination="@id/waitingForLeaderFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/leaderFoundFragment"
+        android:name="com.project.collaborativeauthenticationapplication.alternative.key.user.LeaderFoundFragment"
+        android:label="fragment_leader_found"
+        tools:layout="@layout/fragment_leader_found" >
+        <action
+            android:id="@+id/action_leaderFoundFragment_to_generationFragment"
+            app:destination="@id/generationFragment" />
+        <action
+            android:id="@+id/action_leaderFoundFragment_to_errorFragment"
+            app:destination="@id/errorFragment" />
+        <action
+            android:id="@+id/action_leaderFoundFragment_to_errorFragment2"
+            app:destination="@id/errorFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/waitingForLeaderFragment"
+        android:name="com.project.collaborativeauthenticationapplication.alternative.key.user.WaitingForLeaderFragment"
+        android:label="fragment_waiting_for_leader"
+        tools:layout="@layout/fragment_waiting_for_leader" >
+        <action
+            android:id="@+id/action_waitingForLeaderFragment_to_leaderFoundFragment"
+            app:destination="@id/leaderFoundFragment" />
+        <action
+            android:id="@+id/action_waitingForLeaderFragment_to_errorFragment"
+            app:destination="@id/errorFragment" />
+    </fragment>
 </navigation>

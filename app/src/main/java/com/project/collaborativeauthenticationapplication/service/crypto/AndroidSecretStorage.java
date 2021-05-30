@@ -76,40 +76,45 @@ public class AndroidSecretStorage {
 }
 
 
+    public void storeSecrets(List<BigNumber> secrets, int[] identifiers,  String applicationName) throws SecureStorageException {
+        SharedPreferences.Editor editor = getEncryptedSharedPreferences().edit();
+        String baseAlias                = getkeyAlias(applicationName);
+        logger.logEvent(COMPONENT, "new secret", "low");
+        int sequenceNumber = 0;
+        for (BigNumber share: secrets){
+            logger.logEvent(COMPONENT, "new secret", "low", String.valueOf(identifiers[sequenceNumber]));
+            String stringBuilder = baseAlias +
+                    ":" +
+                    identifiers[sequenceNumber];
+            editor.putString(stringBuilder, new String(share.getBigNumberAsByteArray(), StandardCharsets.ISO_8859_1));
+            sequenceNumber += 1;
+        }
+        editor.apply();
+    }
+
     public void storeSecrets(List<BigNumber> secrets, int[] identifiers,  String applicationName, String login) throws SecureStorageException {
-            SharedPreferences.Editor editor = getEncryptedSharedPreferences().edit();
-            String baseAlias                = getkeyAlias(applicationName, login);
-            logger.logEvent(COMPONENT, "new secret", "low");
-            int sequenceNumber = 0;
-            for (BigNumber share: secrets){
-                logger.logEvent(COMPONENT, "new secret", "low", String.valueOf(identifiers[sequenceNumber]));
-                String stringBuilder = baseAlias +
-                        ":" +
-                        identifiers[sequenceNumber];
-                editor.putString(stringBuilder, new String(share.getBigNumberAsByteArray(), StandardCharsets.ISO_8859_1));
-                sequenceNumber += 1;
-            }
-            editor.apply();
+        storeSecrets(secrets, identifiers, applicationName);
     }
 
 
-    public void storeSecret(BigNumber share, int identifier, String applicationName, String login) throws SecureStorageException {
+    public void storeSecret(BigNumber share, int identifier, String applicationName) throws SecureStorageException {
         SharedPreferences.Editor editor = getEncryptedSharedPreferences().edit();
-        String alias                    = getkeyAlias(applicationName, login) + ":" + identifier;
+        String alias                    = getkeyAlias(applicationName) +  identifier;
         editor.putString(alias, new String(share.getBigNumberAsByteArray(), StandardCharsets.ISO_8859_1));
         editor.apply();
     }
 
-    private String getkeyAlias(String applicationName, String login) {
-        String builder = login +
-                ":" +
-                applicationName;
+    public void storeSecret(BigNumber share, int identifier, String applicationName, String login) throws SecureStorageException {
+        storeSecret(share, identifier, applicationName);
+    }
+
+    private String getkeyAlias(String applicationName) {
+        String builder = applicationName;
         return builder;
     }
 
-
-    public BigNumber getSecrets(String applicationName, String login, int identifier) throws SecureStorageException {
-        String key    = getkeyAlias(applicationName, login) + ":" + identifier;
+    public BigNumber getSecrets(String applicationName, int identifier) throws SecureStorageException {
+        String key    = getkeyAlias(applicationName) + ":" + identifier;
         String value  = getEncryptedSharedPreferences().getString(key, null);
         if (value == null){
             throw new  SecureStorageException("Keys cannot be found in the secret storage");
@@ -118,10 +123,20 @@ public class AndroidSecretStorage {
     }
 
 
+    public BigNumber getSecrets(String applicationName, String login, int identifier) throws SecureStorageException {
+        return getSecrets(applicationName, identifier);
+    }
+
+
     public void removeSecret(String applicationName, String login, int identifier) throws SecureStorageException {
+        removeSecret(applicationName, identifier);
+    }
+
+
+    public void removeSecret(String applicationName, int identifier) throws SecureStorageException {
         SharedPreferences storage       = getEncryptedSharedPreferences();
         SharedPreferences.Editor editor = storage.edit();
-        String alias               = getkeyAlias(applicationName, login)+ ":"  + identifier;
+        String alias               = getkeyAlias(applicationName)+ ":"  + identifier;
         editor.remove(alias);
         editor.apply();
     }

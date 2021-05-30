@@ -49,7 +49,7 @@ public class ThreadedKeyGenerationPersistenceClient  implements KeyGenerationPer
         ThreadPoolSupplier.getSupplier().execute(new Runnable() {
             @Override
             public void run() {
-                persistenceManager.removeCredentials(session.getApplicationName(), session.getLogin(), storage);
+                persistenceManager.removeCredentials(session.getApplicationName(), storage);
             }
         });
     }
@@ -59,17 +59,17 @@ public class ThreadedKeyGenerationPersistenceClient  implements KeyGenerationPer
         ThreadPoolSupplier.getSupplier().execute(new Runnable() {
             @Override
             public void run() {
-                persistenceManager.confirm(session.getApplicationName(), session.getLogin());
+                persistenceManager.confirm(session.getApplicationName());
             }
         });
     }
 
     @Override
-    public void checkCredentials(FeedbackRequester requester, String applicationName, String login) {
+    public void checkCredentials(FeedbackRequester requester, String applicationName) {
         ThreadPoolSupplier.getSupplier().execute(new Runnable() {
             @Override
             public void run() {
-                boolean result = !persistenceManager.hasApplicationLoginWithGivenCredentials(applicationName, login);
+                boolean result = !persistenceManager.hasApplicationLoginWithGivenCredentials(applicationName);
                 requester.setResult(result);
                 requester.signalJobDone();
             }

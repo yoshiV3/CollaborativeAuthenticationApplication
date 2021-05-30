@@ -1,7 +1,9 @@
 package com.project.collaborativeauthenticationapplication.service.signature.application.distributed;
 
+import com.project.collaborativeauthenticationapplication.alternative.network.AndroidConnection;
+import com.project.collaborativeauthenticationapplication.alternative.network.Network;
 import com.project.collaborativeauthenticationapplication.logger.AndroidLogger;
-import com.project.collaborativeauthenticationapplication.service.network.AndroidCommunicationConnection;
+import com.project.collaborativeauthenticationapplication.service.network.AndroidBiDirectionalCommunicationConnection;
 import com.project.collaborativeauthenticationapplication.service.network.Communication;
 import com.project.collaborativeauthenticationapplication.service.network.CustomCommunication;
 import com.project.collaborativeauthenticationapplication.service.network.messages.AbstractMessage;
@@ -30,15 +32,14 @@ public class RemoteSignatureClient implements SignatureClient {
     private final SignatureCoordinator coordinator;
     private final String address;
 
-    private AndroidCommunicationConnection connection;
+    private AndroidConnection connection;
 
     public RemoteSignatureClient(SignatureCoordinator coordinator, String address) throws IOException {
         this.coordinator           = coordinator;
         this.address               = address;
-        Communication communication = CustomCommunication.getInstance();
+        Network communication = Network.getInstance();
         try{
-            connection = communication.getConnectionWith(address);
-            connection.createIOtStreams();
+            connection = communication.getConnectionWith(address, AndroidConnection.MODE_SLAVE_UNI, false);
         } catch (IOException e) {
             e.printStackTrace();
             coordinator.abort();
@@ -54,9 +55,10 @@ public class RemoteSignatureClient implements SignatureClient {
 
     @Override
     public void sign(SignatureTask task) {
-        byte[] message = encoder.makePublishMessage(task.getCommitmentsE(), task.getCommitmentsD(), task.getMessage(), CustomCommunication.getInstance().getLocalAddress());
+        byte[] message = encoder.makePublishMessage(task.getCommitmentsE(), task.getCommitmentsD(), task.getMessage(), Network.getInstance().getLocalAddress());
         try{
             connection.writeToConnection(message);
+            connection.pushForFinal();
             byte[] response = connection.readFromConnection();
             logger.logEvent("received response from remote", "low", getAddress());
             AbstractMessage parsedResponse = parser.parse(response);
@@ -84,7 +86,7 @@ public class RemoteSignatureClient implements SignatureClient {
     public void generateRandomnessAndCalculateCommitments(RandomnessRequester requester) {
         try {
             String address = connection.getAddress();
-            byte[] message = encoder.makeStartSignMessage(requester.getApplicationName(), requester.getLogin(), requester.getNumberOfRequestedShares(), address);
+            byte[] message = encoder.makeStartSignMessage(requester.getApplicationName(), requester.getNumberOfRequestedShares(), address);
             connection.writeToConnection(message);
             byte[] response = connection.readFromConnection();
             logger.logEvent("received response from remote", "low", getAddress());
@@ -98,7 +100,7 @@ public class RemoteSignatureClient implements SignatureClient {
             } else{
                 SignCommitmentMessage commitmentMessage = (SignCommitmentMessage) parsedResponse;
                 logger.logEvent(COMPONENT, "received commitments", "low", getAddress());
-                CustomCommunication.getInstance().registerLocalAddress(commitmentMessage.getLocalAddress());
+                Network.getInstance().registerLocalAddress(commitmentMessage.getLocalAddress());
                 requester.setCommitmentE(commitmentMessage.getE());
                 requester.setCommitmentD(commitmentMessage.getD());
                 requester.signalJobDone();

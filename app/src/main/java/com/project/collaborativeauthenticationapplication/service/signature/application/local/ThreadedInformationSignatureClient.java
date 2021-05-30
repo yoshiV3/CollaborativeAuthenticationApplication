@@ -22,21 +22,21 @@ public class ThreadedInformationSignatureClient extends ThreadedSignatureClient 
 
 
     @Override
-    public void checkInformationAboutCredential(String applicationName, String login, DatabaseInformationRequester requester) {
+    public void checkInformationAboutCredential(String applicationName, DatabaseInformationRequester requester) {
         ThreadPoolSupplier.getSupplier().execute(new Runnable() {
             @Override
             public void run() {
-                client.checkInformationAboutCredential(applicationName, login, requester);
+                client.checkInformationAboutCredential(applicationName, requester);
             }
         });
     }
 
     @Override
-    public void checkIfEnoughLocalShares(int numberOfShares, String applicationName, String login, FeedbackRequester requester) {
+    public void checkIfEnoughLocalShares(int numberOfShares, String applicationName, FeedbackRequester requester) {
         ThreadPoolSupplier.getSupplier().execute(new Runnable() {
             @Override
             public void run() {
-                client.checkIfEnoughLocalShares(numberOfShares, applicationName, login, requester);
+                client.checkIfEnoughLocalShares(numberOfShares, applicationName, requester);
             }
         });
     }

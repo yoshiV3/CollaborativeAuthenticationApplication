@@ -22,7 +22,10 @@ import com.project.collaborativeauthenticationapplication.service.key.applicatio
 import com.project.collaborativeauthenticationapplication.service.key.application.key_generation.local_system.control.protocol.KeyGenerationSession;
 
 
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import  java.util.List;
 
 public class CustomKeyGenerationPersistenceManager extends KeyPersistenceManager {
@@ -40,6 +43,13 @@ public class CustomKeyGenerationPersistenceManager extends KeyPersistenceManager
 
     private static Logger logger = new AndroidLogger();
 
+
+    public boolean hasApplicationLoginWithGivenCredentials(String applicationName){
+        AuthenticationDatabase db            = AuthenticationDatabase.getAuthenticationDatabaseInstance();
+        List<ApplicationLoginEntity> applicationLoginEntityList = db.getApplicationLoginDao().getApplicationsWithApplication(applicationName);
+        return applicationLoginEntityList.size() > 0;
+    }
+
     public boolean hasApplicationLoginWithGivenCredentials(String applicationName, String login){
         AuthenticationDatabase db            = AuthenticationDatabase.getAuthenticationDatabaseInstance();
         List<ApplicationLoginEntity> applicationLoginEntityList = db.getApplicationLoginDao().getApplicationWithNameAndLogin(applicationName, login);
@@ -47,10 +57,10 @@ public class CustomKeyGenerationPersistenceManager extends KeyPersistenceManager
     }
 
 
-    public void confirm(String applicationName, String login){
+    public void confirm(String applicationName){
         logger.logEvent("persistence manager", "confirm", "normal");
         ApplicationLoginParticipantDao dao = getDb().getApplicationLoginParticipantDao();
-        List<ApplicationLoginParticipantJoin> joins = dao.getAllInformation(applicationName, login);
+        List<ApplicationLoginParticipantJoin> joins = dao.getAllInformation(applicationName);
         for (ApplicationLoginParticipantJoin join: joins){
             join.state = STATE_CONFIRMED;
             dao.updateJoin(join);
@@ -74,13 +84,27 @@ public class CustomKeyGenerationPersistenceManager extends KeyPersistenceManager
             identifiers[i] = firstIndex + i;
         }
 
-        store.storeCredentialData(identifiers, publicKey, session);
+        String login = "";
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            digest.update(publicKey.getX().getBigNumberAsByteArray());
+            byte[] bytes = digest.digest(publicKey.getY().getBigNumberAsByteArray());
+           // login = new String(digest.digest(publicKey.getY().getBigNumberAsByteArray()),StandardCharsets.ISO_8859_1);;
+            StringBuilder hex = new StringBuilder(bytes.length*2);
+            for(byte b : bytes){
+                hex.append(String.format("%02x",b));
+            }
+            login = (new BigInteger(hex.toString(), 16)).toString(36).toUpperCase();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+        store.storeCredentialData(identifiers, publicKey, session, login);
         if (store.getSuccess()){
             try{
-                storage.storeSecrets(shares, identifiers, session.getApplicationName(), session.getLogin());
+                storage.storeSecrets(shares, identifiers, session.getApplicationName());
             }
             catch(Exception e){
-                removeCredentials(session.getApplicationName(), session.getLogin(), storage);
+                removeCredentials(session.getApplicationName(), storage);
                 throw new SecureStorageException("failed during persistence");
             }
         } else {

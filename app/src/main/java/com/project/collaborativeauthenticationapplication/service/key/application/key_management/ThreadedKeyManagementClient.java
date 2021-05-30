@@ -3,7 +3,7 @@ package com.project.collaborativeauthenticationapplication.service.key.applicati
 import android.content.Context;
 
 import com.project.collaborativeauthenticationapplication.service.general.Task;
-import com.project.collaborativeauthenticationapplication.service.key.KeyManagementPresenter;
+import com.project.collaborativeauthenticationapplication.alternative.key.KeyManagementPresenter;
 
 public class ThreadedKeyManagementClient implements KeyManagementClient {
 

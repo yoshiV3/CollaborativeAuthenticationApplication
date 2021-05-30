@@ -13,8 +13,8 @@ import com.project.collaborativeauthenticationapplication.service.crypto.Android
 import com.project.collaborativeauthenticationapplication.service.crypto.BigNumber;
 import com.project.collaborativeauthenticationapplication.service.crypto.CryptoPartKeyRecovery;
 import com.project.collaborativeauthenticationapplication.service.crypto.SecureStorageException;
-import com.project.collaborativeauthenticationapplication.service.key.KeyManagementPresenter;
-import com.project.collaborativeauthenticationapplication.service.key.KeyToken;
+import com.project.collaborativeauthenticationapplication.alternative.key.KeyManagementPresenter;
+import com.project.collaborativeauthenticationapplication.alternative.key.KeyToken;
 
 import java.util.ArrayList;
 
@@ -96,7 +96,7 @@ public class CustomKeyManagementClient implements KeyManagementClient{
     @Override
     public void remove(Task task)  {
         logger.logEvent("CLIENT: key management", "request to remove credentials" , "medium");
-        persistenceManager.removeCredentials(task.getApplicationName(), task.getLogin(), storage);
+        persistenceManager.removeCredentials(task.getApplicationName(), storage);
         task.done();
 
     }

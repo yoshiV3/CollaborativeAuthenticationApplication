@@ -10,9 +10,9 @@ import java.util.ArrayList;
 
 public interface InformationSignatureClient extends SignatureClient, ServiceHandler {
 
-    void checkInformationAboutCredential(String applicationName, String login, DatabaseInformationRequester requester);
+    void checkInformationAboutCredential(String applicationName, DatabaseInformationRequester requester);
 
-    void checkIfEnoughLocalShares(int numberOfShares, String applicationName, String login, FeedbackRequester requester);
+    void checkIfEnoughLocalShares(int numberOfShares, String applicationName, FeedbackRequester requester);
 
     void calculateFinalSignature(ArrayList<BigNumber> parts, SignatureRequester requester);
 }

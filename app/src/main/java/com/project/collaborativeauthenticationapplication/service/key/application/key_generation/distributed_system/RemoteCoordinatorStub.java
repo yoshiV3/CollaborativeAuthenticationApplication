@@ -1,9 +1,11 @@
 package com.project.collaborativeauthenticationapplication.service.key.application.key_generation.distributed_system;
 
 
+import com.project.collaborativeauthenticationapplication.alternative.network.AndroidConnection;
+import com.project.collaborativeauthenticationapplication.alternative.network.Network;
 import com.project.collaborativeauthenticationapplication.logger.AndroidLogger;
 import com.project.collaborativeauthenticationapplication.logger.Logger;
-import com.project.collaborativeauthenticationapplication.service.network.AndroidCommunicationConnection;
+import com.project.collaborativeauthenticationapplication.service.network.AndroidBiDirectionalCommunicationConnection;
 import com.project.collaborativeauthenticationapplication.service.network.Communication;
 import com.project.collaborativeauthenticationapplication.service.network.CustomCommunication;
 import com.project.collaborativeauthenticationapplication.service.network.messages.AbstractMessage;
@@ -15,7 +17,7 @@ import java.io.IOException;
 
 public class RemoteCoordinatorStub implements RemoteCoordinator {
 
-    private final AndroidCommunicationConnection connection;
+    private final AndroidConnection connection;
     private final KeyGenerationCoordinator       coordinator;
 
 
@@ -26,30 +28,24 @@ public class RemoteCoordinatorStub implements RemoteCoordinator {
 
     private MessageParser parser   = new MessageParser();
 
-    public RemoteCoordinatorStub(String address, KeyGenerationCoordinator coordinator) throws IOException {
-        connection = CustomCommunication.getInstance().getConnectionWith(address);
+    public RemoteCoordinatorStub(String address, KeyGenerationCoordinator coordinator){
+        connection = Network.getInstance().getConnectionWith(address);
         this.coordinator = coordinator;
     }
     @Override
     public void voteYes() {
-        try {
             logger.logEvent("Stub", "voted YES", "normal");
             connection.writeToConnection(encoder.makeVoteYesMessage());
+            connection.pushForFinal();
             listenForResponse();
-        } catch (IOException e) {
-            handleError(CustomCommunication.getInstance(), coordinator, e, "Exception while voting");
-        }
 
     }
 
     @Override
     public void voteNo() {
-        try {
             logger.logEvent("Stub", "voted NO", "normal");
             connection.writeToConnection(encoder.makeVoteNo());
-        } catch (IOException e) {
-            handleError(CustomCommunication.getInstance(), coordinator, e, "Exception while voting");
-        }
+            connection.pushForFinal();
     }
 
     private void listenForResponse(){
@@ -59,24 +55,16 @@ public class RemoteCoordinatorStub implements RemoteCoordinator {
             logger.logEvent("Remote stub", "received result", "normal");
             AbstractMessage result = parser.parse(message);
             if(result instanceof YesMessage){
+                logger.logEvent("Remote stub", "result ok", "low");
                 coordinator.done();
             } else {
+                logger.logEvent("Remote stub", "result not ok", "low");
                 coordinator.rollback();
             }
         } catch (IOException e) {
             e.printStackTrace();
-            Communication instance = CustomCommunication.getInstance();
             logger.logError("Remote stub", "error during voting after vote was cast", "normal");
-            instance.handleBrokenConnection(connection);
             e.printStackTrace();
         }
-    }
-
-
-    protected void handleError(Communication instance, KeyGenerationCoordinator coordinator, IOException e, String s) {
-        e.printStackTrace();
-        logger.logError("Remote client", s, "normal");
-        instance.handleBrokenConnection(connection);
-        coordinator.abort();
     }
 }

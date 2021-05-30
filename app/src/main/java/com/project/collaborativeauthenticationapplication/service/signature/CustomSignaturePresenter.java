@@ -37,7 +37,6 @@ public class CustomSignaturePresenter implements SignaturePresenter{
     private SignatureCoordinator coordinator;
 
     private String applicationName;
-    private String login;
 
     private BigNumber hash;
     private BigNumber signature;
@@ -96,10 +95,7 @@ public class CustomSignaturePresenter implements SignaturePresenter{
         return applicationName;
     }
 
-    @Override
-    public String getLogin() {
-        return login;
-    }
+
 
     @Override
     public void onFinishSignature() {
@@ -116,10 +112,9 @@ public class CustomSignaturePresenter implements SignaturePresenter{
     }
 
     @Override
-    public void onCredentialSelectedForSignature(String applicationName, String login){
+    public void onCredentialSelectedForSignature(String applicationName){
         logger.logEvent(COMPONENT_NAME, "Received request for signature", "low");
         this.applicationName = applicationName;
-        this.login           = login;
         view.navigate(R.id.action_secretOverviewSignatureFragment_to_signatureFragment);
         coordinator = new LocalSignatureCoordinator(this);
         coordinator.open(view.getContext());
@@ -140,7 +135,7 @@ public class CustomSignaturePresenter implements SignaturePresenter{
                             requester.signalJobDone();
                         }
                     };
-                    Task task = new Task(applicationName, login, inner);
+                    Task task = new Task(applicationName,null,  inner);
                     coordinator.sign(task);
                 }
             }
@@ -176,7 +171,7 @@ public class CustomSignaturePresenter implements SignaturePresenter{
 
     @Override
     public void onVerify(FeedbackRequester requester) {
-        verificationClient.verify(signature, hash, message, applicationName, login, requester);
+        verificationClient.verify(signature, hash, message, applicationName, requester);
     }
 
 

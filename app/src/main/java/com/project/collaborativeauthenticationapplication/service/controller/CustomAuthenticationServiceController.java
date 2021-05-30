@@ -1,9 +1,10 @@
 package com.project.collaborativeauthenticationapplication.service.controller;
 
+import com.project.collaborativeauthenticationapplication.alternative.network.Network;
 import com.project.collaborativeauthenticationapplication.logger.AndroidLogger;
 import com.project.collaborativeauthenticationapplication.logger.Logger;
 import com.project.collaborativeauthenticationapplication.service.general.FeedbackRequester;
-import com.project.collaborativeauthenticationapplication.service.key.KeyToken;
+import com.project.collaborativeauthenticationapplication.alternative.key.KeyToken;
 import com.project.collaborativeauthenticationapplication.service.general.ServiceStateException;
 import com.project.collaborativeauthenticationapplication.service.general.IllegalNumberOfTokensException;
 import com.project.collaborativeauthenticationapplication.service.general.SignatureToken;
@@ -31,7 +32,7 @@ public class CustomAuthenticationServiceController extends StartStopAuthenticati
     }
 
 
-    Communication communication = CustomCommunication.getInstance();
+    Network communication = Network.getInstance();
 
     private boolean hasBeenEnabled = false;
 
@@ -42,29 +43,14 @@ public class CustomAuthenticationServiceController extends StartStopAuthenticati
     @Override
     protected void start() {
         CustomServiceMonitor.getInstance().serviceActive();
-        communication.openServiceServer(new FeedbackRequester() {
-            private boolean result;
-            @Override
-            public void setResult(boolean result) {
-                this.result = result;
-            }
-
-            @Override
-            public void signalJobDone() {
-                if (!result){
-                    stop();
-                } else{
-                    communication.handleIncomingRequests();
-                }
-            }
-        });
+        communication.open();
         this.hasBeenEnabled = true;
     }
 
     @Override
     protected void stop() {
         CustomToken.closeAll();
-        communication.closeServiceServer();
+        communication.close();
         CustomServiceMonitor.getInstance().serviceDisabled();
         this.hasBeenEnabled = false;
     }
@@ -72,7 +58,7 @@ public class CustomAuthenticationServiceController extends StartStopAuthenticati
     @Override
     protected void sleep() {
         CustomToken.closeAll();
-        communication.closeServiceServer();
+        communication.close();
         CustomServiceMonitor.getInstance().serviceSleeps();
         this.hasBeenEnabled = true;
     }

@@ -13,6 +13,6 @@ public interface AuthenticationPresenter {
 
     Context getServiceContext();
 
-    void onReceivedNewInvitation();
+    void onNewSignature(String requester);
 
 }

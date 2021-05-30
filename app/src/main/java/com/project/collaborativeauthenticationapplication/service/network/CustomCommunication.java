@@ -23,9 +23,7 @@ import com.project.collaborativeauthenticationapplication.service.network.messag
 import com.project.collaborativeauthenticationapplication.service.network.messages.MessageEncoder;
 import com.project.collaborativeauthenticationapplication.service.network.messages.MessageParser;
 import com.project.collaborativeauthenticationapplication.service.network.messages.StartSignMessage;
-import com.project.collaborativeauthenticationapplication.service.signature.application.distributed.RemoteSignatureClient;
 import com.project.collaborativeauthenticationapplication.service.signature.application.distributed.RemoteSignatureCoordinator;
-import com.project.collaborativeauthenticationapplication.service.signature.application.distributed.SignatureCoordinator;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -64,7 +62,7 @@ public class CustomCommunication implements Communication{
 
     private MessageParser parser = new MessageParser();
 
-    HashMap<String, AndroidCommunicationConnection> cachedConnections = new HashMap<>();
+    HashMap<String, AndroidBiDirectionalCommunicationConnection> cachedConnections = new HashMap<>();
 
     private CustomCommunication(){}
 
@@ -121,10 +119,10 @@ public class CustomCommunication implements Communication{
     }
 
     private void handleIncomingConnection(BluetoothSocket connection){
-        AndroidCommunicationConnection communicationConnection;
+        AndroidBiDirectionalCommunicationConnection communicationConnection;
         String address = connection.getRemoteDevice().getAddress();
         synchronized (cachedConnections){
-            communicationConnection = new AndroidCommunicationConnection(connection);
+            communicationConnection = new AndroidBiDirectionalCommunicationConnection(connection);
             cachedConnections.put(address, communicationConnection);
         }
         logger.logEvent(COMPONENT, "new request is being processed", "normal");
@@ -132,6 +130,7 @@ public class CustomCommunication implements Communication{
             @Override
             public void run() {
                 try {
+
                       logger.logEvent(COMPONENT, "start IO streams", "low");
                       communicationConnection.createIOtStreams();
                       final CustomAuthenticationPresenter CUSTOM_AUTHENTICATION_PRESENTER = CustomAuthenticationPresenter.getInstance();
@@ -140,6 +139,7 @@ public class CustomCommunication implements Communication{
                       logger.logEvent(COMPONENT, "new request is being processed: parsing", "normal");
                       AbstractMessage parsedMessage = parser.parse(message);
                       if (parsedMessage instanceof InvitationMessage){
+                          /**
                           InvitationMessage mes = (InvitationMessage) parsedMessage;
                           RemoteKeyGenerationCoordinator coordinator = new RemoteKeyGenerationCoordinator(CUSTOM_AUTHENTICATION_PRESENTER);
                           coordinator.open(CUSTOM_AUTHENTICATION_PRESENTER.getServiceContext());
@@ -166,26 +166,28 @@ public class CustomCommunication implements Communication{
                           coordinator.addCoordinatorStub(main.getAddress());
                           coordinator.submitSelection(participants);
                           coordinator.run();
+                        **/
                       } else if (parsedMessage instanceof ConnectMessage){
                           //TO DO
+                          logger.logEvent("Custom communcation", "received connection request", "low");
                       } else if (parsedMessage instanceof StartSignMessage){
                           StartSignMessage parsedStartSignMessage  = (StartSignMessage) parsedMessage;
                           registerLocalAddress(parsedStartSignMessage.getLocalAddress());
                           String name = parsedStartSignMessage.getName();
-                          String login = parsedStartSignMessage.getLogin();
+                          //String login = parsedStartSignMessage.getLogin();
                           int number = parsedStartSignMessage.getNumber();
-                          Task task = new Task(name, login, new Requester() {
-                              @Override
-                              public void signalJobDone() {
-                                  logger.logEvent(COMPONENT, "signature completed", "normal");
-                              }
-                          });
-                          String extra = name + "," + login + "," +  String.valueOf(number);
-                          logger.logEvent(COMPONENT, "signature started", "normal", extra);
+                          //Task task = new Task(name, login, new Requester() {
+                            //  @Override
+                              //public void signalJobDone() {
+                                //  logger.logEvent(COMPONENT, "signature completed", "normal");
+                              //}
+                          //});
+                          //String extra = name + "," + login + "," +  String.valueOf(number);
+                          //logger.logEvent(COMPONENT, "signature started", "normal", extra);
                           RemoteSignatureCoordinator coordinator = new RemoteSignatureCoordinator(address);
                           coordinator.open(CUSTOM_AUTHENTICATION_PRESENTER.getServiceContext());
                           coordinator.setNumberToRequest(number);
-                          coordinator.sign(task);
+                          //coordinator.sign(task);
                       }
                 } catch (IOException e) {
                     e.printStackTrace(); //most likely cause: either the socket was closed or bluetooth was disabled
@@ -215,13 +217,13 @@ public class CustomCommunication implements Communication{
     }
 
     @Override
-    public AndroidCommunicationConnection getConnectionWith(String address) throws IOException {
-        AndroidCommunicationConnection connection = null;
+    public AndroidBiDirectionalCommunicationConnection getConnectionWith(String address) throws IOException {
+        AndroidBiDirectionalCommunicationConnection connection = null;
         synchronized (cachedConnections) {
              connection = cachedConnections.getOrDefault(address, null);
         }
-        if (connection == null || connection.getState() == AndroidCommunicationConnection.STATE_IDLE){
-            connection = new AndroidCommunicationConnection(address);
+        if (connection == null || connection.getState() == AndroidBiDirectionalCommunicationConnection.STATE_IDLE){
+            connection = new AndroidBiDirectionalCommunicationConnection(address);
             logger.logEvent(COMPONENT, "establishing connection", "low", address);
             connection.establishConnectionTo();
             logger.logEvent(COMPONENT, "established connection", "low", address);
@@ -233,7 +235,7 @@ public class CustomCommunication implements Communication{
     }
 
     @Override
-    public void handleBrokenConnection(AndroidCommunicationConnection connection) {
+    public void handleBrokenConnection(AndroidBiDirectionalCommunicationConnection connection) {
         if (connection != null){
             synchronized (cachedConnections){
                 cachedConnections.remove(connection.getAddress());
@@ -243,7 +245,7 @@ public class CustomCommunication implements Communication{
     }
 
     @Override
-    public void closeConnection(AndroidCommunicationConnection connection) {
+    public void closeConnection(AndroidBiDirectionalCommunicationConnection connection) {
         synchronized (cachedConnections){
             cachedConnections.remove(connection.getAddress());
             connection.closeConnection();
@@ -253,7 +255,7 @@ public class CustomCommunication implements Communication{
     @Override
     public void closeAllConnections() {
         synchronized (cachedConnections){
-            for (AndroidCommunicationConnection connection : cachedConnections.values()){
+            for (AndroidBiDirectionalCommunicationConnection connection : cachedConnections.values()){
                 connection.closeConnection();
             }
             cachedConnections.clear();
@@ -321,7 +323,7 @@ public class CustomCommunication implements Communication{
     public void abortOnAllConnections(String applicationName, String login) {
         synchronized (cachedConnections){
             byte[] abortMessage = encoder.makeAbortMessage(applicationName, login);
-            for (AndroidCommunicationConnection communicationConnection: cachedConnections.values()){
+            for (AndroidBiDirectionalCommunicationConnection communicationConnection: cachedConnections.values()){
                 synchronized (communicationConnection){
                     try{
                         communicationConnection.createIOtStreams();

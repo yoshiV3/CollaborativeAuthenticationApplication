@@ -4,7 +4,6 @@ import android.content.Context;
 
 import com.project.collaborativeauthenticationapplication.service.network.AndroidBluetoothMonitor;
 import com.project.collaborativeauthenticationapplication.service.network.BluetoothMonitor;
-import com.project.collaborativeauthenticationapplication.service.network.CustomCommunication;
 
 public class CustomAuthenticationPresenter implements AuthenticationPresenter{
 
@@ -60,7 +59,7 @@ public class CustomAuthenticationPresenter implements AuthenticationPresenter{
     }
 
     @Override
-    public void onReceivedNewInvitation() {
-        AuthenticationForegroundService.getInstance().notify("New key generation activity started");
+    public void onNewSignature(String requester) {
+        AuthenticationForegroundService.getInstance().notify("New signature request from "+ requester);
     }
 }

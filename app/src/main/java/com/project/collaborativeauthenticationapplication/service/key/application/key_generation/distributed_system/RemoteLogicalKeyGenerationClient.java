@@ -1,5 +1,7 @@
 package com.project.collaborativeauthenticationapplication.service.key.application.key_generation.distributed_system;
 
+import com.project.collaborativeauthenticationapplication.alternative.network.AndroidConnection;
+import com.project.collaborativeauthenticationapplication.alternative.network.Network;
 import com.project.collaborativeauthenticationapplication.logger.AndroidLogger;
 import com.project.collaborativeauthenticationapplication.logger.Logger;
 import com.project.collaborativeauthenticationapplication.service.crypto.BigNumber;
@@ -7,9 +9,6 @@ import com.project.collaborativeauthenticationapplication.service.crypto.Point;
 import com.project.collaborativeauthenticationapplication.service.general.IdentifiedParticipant;
 import com.project.collaborativeauthenticationapplication.service.key.application.key_generation.KeyGenerationClient;
 import com.project.collaborativeauthenticationapplication.service.key.application.key_generation.local_system.control.protocol.KeyGenerationSession;
-import com.project.collaborativeauthenticationapplication.service.network.AndroidCommunicationConnection;
-import com.project.collaborativeauthenticationapplication.service.network.Communication;
-import com.project.collaborativeauthenticationapplication.service.network.CustomCommunication;
 import com.project.collaborativeauthenticationapplication.service.network.messages.AbstractMessage;
 import com.project.collaborativeauthenticationapplication.service.network.messages.MessageEncoder;
 import com.project.collaborativeauthenticationapplication.service.network.messages.MessageParser;
@@ -23,6 +22,7 @@ import java.util.concurrent.TimeUnit;
 public class RemoteLogicalKeyGenerationClient implements KeyGenerationClient {
 
 
+    public static final String COMPONENT = "Remote client";
     public static int STATE_INIT        = 0;
     public static int STATE_ERROR       = 1;
     public static int STATE_CLOSED      = 2;
@@ -48,13 +48,16 @@ public class RemoteLogicalKeyGenerationClient implements KeyGenerationClient {
 
 
     private KeyGenerationSession session;
-    private AndroidCommunicationConnection connection;
+    private AndroidConnection connection;
 
     public RemoteLogicalKeyGenerationClient(IdentifiedParticipant participant, KeyGenerationSession session){
 
         this.participant = participant;
         this.session     = session;
     }
+
+
+
 
 
     protected Object getSync() {
@@ -69,11 +72,11 @@ public class RemoteLogicalKeyGenerationClient implements KeyGenerationClient {
         return participant.getAddress();
     }
 
-    protected void setConnection(AndroidCommunicationConnection connection) {
+    protected void setConnection(AndroidConnection connection) {
         this.connection = connection;
     }
 
-    protected AndroidCommunicationConnection getConnection() {
+    protected AndroidConnection getConnection() {
         return connection;
     }
 
@@ -106,35 +109,33 @@ public class RemoteLogicalKeyGenerationClient implements KeyGenerationClient {
 
     @Override
     public void generateParts(KeyGenerationCoordinator coordinator) {
-        Communication instance = CustomCommunication.getInstance();
+        Network instance = Network.getInstance();
         logger.logEvent("Remote client", "invitation", "low");
         try {
-            connection = instance.getConnectionWith(participant.getAddress());
+            connection = instance.getConnectionWith(participant.getAddress(), AndroidConnection.MODE_CONTROLLER, false);
             state = STATE_CONNECTED;
-            connection.createIOtStreams();
             encoder.clear();
             byte[] message = encoder.makeInvitationMessage(session, participant.getIdentifier());
             synchronized (sync){
                 sending = true;
+                logger.logEvent("Remote client", "sending invitation", "high");
                 connection.writeToConnection(message);
                 state = STATE_INVITED;
                 sending = false;
                 sync.notify();
             }
+            logger.logEvent(COMPONENT, "state:", "low", String.valueOf(state));
             waitForAndHandleAnswer(coordinator);
         } catch (IOException e) {
-            handleError(instance, coordinator, e, "IO exception during/before invitation could be send");
+            e.printStackTrace();
+            logger.logError("Remote client", "error", "low");
+            handleError(coordinator, e, "IO exception during/before invitation could be send"+ String.valueOf(getIdentifier()));
         }
     }
 
-    protected void handleError(Communication instance, KeyGenerationCoordinator coordinator, IOException e, String s) {
+    protected void handleError(KeyGenerationCoordinator coordinator, IOException e, String s) {
         e.printStackTrace();
         logger.logError("Remote client", s, "normal");
-        instance.handleBrokenConnection(connection);
-        if (state != STATE_CLOSED) {
-            state = STATE_ERROR;
-            connection = null;
-        }
         coordinator.abort();
     }
 
@@ -157,6 +158,7 @@ public class RemoteLogicalKeyGenerationClient implements KeyGenerationClient {
     @Override
     public void receiveParts(ArrayList<BigNumber> parts, Point publicKey, KeyGenerationCoordinator coordinator) {
         sendPartsToRemoteClient(parts, publicKey, coordinator);
+        connection.push();
         try {
             byte[] message = connection.readFromConnection();
             AbstractMessage result = parser.parse(message);
@@ -167,15 +169,11 @@ public class RemoteLogicalKeyGenerationClient implements KeyGenerationClient {
             }
         } catch (IOException e) {
             e.printStackTrace();
-            Communication instance = CustomCommunication.getInstance();
             logger.logError("Remote client", "error during voting after vote was cast", "normal");
-            instance.handleBrokenConnection(connection);
-            e.printStackTrace();
         }
     }
 
     protected void sendPartsToRemoteClient(ArrayList<BigNumber> parts, Point publicKey, KeyGenerationCoordinator coordinator) {
-        Communication instance = CustomCommunication.getInstance();
         logger.logEvent("Remote client", "sending parts", "low");
         try {
             synchronized (sync){
@@ -188,7 +186,6 @@ public class RemoteLogicalKeyGenerationClient implements KeyGenerationClient {
                 logger.logEvent("Remote client", "sending parts: locked sync", "low");
                 sending = true;
                 logger.logEvent("Remote client", "sending parts: go output stream", "low");
-                connection.createIOtStreams();
                 encoder.clear();
                 byte[] message = encoder.makePartsMessage(parts, publicKey);
                 logger.logEvent("Remote client", "sending parts: go output message", "low");
@@ -205,9 +202,7 @@ public class RemoteLogicalKeyGenerationClient implements KeyGenerationClient {
             //}else {
                 //coordinator.abort();
             //}
-        } catch (IOException e) {
-            handleError(instance, coordinator, e, "IO exception before parts could be send");
-        } catch(InterruptedException e){
+        }  catch(InterruptedException e){
             e.printStackTrace();
             logger.logError("remote client", "interrupt", "low");
         }
@@ -215,25 +210,20 @@ public class RemoteLogicalKeyGenerationClient implements KeyGenerationClient {
 
     @Override
     public void close(boolean success) {
+        logger.logEvent(COMPONENT, "close", "high", String.valueOf(success));
         if (success){
-            try {
-                connection.writeToConnection(encoder.makeVoteYesMessage());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            CustomCommunication.getInstance().closeConnection(connection);
+            connection.writeToConnection(encoder.makeVoteYesMessage());
+            connection.pushForFinal();
         } else {
-            try {
                 connection.writeToConnection(encoder.makeVoteNo());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+                connection.pushForFinal();
         }
         state = STATE_CLOSED;
     }
 
     @Override
     public synchronized void abort() {
+        logger.logEvent(COMPONENT, "abort", "low");
         if  (state >= STATE_CONNECTED){
             state = STATE_CLOSED;
             String name;
@@ -247,13 +237,11 @@ public class RemoteLogicalKeyGenerationClient implements KeyGenerationClient {
             }
             byte[] abortMessage = encoder.makeAbortMessage(name, login);
             try{
-                connection.createIOtStreams();
                 connection.writeToConnection(abortMessage);
-                connection.closeIOStreams();
+                connection.close();
             } catch (Exception e){
                 e.printStackTrace();
             } finally {
-                connection.closeConnection();
                 connection = null;
                 state = STATE_CLOSED;
             }

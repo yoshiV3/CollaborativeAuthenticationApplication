@@ -43,7 +43,6 @@ public class SignatureFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         SignaturePresenter presenter = CustomSignaturePresenter.getInstance();
         ((TextView)view.findViewById(R.id.textView_applicationName_signature)).setText(presenter.getApplicationName());
-        ((TextView)view.findViewById(R.id.textView_login_signature)).setText(presenter.getLogin());
         view.findViewById(R.id.button_finish_signature).setVisibility(View.GONE);
         view.findViewById(R.id.button_finish_signature).setOnClickListener(new View.OnClickListener() {
             @Override

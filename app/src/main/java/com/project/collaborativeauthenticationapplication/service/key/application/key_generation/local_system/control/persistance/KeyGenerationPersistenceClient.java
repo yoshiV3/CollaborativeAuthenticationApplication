@@ -13,7 +13,7 @@ import java.util.List;
 
 public interface KeyGenerationPersistenceClient {
 
-    void checkCredentials(FeedbackRequester requester, String applicationName, String login);
+    void checkCredentials(FeedbackRequester requester, String applicationName);
 
     void open(Context context);
 
