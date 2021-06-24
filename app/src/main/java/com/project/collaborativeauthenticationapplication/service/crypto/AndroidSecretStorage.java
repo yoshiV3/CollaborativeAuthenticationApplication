@@ -99,7 +99,10 @@ public class AndroidSecretStorage {
 
     public void storeSecret(BigNumber share, int identifier, String applicationName) throws SecureStorageException {
         SharedPreferences.Editor editor = getEncryptedSharedPreferences().edit();
-        String alias                    = getkeyAlias(applicationName) +  identifier;
+        String alias                    = getkeyAlias(applicationName) +  ":" +  String.valueOf(identifier);
+
+        logger.logEvent(COMPONENT, "store new secret with alias", "low", alias);
+
         editor.putString(alias, new String(share.getBigNumberAsByteArray(), StandardCharsets.ISO_8859_1));
         editor.apply();
     }
@@ -117,7 +120,7 @@ public class AndroidSecretStorage {
         String key    = getkeyAlias(applicationName) + ":" + identifier;
         String value  = getEncryptedSharedPreferences().getString(key, null);
         if (value == null){
-            throw new  SecureStorageException("Keys cannot be found in the secret storage");
+            throw new  SecureStorageException("Keys cannot be found in the secret storage " + applicationName + " "+ String.valueOf(identifier) );
         }
         return new BigNumber(value.getBytes(StandardCharsets.ISO_8859_1));
     }

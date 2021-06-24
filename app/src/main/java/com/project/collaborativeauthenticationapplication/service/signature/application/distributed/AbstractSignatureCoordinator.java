@@ -181,6 +181,7 @@ public abstract class AbstractSignatureCoordinator implements SignatureCoordinat
 
     @Override
     public void close() {
+        logger.logEvent(COMPONENT, "closing", "low");
         releaseToken();
         if (client != null){
             client.close();

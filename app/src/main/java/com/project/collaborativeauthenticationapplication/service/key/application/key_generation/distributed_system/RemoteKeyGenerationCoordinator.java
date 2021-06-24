@@ -3,7 +3,7 @@ package com.project.collaborativeauthenticationapplication.service.key.applicati
 import android.content.Context;
 
 import com.project.collaborativeauthenticationapplication.alternative.key.KeyGenerationPresenter;
-import com.project.collaborativeauthenticationapplication.alternative.key.application.GuardLeader;
+import com.project.collaborativeauthenticationapplication.alternative.key.application.GuardLeaderKeyGeneration;
 import com.project.collaborativeauthenticationapplication.alternative.network.Network;
 import com.project.collaborativeauthenticationapplication.logger.AndroidLogger;
 import com.project.collaborativeauthenticationapplication.logger.Logger;
@@ -34,7 +34,7 @@ public class RemoteKeyGenerationCoordinator extends LocalKeyGenerationCoordinato
 
 
 
-    private GuardLeader guardLeader;
+    private GuardLeaderKeyGeneration guardLeaderKeyGeneration;
 
     public RemoteKeyGenerationCoordinator(KeyGenerationPresenter presenter) {
         super(presenter);
@@ -66,8 +66,8 @@ public class RemoteKeyGenerationCoordinator extends LocalKeyGenerationCoordinato
     public void open(Context context) {
         super.open(context);
         logger.logEvent(COMPONENT, "new open request: create listener", "low");
-        guardLeader = new GuardLeader(this);
-        guardLeader.start();
+        guardLeaderKeyGeneration = new GuardLeaderKeyGeneration(this);
+        guardLeaderKeyGeneration.start();
         /**
         if (getState() != STATE_INIT)
         {

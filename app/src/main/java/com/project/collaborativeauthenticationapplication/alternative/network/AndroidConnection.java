@@ -144,6 +144,20 @@ public class AndroidConnection {
         mainControllerHere  = false;
     }
 
+    private boolean canDisturb = true;
+
+    public  void doNotDisturb(){
+        canDisturb = false;
+    }
+
+    public void canBeDisturbed(){
+        canDisturb = true;
+    }
+
+    public boolean isInterruptBlocked(){
+        return ! canDisturb;
+    }
+
     public boolean isConnectedWithMainController(){
         return mainControllerThere;
     }
@@ -620,15 +634,23 @@ public class AndroidConnection {
                                                         throw new UnsupportedOperationException();
                                                     case REQ_STATE_FINALISING:
                                                         logger.logEvent(COMPONENT_NAME, "finalising connection (end read final)", "low", getAddress());
-                                                        out[1] = MESSAGE_END_WRITE_FINAL;
-                                                        outputStream.write(out); //should already have stopped reading
-                                                        outputStream.flush();
-                                                        state = STATE_END;
-                                                        inputStream.close();
-                                                        outputStream.close();
-                                                        connection.close();
-                                                        Network.getInstance().release(getAddress());
-                                                        writeEnabled = false;
+                                                        if (mode == MODE_SLAVE_MULTI){
+                                                            out[1] = MESSAGE_END_WRITE_REQ_FINAL;
+                                                            outputStream.write(out); //should already have stopped reading
+                                                            outputStream.flush();
+                                                            writeEnabled = false;
+                                                        } else {
+                                                            out[1] = MESSAGE_END_WRITE_FINAL;
+                                                            outputStream.write(out); //should already have stopped reading
+                                                            outputStream.flush();
+                                                            state = STATE_END;
+                                                            inputStream.close();
+                                                            outputStream.close();
+                                                            connection.close();
+                                                            Network.getInstance().release(getAddress());
+                                                            writeEnabled = false;
+                                                        }
+
                                                         break;
                                                     case REQ_STATE_FINALISING_SYNC:
                                                         writeEnabled = false;
@@ -981,6 +1003,7 @@ public class AndroidConnection {
                                                         logger.logEvent(COMPONENT_NAME, "received request to end this connection", "low", getAddress());
                                                         state = STATE_CONNECTED_END_READ_FINAL;
                                                         readEnabled = false;
+                                                        handleNetwork();
                                                         break;
                                                     case STATE_CONNECTED_END_WRITE_FINAL:
                                                         readEnabled = false;

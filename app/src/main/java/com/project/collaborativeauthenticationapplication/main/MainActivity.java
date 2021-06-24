@@ -12,6 +12,7 @@ import android.widget.TextView;
 
 import com.project.collaborativeauthenticationapplication.CustomAuthenticationControllerActivity;
 import com.project.collaborativeauthenticationapplication.R;
+import com.project.collaborativeauthenticationapplication.alternative.management.extend.ReceiveNewShareActivity;
 import com.project.collaborativeauthenticationapplication.data.AuthenticationDatabase;
 import com.project.collaborativeauthenticationapplication.logger.AndroidLogger;
 import com.project.collaborativeauthenticationapplication.logger.Logger;
@@ -95,6 +96,28 @@ public class MainActivity extends CustomAuthenticationControllerActivity impleme
         }
 
     }
+
+
+
+    public void onClickExtend(View view){
+        logger.logEvent(COMPONENT_NAME, "clicked button", getString(R.string.PRIORITY_LOW));
+        if (statusPresenter.isServiceEnabled()) {
+            try {
+                Intent intent = new Intent(this, ReceiveNewShareActivity.class);
+                int requestCode = getResources().getInteger(R.integer.ExtendRequestCode);
+                startActivityForResult(intent, requestCode);
+            } catch (Exception e) {
+                logger.logError(COMPONENT_NAME, e.getMessage(), getString(R.string.PRIORITY_CRITICAL));
+            }
+        }
+        else
+        {
+            logger.logEvent(COMPONENT_NAME, "Service disabled so no generation of keys", getString(R.string.PRIORITY_LOW));
+            showTemporally("Service is disabled");
+        }
+    }
+
+
 
     public void onClickKeyManagement(View view){
         logger.logEvent(COMPONENT_NAME, "clicked button", getString(R.string.PRIORITY_LOW));

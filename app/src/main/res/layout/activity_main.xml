@@ -8,10 +8,11 @@
 
     <Button
         android:id="@+id/button_dkg"
-        android:layout_width="300dp"
+        android:layout_width="260dp"
         android:layout_height="40dp"
         android:layout_marginTop="48dp"
-        android:layout_marginEnd="80dp"
+        android:layout_marginEnd="40dp"
+        android:textSize="12sp"
         android:onClick="onClickKeyGeneration"
         android:text="@string/button_mainActivity_start_dkg"
         app:layout_constraintEnd_toEndOf="parent"
@@ -19,35 +20,49 @@
 
     <TextView
         android:id="@+id/textView_main_status_service"
-        android:layout_width="300dp"
-        android:layout_height="80dp"
-        android:layout_marginTop="56dp"
-        android:layout_marginEnd="80dp"
+        android:layout_width="260dp"
+        android:layout_height="40dp"
+        android:layout_marginTop="60dp"
+        android:layout_marginEnd="44dp"
         android:text="@string/text_status_service_off"
-        android:textSize="18sp"
+        android:textSize="12sp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/button_signature" />
+        app:layout_constraintTop_toBottomOf="@+id/button_receive_new" />
 
     <Button
         android:id="@+id/button_management"
-        android:layout_width="300dp"
+        android:layout_width="260dp"
         android:layout_height="40dp"
         android:layout_marginTop="20dp"
-        android:layout_marginEnd="80dp"
+        android:layout_marginEnd="40dp"
         android:onClick="onClickKeyManagement"
+        android:textSize="12sp"
         android:text="@string/manage_credentials"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/button_dkg" />
 
     <Button
         android:id="@+id/button_signature"
-        android:layout_width="300dp"
+        android:layout_width="260dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
-        android:layout_marginEnd="80dp"
+        android:layout_marginEnd="40dp"
         android:onClick="onClickSign"
         android:text="@string/text_signature"
+        android:textSize="12sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/button_management" />
+
+    <Button
+        android:id="@+id/button_receive_new"
+        android:layout_width="260dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="40dp"
+        android:onClick="onClickExtend"
+        android:textSize="12sp"
+        android:text="@string/new_share"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/button_signature" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

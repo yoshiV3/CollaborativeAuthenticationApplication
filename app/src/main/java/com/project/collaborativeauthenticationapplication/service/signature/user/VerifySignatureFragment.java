@@ -66,7 +66,7 @@ public class VerifySignatureFragment extends Fragment {
                         View button = getView().findViewById(R.id.button_finish_verify);
                         button.setVisibility(View.GONE);
                         if(result){
-                            ((TextView)getView().findViewById(R.id.textView_result_verification)).setText("Signature successfully verified");
+                            ((TextView)getView().findViewById(R.id.textView_result_verification)).setText("Welcome");
                         }
                         else {
                             ((TextView)getView().findViewById(R.id.textView_result_verification)).setText("Signature failed to verify");

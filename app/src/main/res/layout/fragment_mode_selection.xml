@@ -10,19 +10,21 @@
         android:id="@+id/button_leader_mode"
         android:layout_width="272dp"
         android:layout_height="97dp"
-        android:layout_marginStart="68dp"
-        android:layout_marginTop="84dp"
+        android:layout_marginTop="96dp"
+        android:layout_marginEnd="20dp"
         android:text="@string/leader"
-        app:layout_constraintStart_toStartOf="parent"
+        android:textSize="12sp"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <Button
         android:id="@+id/button_follower_mode"
         android:layout_width="277dp"
         android:layout_height="92dp"
-        android:layout_marginStart="68dp"
-        android:layout_marginTop="52dp"
+        android:layout_marginTop="60dp"
+        android:layout_marginEnd="20dp"
         android:text="@string/follwer"
-        app:layout_constraintStart_toStartOf="parent"
+        android:textSize="12sp"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/button_leader_mode" />
 </androidx.constraintlayout.widget.ConstraintLayout>

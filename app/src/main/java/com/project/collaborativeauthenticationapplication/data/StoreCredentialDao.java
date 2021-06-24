@@ -12,6 +12,7 @@ import com.project.collaborativeauthenticationapplication.service.key.applicatio
 import com.project.collaborativeauthenticationapplication.service.key.application.key_generation.local_system.control.protocol.KeyGenerationSession;
 
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 
 @Dao
 public abstract class StoreCredentialDao {
@@ -41,6 +42,34 @@ public abstract class StoreCredentialDao {
     public boolean getSuccess(){
         boolean suc = success;
         return suc;
+    }
+
+
+
+
+    @Transaction
+    public void storeCredentialData(HashMap<String, int[] > participants , Point publicKey, String login, String applicationName,
+                                    int threshold, int newIdentifier){
+        success = false;
+        String publicKeyX = new String(publicKey.getX().getBigNumberAsByteArray(), StandardCharsets.ISO_8859_1);
+        String publicKeyY = new String(publicKey.getY().getBigNumberAsByteArray(), StandardCharsets.ISO_8859_1);
+        ApplicationLoginEntity application             = new ApplicationLoginEntity(applicationName, login, threshold,
+                publicKeyX, publicKeyY, publicKey.isZero());
+
+        long applicationId = insert(application);
+
+        LocalSecretEntity s = new LocalSecretEntity(applicationId, newIdentifier);
+        insert(s);
+
+        for(String remote: participants.keySet()){
+            insert(new ParticipantEntity(remote));
+            ApplicationLoginParticipantJoin join = new ApplicationLoginParticipantJoin(applicationId, remote, CustomKeyGenerationPersistenceManager.STATE_CONFIRMED);
+            insert(join);
+            for (int identifier : participants.get(remote)){
+                insert(new RemoteSecretEntity(applicationId, remote, identifier));
+            }
+        }
+        success = true;
     }
 
 

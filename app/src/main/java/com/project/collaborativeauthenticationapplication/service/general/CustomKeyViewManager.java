@@ -30,6 +30,18 @@ public class CustomKeyViewManager {
         db = AuthenticationDatabase.getAuthenticationDatabaseInstance();
     }
 
+    protected AuthenticationDatabase getDb() {
+        return db;
+    }
+
+    public List<RemoteSecretEntity> getAllRemoteSecretsOf(String remote, String application){
+        ApplicationLoginDao applicationLoginDao     = db.getApplicationLoginDao();
+        RemoteDao           remoteDao               = db.getRemoteDao();
+        List<ApplicationLoginEntity> applicationLoginEntities = applicationLoginDao.getApplicationsWithApplication(application);
+        List<RemoteSecretEntity>  secrets           =  remoteDao.getRemoteSecretsFor(applicationLoginEntities.get(0).applicationLoginId, remote);
+        return secrets;
+    }
+
 
 
     public List<ApplicationLoginEntity> getAllCredentials(){
@@ -287,6 +299,7 @@ public class CustomKeyViewManager {
         List<ApplicationLoginParticipantJoin> entities = applicationLoginParticipantDao.getAllInformation(applicationName, login);
         return entities.size();
     }
+
 
 
 }

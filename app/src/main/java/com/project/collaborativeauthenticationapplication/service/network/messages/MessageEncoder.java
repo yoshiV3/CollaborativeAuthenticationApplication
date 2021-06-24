@@ -23,13 +23,16 @@ public class MessageEncoder {
     private static final Logger logger            = new AndroidLogger();
 
 
-    public static final byte MAIN_STRING_TYPE  = 1;
-    public static final byte CON_STRING_TYPE   = 2;
-    public static final byte BIG_NUMBER_TYPE   = 3;
-    public static final byte INT_PARAM_TYPE    = 4;
-    public static final byte POINT_TYPE        = 5;
-    public static final byte COMMITMENTS       = 6;
-    public static final byte NAMED_COMMITMENTS = 6;
+    public static final byte MAIN_STRING_TYPE       = 1;
+    public static final byte CON_STRING_TYPE        = 2;
+    public static final byte BIG_NUMBER_TYPE        = 3;
+    public static final byte INT_PARAM_TYPE         = 4;
+    public static final byte POINT_TYPE             = 5;
+    public static final byte COMMITMENTS            = 6;
+    public static final byte NAMED_COMMITMENTS      = 6;
+    public static final byte MAIN_STRING_TYPE_NULL  = 7;
+    public static final byte ARRAY_OF_ARRAYS        = 8;
+    public static final byte ARRAY                  = 9;
 
     public static final byte PREAMBLE_BEGIN        = 1;
 
@@ -49,34 +52,41 @@ public class MessageEncoder {
     }
 
     public void addString(String string){
-        byte[] value = string.getBytes(StandardCharsets.ISO_8859_1);
-        int length   =  value.length;
-        if (length == 0){
-            throw new IllegalArgumentException("Illegal use of empty strings");
-        }
-        byte nextType = MAIN_STRING_TYPE;
-        int numberOfBlocks = length/256;
-        int remainder      = length%256;
-        for(int block = 0; block < numberOfBlocks; block++){ //number of full blocks
-            byte[] message = new byte[256+2];
-            message[0] = nextType;
-            message[1] = -1;
-            System.arraycopy(value,   block*256, message, 2, 256);
-            nextType = CON_STRING_TYPE;
+        if (string == null){
+            byte[] message = new byte[1];
+            message[0] = MAIN_STRING_TYPE_NULL;
             table.put(new Integer(totalLength), message);
             totalLength += 1;
-        }
-        if (remainder != 0){
-            byte[] message = new byte[remainder+2];
-            message[0]     = nextType;
-            int remainderB = remainder -1; //need for compatibility
-            if (remainderB > 127){
-                remainderB = remainder- 256;
+        } else {
+            byte[] value = string.getBytes(StandardCharsets.ISO_8859_1);
+            int length = value.length;
+            if (length == 0) {
+                throw new IllegalArgumentException("Illegal use of empty strings");
             }
-            message[1] =  (byte) remainderB;
-            System.arraycopy(value,   numberOfBlocks*256, message, 2, remainder);
-            table.put(new Integer(totalLength), message);
-            totalLength += 1;
+            byte nextType = MAIN_STRING_TYPE;
+            int numberOfBlocks = length / 256;
+            int remainder = length % 256;
+            for (int block = 0; block < numberOfBlocks; block++) { //number of full blocks
+                byte[] message = new byte[256 + 2];
+                message[0] = nextType;
+                message[1] = -1; //256 inside
+                System.arraycopy(value, block * 256, message, 2, 256);
+                nextType = CON_STRING_TYPE;
+                table.put(new Integer(totalLength), message);
+                totalLength += 1;
+            }
+            if (remainder != 0) {
+                byte[] message = new byte[remainder + 2];
+                message[0] = nextType;
+                int remainderB = remainder - 1; //need for compatibility
+                if (remainderB > 127) {
+                    remainderB = remainder - 256;
+                }
+                message[1] = (byte) remainderB;
+                System.arraycopy(value, numberOfBlocks * 256, message, 2, remainder);
+                table.put(new Integer(totalLength), message);
+                totalLength += 1;
+            }
         }
     }
 
@@ -295,7 +305,75 @@ public class MessageEncoder {
         return build();
     }
 
+
+    public byte[] makeRefreshMessage(String remove){
+        addHeaderField(MessageParser.REFRESH_CODE);
+        addString(remove);
+        return build();
+    }
+
+    public byte[] makeRefreshShareMessage(List<BigNumber> shares){
+        addHeaderField(MessageParser.REFRESH_SHARES_CODE);
+        addNonZeroByteParameter(shares.size());
+        for (BigNumber part: shares){
+            addBigNumber(part);
+        }
+        return build();
+
+    }
+
+    public void beginExtendCode(Point publicKey, int threshold, int newIdentifier, String applicationName, int numberOfRemotes){
+        addHeaderField(MessageParser.EXTEND_NEW_CODE);
+        addString(applicationName);
+        addNonZeroByteParameter(threshold);
+        addNonZeroByteParameter(newIdentifier);
+        addPoint(publicKey);
+        addHeaderField(ARRAY_OF_ARRAYS);
+        addNonZeroByteParameter(numberOfRemotes);
+    }
+
+
+    public void addRemote(String remote, int[] identifier, boolean calculating){
+        addString(remote);
+        addBoolean(calculating);
+        addHeaderField(ARRAY);
+        addNonZeroByteParameter(identifier.length);
+        for (int i : identifier){
+            addNonZeroByteParameter(i);
+        }
+    }
+
     public void clear(){
         table.clear();
+    }
+
+    public byte[] makeCalculateMessage(List<String> remotes, int newIdentifier, String address, int weight, int[] weights, String device) {
+        addHeaderField(MessageParser.EXTEND_CALCULATE_CODE);
+        addString(device);
+        addNonZeroByteParameter(newIdentifier);
+        addString(address);
+        addNonZeroByteParameter(weight);
+        addHeaderField(ARRAY_OF_ARRAYS);
+        addNonZeroByteParameter(remotes.size());
+        for (int i = 0; i < remotes.size(); i++){
+            addString(remotes.get(i));
+            addNonZeroByteParameter(weights[i]);
+        }
+        return build();
+    }
+
+
+    public byte[] makeExtendSliceMessage(BigNumber slice){
+        addHeaderField(MessageParser.EXTEND_SLICE_CODE);
+        addBigNumber(slice);
+        return build();
+    }
+
+
+    public byte[] makeExtendMessageMessage(BigNumber message, int weight){
+        addHeaderField(MessageParser.EXTEND_MESSAGE_CODE);
+        addBigNumber(message);
+        addNonZeroByteParameter(weight);
+        return build();
     }
 }

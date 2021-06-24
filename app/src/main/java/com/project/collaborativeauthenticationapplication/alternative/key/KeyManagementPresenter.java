@@ -1,5 +1,8 @@
 package com.project.collaborativeauthenticationapplication.alternative.key;
 
+import android.content.Context;
+
+import com.project.collaborativeauthenticationapplication.alternative.management.DataFiller;
 import com.project.collaborativeauthenticationapplication.service.general.SecretOverviewAdapterPresenter;
 import com.project.collaborativeauthenticationapplication.service.general.Requester;
 
@@ -19,4 +22,34 @@ public interface KeyManagementPresenter extends KeyPresenter, SecretOverviewAdap
     void onExtend(Requester requester);
 
     void onFinishedRecovery();
+
+    void onRefreshSecret();
+
+    void makeLeader();
+
+    void makeFollower();
+
+    void selectedDevice(String remove);
+
+    void getDeviceList(DataFiller dataFiller);
+
+    void openCoordinator(Context context);
+
+    String getDevice();
+
+
+
+    void startRefresh();
+
+    String getApplicationName();
+
+    void isRunnable();
+
+    void onFinished();
+
+    void endRefresh();
+
+    void startExtend();
+
+
 }

@@ -25,6 +25,9 @@
         <action
             android:id="@+id/action_credentialManagementFragment_to_keyRecoveryFragment"
             app:destination="@id/keyRecoveryFragment" />
+        <action
+            android:id="@+id/action_credentialManagementFragment_to_modeSelectionFragement"
+            app:destination="@id/modeSelectionFragement" />
     </fragment>
     <fragment
         android:id="@+id/keyRecoveryFragment"
@@ -36,5 +39,64 @@
             app:destination="@id/credentialManagementFragment"
             app:popUpTo="@+id/secretOverviewFragment"
             />
+    </fragment>
+    <fragment
+        android:id="@+id/modeSelectionFragement"
+        android:name="com.project.collaborativeauthenticationapplication.alternative.management.ModeSelectionFragment"
+        android:label="fragment_mode_selection_fragement"
+        tools:layout="@layout/fragment_mode_selection_fragement" >
+        <action
+            android:id="@+id/action_modeSelectionFragement_to_managementWaitingForLeaderFragment"
+            app:destination="@id/managementWaitingForLeaderFragment" />
+        <action
+            android:id="@+id/action_modeSelectionFragement_to_selectParametersFragment"
+            app:destination="@id/selectParametersFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/managementWaitingForLeaderFragment"
+        android:name="com.project.collaborativeauthenticationapplication.alternative.management.ManagementWaitingForLeaderFragment"
+        android:label="fragment_management_waiting_for_leader"
+        tools:layout="@layout/fragment_management_waiting_for_leader" >
+        <action
+            android:id="@+id/action_managementWaitingForLeaderFragment_to_refreshFragment"
+            app:destination="@id/refreshFragment" />
+        <action
+            android:id="@+id/action_managementWaitingForLeaderFragment_to_extendFragment"
+            app:destination="@id/extendFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/selectParametersFragment"
+        android:name="com.project.collaborativeauthenticationapplication.alternative.management.SelectParametersFragment"
+        android:label="fragment_select_parameters"
+        tools:layout="@layout/fragment_select_parameters" >
+        <action
+            android:id="@+id/action_selectParametersFragment_to_refreshFragment"
+            app:destination="@id/refreshFragment" />
+        <action
+            android:id="@+id/action_selectParametersFragment_to_extendFragment"
+            app:destination="@id/extendFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/refreshFragment"
+        android:name="com.project.collaborativeauthenticationapplication.alternative.management.RefreshFragment"
+        android:label="fragment_refresh"
+        tools:layout="@layout/fragment_refresh" >
+        <action
+            android:id="@+id/action_refreshFragment_to_finishFragment"
+            app:destination="@id/finishFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/finishFragment"
+        android:name="com.project.collaborativeauthenticationapplication.alternative.management.FinishFragment"
+        android:label="fragment_finish"
+        tools:layout="@layout/fragment_finish" />
+    <fragment
+        android:id="@+id/extendFragment"
+        android:name="com.project.collaborativeauthenticationapplication.alternative.management.ExtendFragment"
+        android:label="fragment_extend"
+        tools:layout="@layout/fragment_extend" >
+        <action
+            android:id="@+id/action_extendFragment_to_finishFragment"
+            app:destination="@id/finishFragment" />
     </fragment>
 </navigation>

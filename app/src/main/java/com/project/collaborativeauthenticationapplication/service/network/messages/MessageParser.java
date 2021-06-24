@@ -11,10 +11,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 
 
 public class MessageParser {
+
+
 
     private int index = 0;
 
@@ -32,6 +33,12 @@ public class MessageParser {
     public static final byte SIGN_COMMIT_CODE        = 7;
     public static final byte SIGN_PUBLISH_CODE       = 8;
     public static final byte SIGN_SIGNATURE_CODE     = 9;
+    public static final byte REFRESH_CODE            = 10;
+    public static final byte REFRESH_SHARES_CODE     = 11;
+    public static final byte EXTEND_NEW_CODE         = 12;
+    public static final byte EXTEND_CALCULATE_CODE   = 13;
+    public static final byte EXTEND_SLICE_CODE       = 14;
+    public static final byte EXTEND_MESSAGE_CODE     = 15;
 
 
     public AbstractMessage parse(byte[] message){
@@ -56,9 +63,92 @@ public class MessageParser {
                 return parseSignPublishMessage(message);
             case SIGN_SIGNATURE_CODE:
                 return parseSignatureMessage(message);
+            case REFRESH_CODE:
+                return parseRefreshCode(message);
+            case REFRESH_SHARES_CODE:
+                return parseRefreshShares(message);
+            case EXTEND_NEW_CODE:
+                return parseNewExtend(message);
+            case EXTEND_CALCULATE_CODE:
+                return parseExtendCalculateMessage(message);
+            case EXTEND_SLICE_CODE:
+                return parseExtendSliceMessage(message);
+            case EXTEND_MESSAGE_CODE:
+                return parseExtendMessageMessage(message);
             default:
                 return null;
         }
+    }
+
+    private AbstractMessage parseExtendMessageMessage(byte[] message) {
+        index = 2;
+        final BigNumber mes = parseBigNumber(message);
+        final int weight    = parseNonZeroIntegerParameter(message);
+        return new ExtendMessageMessage(weight, mes);
+    }
+
+    private AbstractMessage parseExtendSliceMessage(byte[] message) {
+        index = 2;
+        return new SliceMessage(parseBigNumber(message));
+    }
+
+    private AbstractMessage parseExtendCalculateMessage(byte[] message) {
+        index = 2;
+        final String localAddress = parseString(message);
+        final int newIdentifier = parseNonZeroIntegerParameter(message);
+        final String address = parseString(message);
+        final int weight = parseNonZeroIntegerParameter(message);
+        ExtendCalculateMessage extendCalculateMessage = new ExtendCalculateMessage(newIdentifier, address, weight, localAddress);
+        index = index + 1;
+        final int numberOfRemotes = parseNonZeroIntegerParameter(message);
+        int[] weights = new int[numberOfRemotes];
+        for (int i = 0; i < numberOfRemotes; i++){
+            String remote = parseString(message);
+            extendCalculateMessage.addRemote(remote);
+            weights[i] = parseNonZeroIntegerParameter(message);
+        }
+        extendCalculateMessage.setWeights(weights);
+        return extendCalculateMessage;
+    }
+
+    private AbstractMessage parseNewExtend(byte[] message) {
+        index = 2;
+        final String applicationName = parseString(message);
+        final int threshold = parseNonZeroIntegerParameter(message);
+        final int newIdentifier = parseNonZeroIntegerParameter(message);
+        final Point publicKey   = parsePoint(message);
+
+        ExtendStartMessage startMessage = new ExtendStartMessage(threshold, publicKey, newIdentifier, applicationName);
+
+        index = index + 1;
+        final int numberOfRemotes = parseNonZeroIntegerParameter(message);
+        for (int i = 0; i < numberOfRemotes; i++){
+            String remote = parseString(message);
+            boolean cal   = parseBoolean(message);
+            index = index + 1;
+            int length = parseNonZeroIntegerParameter(message);
+            int[] identifier = new int[length];
+            for (int j = 0; j < length; j++){
+                identifier[j] = parseNonZeroIntegerParameter(message);
+            }
+            startMessage.addToRemote(remote, identifier, cal );
+        }
+        return startMessage;
+    }
+
+    private AbstractMessage parseRefreshShares(byte[] message) {
+        index = 2;
+        int  weight = parseNonZeroIntegerParameter(message);
+        ArrayList<BigNumber> parts = parseBigNumberList(message, weight);
+        logger.logEvent(COMPONENT_NAME, "received message", "low", String.valueOf(index));
+        index = 0;
+        return new RefreshShareMessage(parts);
+    }
+
+    private AbstractMessage parseRefreshCode(byte[] message) {
+        index = 2;
+        String remove = parseString(message);
+        return new RefreshMessage(remove);
     }
 
     private AbstractMessage parseSignatureMessage(byte[] message) {
@@ -173,23 +263,28 @@ public class MessageParser {
     }
 
     private String parseString(byte[] message){
-        if (message[index] != MessageEncoder.MAIN_STRING_TYPE){
+        if (!(message[index] == MessageEncoder.MAIN_STRING_TYPE || message[index] == MessageEncoder.MAIN_STRING_TYPE_NULL)){
             throw new IllegalArgumentException("Malformed message");
         }
-        index += 1;
-        int length = byteToInt(message[index])+1;
-        index += 1;
-        String string =  new String(Arrays.copyOfRange(message, index, index+length), StandardCharsets.ISO_8859_1);
-        index = index + length;
-        while (length == 256){//if previous length equals 256 then full word
-            if (message[index] != MessageEncoder.CON_STRING_TYPE){
-                throw new IllegalArgumentException("Malformed message");
-            }
-            index +=  1;
-            length = byteToInt(message[index])+1;
+        String string;
+        if (message[index] == MessageEncoder.MAIN_STRING_TYPE) {
             index += 1;
-            string = string + new String(Arrays.copyOfRange(message, index, index+length), StandardCharsets.ISO_8859_1);
-            index += length;
+            int length = byteToInt(message[index])+1;
+            index += 1;
+            string = new String(Arrays.copyOfRange(message, index, index + length), StandardCharsets.ISO_8859_1);
+            index = index + length;
+            while (length == 256) {//if previous length equals 256 then full word
+                if (message[index] != MessageEncoder.CON_STRING_TYPE) {
+                    throw new IllegalArgumentException("Malformed message");
+                }
+                index += 1;
+                length = byteToInt(message[index]) + 1;
+                index += 1;
+                string = string + new String(Arrays.copyOfRange(message, index, index + length), StandardCharsets.ISO_8859_1);
+                index += length;
+            }
+        } else {
+            string = null;
         }
         return string;
     }

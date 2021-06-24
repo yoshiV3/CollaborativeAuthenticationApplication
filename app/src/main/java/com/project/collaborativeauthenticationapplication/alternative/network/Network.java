@@ -303,6 +303,7 @@ public class Network {
     }
 
     public void release(String address) {
+        logger.logEvent(COMPONENT, "release", "high", address);
         synchronized (cachedConnections){
             cachedConnections.remove(address);
             if (cachedConnections.values().size() == 0){
@@ -426,6 +427,7 @@ public class Network {
 
     protected void  makeInactive(String address){
         synchronized (cachedConnections) {
+            logger.logEvent(COMPONENT, "make inactive uni", "low", address);
             AndroidConnectionState state = cachedConnections.getOrDefault(address, null);
             state.getConnection().changeMode(AndroidConnection.MODE_SLAVE_UNI);
             state.setInactive_multi(true);
@@ -451,7 +453,7 @@ public class Network {
                         boolean active = false;
                         for (AndroidConnectionState state : cachedConnections.values()) {
                             logger.logEvent(COMPONENT, "is inactive " + state.getConnection().getAddress() , "low", String.valueOf(state.isInactive()));
-                            active = active || !state.isInactive();
+                            active = active || (!state.isInactive() && !state.getConnection().isInterruptBlocked());
                         }
                         AndroidConnection nextLeader = null;//at least one should be the next leader
                         AndroidConnection main = null;
@@ -464,7 +466,9 @@ public class Network {
                                     nextLeader = con;
                                     logger.logEvent(COMPONENT, "found next controller", "high");
                                 } else {
-                                    con.continueToNextStage();
+                                    if (!con.isInterruptBlocked()){
+                                        con.continueToNextStage();
+                                    }
                                 }
                                 if (con.isConnectedWithMainController()){
                                     main = con;

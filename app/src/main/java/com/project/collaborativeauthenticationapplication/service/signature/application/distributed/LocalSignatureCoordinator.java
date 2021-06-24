@@ -345,6 +345,7 @@ public class LocalSignatureCoordinator extends AbstractSignatureCoordinator {
     @Override
     public void close() {
         if (clients != null){
+            logger.logEvent(COMPONENT, "called close", "low");
             clients.clear();
             clients = null;
         }

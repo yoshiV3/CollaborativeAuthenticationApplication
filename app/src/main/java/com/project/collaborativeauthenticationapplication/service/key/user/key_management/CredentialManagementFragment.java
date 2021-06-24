@@ -76,6 +76,13 @@ public class CredentialManagementFragment extends Fragment {
             }
         });
 
+        view.findViewById(R.id.button_refresh).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                presenter.onRefreshSecret();
+            }
+        });
+
     }
 
     private void displayInformation(@NonNull View view, KeyManagementPresenter presenter) {

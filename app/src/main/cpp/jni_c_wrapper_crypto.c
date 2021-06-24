@@ -148,6 +148,8 @@ Java_com_project_collaborativeauthenticationapplication_service_crypto_CryptoPro
     fillArrayListWithData(env, evals, parts, total_weight);
     fillPointWithData(env, &publicKey, public_key_part);
     freeArrayOfArrays(evals, total_weight);
+    freeArrayOfArrays(poly, threshold);
+
 }
 
 JNIEXPORT jobject JNICALL
@@ -322,4 +324,141 @@ Java_com_project_collaborativeauthenticationapplication_service_crypto_CryptoThr
     sum_mod_n(partsC, result, size);
 
     return getNewBigNumberObject(env, result);
+}
+
+JNIEXPORT void JNICALL
+Java_com_project_collaborativeauthenticationapplication_service_crypto_CryptoRefreshShareUnit_createSharesNative(
+        JNIEnv *env, jobject thiz, jobject poly, jintArray identifiers, jobject shares) {
+
+    uint32_t  threshold       = getArrayListSize(env, poly); //threshold = degree + 1
+    uint32_t ** pol  = (uint32_t **) malloc(threshold*sizeof(uint32_t*)); //RELEASE
+    transformArrayListBigNumbersToCArray(env,poly, pol, threshold); //place data into a c 2D array (polynomial representation)
+
+    jsize lenIdentifiers = (*env)->GetArrayLength(env, identifiers);
+    uint32_t *identifiersC = (uint32_t *) (*env)->GetIntArrayElements(env, identifiers, 0); //RELEASE
+
+    uint32_t ** evals         = (uint32_t **) malloc(lenIdentifiers * sizeof(uint32_t*));
+
+    for (int index =0; index < lenIdentifiers; index++)
+    {
+        uint32_t * point_on_poly    = malloc(SIZE*sizeof(uint32_t));
+        evals[index]         = point_on_poly;
+        evaluate_poly_n(pol, identifiersC[index], threshold-1, point_on_poly);
+    }
+
+
+    fillArrayListWithData(env, evals, shares, lenIdentifiers);
+    freeArrayOfArrays(evals, lenIdentifiers);
+    freeArrayOfArrays(pol, threshold);
+    (*env)->ReleaseIntArrayElements(env, identifiers, identifiersC, 0);
+
+
+}
+
+JNIEXPORT void JNICALL
+Java_com_project_collaborativeauthenticationapplication_service_crypto_CryptoRefreshShareUnit_calculateSharesNative(
+        JNIEnv *env, jobject thiz, jobject list, jobject shares) {
+    int weight                 = getArrayListSize(env, list); //local weight: number of local participants
+
+    if (weight == 0){
+        return;
+    }
+
+    jobject  parts             = getObjectFromArrayList(env, list, 0);
+    int totalWeight            = getArrayListSize(env, parts);
+
+    uint32_t ** partsC         = (uint32_t **) malloc(totalWeight*sizeof(uint32_t **));
+    uint32_t ** sharesC        = (uint32_t **) malloc(weight * sizeof(uint32_t*));
+
+
+
+    for (int index = 0; index < weight; index++)
+    {
+        parts         = getObjectFromArrayList(env, list, index);
+        transformArrayListBigNumbersToCArray(env,  parts , partsC, totalWeight);
+        uint32_t *sum    = malloc(SIZE*sizeof(uint32_t));
+        sharesC[index]   = sum;
+        sum_mod_n(partsC, sum, totalWeight);
+    }
+
+    fillArrayListWithData(env, sharesC, shares, weight);
+    freeArrayOfArrays(partsC, totalWeight);
+    freeArrayOfArrays(sharesC, weight);
+}
+
+JNIEXPORT void JNICALL
+Java_com_project_collaborativeauthenticationapplication_service_crypto_CryptoExtendUnit_getSlicesNative(
+        JNIEnv *env, jobject thiz, jintArray identifiers, jobject shares, jint weight,
+        jint new_identifier, jobject randomness, jobject slices) {
+    int numberOfSlices                 = getArrayListSize(env, randomness) +1; //local weight: number of local participants
+
+    uint32_t ** randomnessC    = (uint32_t **) malloc((numberOfSlices-1)*sizeof(uint32_t **));
+    uint32_t ** sharesC        = (uint32_t **) malloc(weight * sizeof(uint32_t*));
+
+    transformArrayListBigNumbersToCArray(env,  randomness , randomnessC, numberOfSlices-1);
+    uint32_t * sum[SIZE];
+    sum_mod_n(randomnessC, sum, numberOfSlices-1);
+
+    transformArrayListBigNumbersToCArray(env,  shares , sharesC, weight);
+
+
+
+    uint32_t *identifiersC = (uint32_t *) (*env)->GetIntArrayElements(env, identifiers, 0);
+
+    jsize lenIdentifiers = (*env)->GetArrayLength(env, identifiers);
+
+    uint32_t total[SIZE] = {0};
+    uint32_t * x_values = malloc((lenIdentifiers - 1) * sizeof(uint32_t));
+    uint32_t x_target = (uint32_t) new_identifier;
+    uint32_t degree   = ((uint32_t)lenIdentifiers) - 1;
+    for (uint32_t x=0; x<weight; x++){
+        for (uint32_t i = 0; i<lenIdentifiers; i++){
+            if (x>i) {
+                x_values[i] = identifiersC[i];
+            } else if (x< i){
+                x_values[i-1] = identifiersC[i];
+            }
+        }
+        uint32_t e[SIZE];
+        calculate_share_part_for_x_n(x_values, identifiersC[x], x_target, degree, sharesC[x], e );
+        add_mod_n(total, e, total);
+    }
+
+    uint32_t slice[SIZE];
+    sub_mod_n(total, sum, slice);
+
+
+    uint32_t ** result = (uint32_t **) malloc((numberOfSlices)*sizeof(uint32_t **));
+
+    for (int i = 0; i < numberOfSlices-1; i++){
+        result[i] = randomnessC[i];
+    }
+    result[numberOfSlices-1] = slice;
+
+    fillArrayListWithData(env, result, slices, numberOfSlices);
+    free(result);
+    freeArrayOfArrays(randomnessC, numberOfSlices-1);
+    freeArrayOfArrays(sharesC, weight);
+    (*env)->ReleaseIntArrayElements(env, identifiers, identifiersC, 0);
+}
+
+JNIEXPORT jobject JNICALL
+Java_com_project_collaborativeauthenticationapplication_service_crypto_CryptoExtendUnit_calculateMessageNative(
+        JNIEnv *env, jobject thiz, jobject slices) {
+    int numberOfSlices                 = getArrayListSize(env, slices);
+
+    uint32_t ** slicesC    = (uint32_t **) malloc((numberOfSlices)*sizeof(uint32_t **));
+
+    transformArrayListBigNumbersToCArray(env,  slices , slicesC, numberOfSlices);
+
+    uint32_t message[SIZE];
+
+    sum_mod_n(slicesC, message, numberOfSlices);
+
+
+
+    freeArrayOfArrays(slicesC, numberOfSlices);
+
+    return getNewBigNumberObject(env, message);
+
 }

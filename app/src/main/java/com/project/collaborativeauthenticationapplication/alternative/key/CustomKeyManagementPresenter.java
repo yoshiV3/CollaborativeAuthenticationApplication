@@ -1,8 +1,20 @@
 package com.project.collaborativeauthenticationapplication.alternative.key;
 
+import android.bluetooth.BluetoothDevice;
+import android.content.Context;
+
+import com.project.collaborativeauthenticationapplication.alternative.management.DataFiller;
+import com.project.collaborativeauthenticationapplication.alternative.management.application.LocalRefreshCoordinator;
+import com.project.collaborativeauthenticationapplication.alternative.management.application.RefreshCoordinator;
+import com.project.collaborativeauthenticationapplication.alternative.management.application.RemoteRefreshCoordinator;
+import com.project.collaborativeauthenticationapplication.alternative.management.extend.ExtendingCoordinator;
+import com.project.collaborativeauthenticationapplication.alternative.management.extend.LocalExtendingCoordinator;
+import com.project.collaborativeauthenticationapplication.alternative.management.extend.RemoteExtendingCoordinator;
+import com.project.collaborativeauthenticationapplication.alternative.network.Network;
 import com.project.collaborativeauthenticationapplication.data.ApplicationLoginEntity;
 import com.project.collaborativeauthenticationapplication.logger.AndroidLogger;
 import com.project.collaborativeauthenticationapplication.logger.Logger;
+import com.project.collaborativeauthenticationapplication.service.concurrency.ThreadPoolSupplier;
 import com.project.collaborativeauthenticationapplication.service.general.CustomKeyViewManager;
 
 import com.project.collaborativeauthenticationapplication.service.key.application.key_management.FeedbackTask;
@@ -14,7 +26,9 @@ import com.project.collaborativeauthenticationapplication.service.key.user.key_m
 import com.project.collaborativeauthenticationapplication.R;
 import com.project.collaborativeauthenticationapplication.service.general.Requester;
 import com.project.collaborativeauthenticationapplication.service.key.user.key_management.RequesterOfFeedbackTask;
+import com.project.collaborativeauthenticationapplication.service.network.Device;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -32,6 +46,9 @@ public class CustomKeyManagementPresenter implements KeyManagementPresenter{
 
 
     private Logger logger = new AndroidLogger();
+    private String remove;
+    private String extend;
+    private ExtendingCoordinator extendCoordinator;
 
     public static KeyManagementPresenter getInstance()
     {
@@ -45,6 +62,15 @@ public class CustomKeyManagementPresenter implements KeyManagementPresenter{
     }
 
 
+    private static final int MODE_LEADER   = 0;
+    private static final int MODE_FOLLOWER = 1;
+
+    private int mode = -1;
+
+    private static final int OPTION_REFRESH   = 0;
+    private static final int OPTION_EXTEND    = 1;
+
+    private int option = -1;
 
     private KeyManagementView view;
 
@@ -132,7 +158,8 @@ public class CustomKeyManagementPresenter implements KeyManagementPresenter{
 
     @Override
     public void onExtendSecret() {
-        view.navigate(R.id.action_credentialManagementFragment_to_keyRecoveryFragment);
+        option = OPTION_EXTEND;
+        view.navigate(R.id.action_credentialManagementFragment_to_modeSelectionFragement);
     }
 
     @Override
@@ -226,6 +253,131 @@ public class CustomKeyManagementPresenter implements KeyManagementPresenter{
     public void onFinishedRecovery() {
         view.navigate(R.id.action_keyRecoveryFragment_to_credentialManagementFragment);
     }
+
+    @Override
+    public void onRefreshSecret() {
+        option = OPTION_REFRESH;
+        view.navigate(R.id.action_credentialManagementFragment_to_modeSelectionFragement);
+    }
+
+    @Override
+    public void makeLeader() {
+        mode = MODE_LEADER;
+        view.navigate(R.id.action_modeSelectionFragement_to_selectParametersFragment);
+    }
+
+    @Override
+    public void makeFollower() {
+        mode = MODE_FOLLOWER;
+        view.navigate(R.id.action_modeSelectionFragement_to_managementWaitingForLeaderFragment);
+    }
+
+    @Override
+    public void selectedDevice(String device) {
+        if (option == OPTION_REFRESH){
+            this.remove = device;
+            view.navigate(R.id.action_selectParametersFragment_to_refreshFragment);
+        } else {
+            this.extend = device;
+            view.navigate(R.id.action_selectParametersFragment_to_extendFragment);
+        }
+    }
+
+    @Override
+    public void getDeviceList(DataFiller dataFiller) {
+        ThreadPoolSupplier.getSupplier().execute(new Runnable() {
+            @Override
+            public void run() {
+                List<String> list;
+                if (option == OPTION_REFRESH){
+                    list = persistenceManager.getAllRemoteParticipantsFor(messages.get(KEY_APPLICATION_NAME));
+                } else {
+                    list = new ArrayList<>();
+                    List<String> included = persistenceManager.getAllRemoteParticipantsFor(messages.get(KEY_APPLICATION_NAME));
+                    for(Device device : Network.getInstance().getPairedDevices() ){
+                        if (!included.contains(device.getAddress())){
+                            list.add(device.getAddress());
+                        }
+                    }
+                }
+
+                dataFiller.fill(list);
+            }
+        });
+    }
+
+
+    RefreshCoordinator refreshCoordinator;
+
+    @Override
+    public void openCoordinator(Context context) {
+        if (option == OPTION_REFRESH){
+            if (mode == MODE_LEADER){
+                Network.getInstance().close();
+                refreshCoordinator = new LocalRefreshCoordinator(this);
+            } else {
+                refreshCoordinator =new RemoteRefreshCoordinator(this);
+            }
+            logger.logEvent("Presenter", "opening coordinator", "low");
+            refreshCoordinator.open(context);
+        } else {
+            if (mode == MODE_LEADER){
+                Network.getInstance().close();
+                extendCoordinator = new LocalExtendingCoordinator(this);
+            } else {
+                extendCoordinator= new RemoteExtendingCoordinator(this);
+            }
+            extendCoordinator.open(context);
+        }
+    }
+
+    @Override
+    public String getDevice() {
+        return (option == OPTION_REFRESH) ? remove : extend;
+    }
+
+
+
+    @Override
+    public void startRefresh() {
+        logger.logEvent("presenter", "start refresh", "low");
+        refreshCoordinator.start();
+    }
+
+    @Override
+    public String getApplicationName() {
+        return messages.get(KEY_APPLICATION_NAME);
+    }
+
+    @Override
+    public void isRunnable() {
+        if (option == OPTION_REFRESH){
+            view.navigate(R.id.action_managementWaitingForLeaderFragment_to_refreshFragment);
+        } else {
+            view.navigate(R.id.action_managementWaitingForLeaderFragment_to_extendFragment);
+        }
+    }
+
+    @Override
+    public void onFinished() {
+        if (option == OPTION_REFRESH){
+            view.navigate(R.id.action_refreshFragment_to_finishFragment);
+        } else {
+            view.navigate(R.id.action_extendFragment_to_finishFragment);
+        }
+    }
+
+    @Override
+    public void endRefresh() {
+        view.onDone();
+    }
+
+    @Override
+    public void startExtend() {
+        logger.logEvent("presenter", "start extend", "low");
+        extendCoordinator.start();
+    }
+
 
     @Override
     public void onStartOverview() {

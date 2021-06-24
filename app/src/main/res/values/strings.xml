@@ -64,4 +64,17 @@
     <string name="finish">Finish</string>
     <string name="leader">Leader</string>
     <string name="follwer">Follwer</string>
+    <string name="refresh2">refresh</string>
+    <string name="waiting_for_the_leader_to_connect">Waiting for the leader to connect</string>
+    <string name="new_share">New</string>
+    <string name="title_activity_receive_extend">ReceiveExtendActivity</string>
+    <!--
+    This string is used for square devices and overridden by hello_world in
+    values-round/strings.xml for round devices.
+    -->
+    <string name="hello_world">Hello Square World!</string>
+    <string name="ok">OK</string>
+    <string name="login">Login</string>
+    <string name="invalid_credential">Invalid credential</string>
+    <string name="invalid_attempt">Invalid attempt</string>
 </resources>

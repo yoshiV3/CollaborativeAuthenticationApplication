@@ -259,6 +259,7 @@ public class LocalKeyGenerationCoordinator extends CustomTokenConsumer implement
             }
             logger.logEvent(COMPONENT, "Generated parts for:", "low", String.valueOf(getLocalIdentifier()));
             clients.getOrDefault(new Integer(getLocalIdentifier()), null).receiveParts(parts, publicKey, this);
+            clients.notify();
         }
     }
 
@@ -459,7 +460,7 @@ public class LocalKeyGenerationCoordinator extends CustomTokenConsumer implement
     @Override
     public void rollback() {
         for (KeyGenerationClient client: clients.values()){
-            client.close(true);
+            client.close(false);
         }
         persistenceClient.rollback();
         presenter.error();
